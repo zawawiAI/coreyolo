@@ -201,15 +201,16 @@ class Attention(nn.Module):
         self.pe = Conv(dim, dim, 3, 1, g=dim, act="none")
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        b, c, h, w = x.shape
-        n = h * w
-        qkv = self.qkv(x)
-        q, k, v = qkv.view(b, self.num_heads, self.key_dim * 2 + self.head_dim, n).split(
-            [self.key_dim, self.key_dim, self.head_dim], dim=2
-        )
+        # Do not do `n = h * w` then `.view(..., n)`. Core ML's PyTorch frontend
+        # inserts `int()` on that 1-element shape tensor and raises
+        # "only 0-dimensional arrays can be converted to Python scalars".
+        qkv = self.qkv(x).flatten(2)
+        qkv = qkv.unflatten(1, (self.num_heads, self.key_dim * 2 + self.head_dim))
+        q, k, v = qkv.split((self.key_dim, self.key_dim, self.head_dim), dim=2)
         attn = (q.transpose(-2, -1) @ k) * self.scale
         attn = attn.softmax(dim=-1)
-        out = (v @ attn.transpose(-2, -1)).view(b, c, h, w) + self.pe(v.reshape(b, c, h, w))
+        mixed = (v @ attn.transpose(-2, -1)).flatten(1, 2)
+        out = mixed.reshape_as(x) + self.pe(v.flatten(1, 2).reshape_as(x))
         return self.proj(out)
 
 

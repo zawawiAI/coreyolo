@@ -23,19 +23,31 @@ def _cls_branch(c: int, c3: int, nc: int, act: str, legacy: bool) -> nn.Sequenti
 
 
 def nms_free_topk(
-    decoded: torch.Tensor, max_det: int = 300, return_idx: bool = False
+    decoded: torch.Tensor,
+    max_det: int = 300,
+    return_idx: bool = False,
+    nc: int | None = None,
 ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
-    """Turn ``(B, 4+nc, A)`` xyxy+scores into ``(B, K, 6)`` xyxy, conf, cls."""
-    batch, ch, anchors = decoded.shape
-    nc = ch - 4
-    k = min(max_det, anchors)
+    """Turn ``(B, 4+nc, A)`` xyxy+scores into ``(B, K, 6)`` xyxy, conf, cls.
+
+    ``nc`` and ``k`` must be Python ints. Reading them from ``decoded.shape``
+    during ``torch.jit.trace`` yields 1-element tensors; Core ML then inserts
+    ``int()`` and fails (same class of bug as C2PSA attention).
+    """
+    if nc is None:
+        nc = decoded.shape[1] - 4
+    n_anchors = decoded.shape[-1]
+    k = max_det
+    if isinstance(n_anchors, int):
+        k = min(max_det, n_anchors)
     preds = decoded.permute(0, 2, 1).contiguous()
     boxes, scores = preds.split((4, nc), dim=-1)
     keep = scores.amax(-1).topk(k, dim=1).indices
     boxes = boxes.gather(1, keep.unsqueeze(-1).expand(-1, -1, 4))
     scores = scores.gather(1, keep.unsqueeze(-1).expand(-1, -1, nc))
     scores, flat = scores.flatten(1).topk(k, dim=1)
-    row = torch.arange(batch, device=decoded.device)[:, None]
+    batch = boxes.shape[0]
+    row = torch.arange(batch if isinstance(batch, int) else 1, device=decoded.device)[:, None]
     out = torch.cat(
         (boxes[row, flat // nc], scores.unsqueeze(-1), (flat % nc).unsqueeze(-1).float()),
         dim=-1,
@@ -82,6 +94,7 @@ class Detect(nn.Module):
         self.stride = torch.zeros(self.nl)
         self._export_anchors: torch.Tensor | None = None
         self._export_strides: torch.Tensor | None = None
+        self._export_k: int | None = None
         if end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
@@ -91,6 +104,7 @@ class Detect(nn.Module):
         anchors, strides = make_anchors(feats, self.stride.to(feats[0].device), 0.5)
         self._export_anchors = anchors.transpose(0, 1).unsqueeze(0)
         self._export_strides = strides.transpose(0, 1)
+        self._export_k = min(self.max_det, int(self._export_anchors.shape[-1]))
 
     def _heads(self, feats: list[torch.Tensor], box_head: nn.ModuleList, cls_head: nn.ModuleList) -> list[torch.Tensor]:
         return [torch.cat((box_head[i](feats[i]), cls_head[i](feats[i])), 1) for i in range(self.nl)]
@@ -123,8 +137,16 @@ class Detect(nn.Module):
         dbox = dist2bbox(self.dfl(box), anchors, xywh=xywh, dim=1) * strides
         decoded = torch.cat((dbox, cls.sigmoid()), 1)
         if self.end2end:
-            return nms_free_topk(decoded, self.max_det)
+            return nms_free_topk(decoded, self._topk_k(decoded), nc=self.nc)
         return decoded
+
+    def _topk_k(self, decoded: torch.Tensor) -> int:
+        if self._export_k is not None:
+            return self._export_k
+        n = decoded.shape[-1]
+        if isinstance(n, int):
+            return min(self.max_det, n)
+        return self.max_det
 
     def bias_init(self) -> None:
         """Stable starting point for box and class logits."""
@@ -182,7 +204,7 @@ class Segment(Detect):
             if self.training:
                 return {"one2many": one2many, "one2one": one2one}, mc, proto
             decoded = self._decode_maps(one2one)
-            topk, idx = nms_free_topk(decoded, self.max_det, return_idx=True)
+            topk, idx = nms_free_topk(decoded, self._topk_k(decoded), return_idx=True, nc=self.nc)
             mc_k = mc.permute(0, 2, 1).gather(1, idx.unsqueeze(-1).expand(-1, -1, self.nm))
             return topk, mc_k, proto
         outputs = self._heads(feats, self.cv2, self.cv3)

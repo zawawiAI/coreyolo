@@ -18,7 +18,7 @@ jobs:
   upload:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Pack listed zoo files
         run: |
           python3 - <<'PY'
