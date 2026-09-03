@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CoreYOLO — Object detection for Apple silicon</title>
+  <meta name="description" content="Apache-2.0 YOLO-style detector trained in PyTorch and deployed with Core ML on iPhone and Mac." />
+  <link rel="stylesheet" href="css/site.css?v=kl" />
+</head>
+<body>
+  <div class="ribbon">Version 0.1.0 alpha. Apache License 2.0. Not affiliated with Ultralytics or Apple. <a href="docs.html">Read the docs</a></div>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="wordmark" href="index.html">Core<span>YOLO</span></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="models.html">Models</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="deploy.html">Deploy</a></li>
+        <li><a class="nav-cta" href="docs.html#quickstart">Get started</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <section class="hero">
+    <p class="eyebrow">Core ML. First.</p>
+    <h1>Object detection.<br />Built for Apple.</h1>
+    <p class="sub">Train a YOLO-style detector in Python. Ship a Core ML package to iPhone. Apache-2.0, end to end.</p>
+    <div class="hero-actions">
+      <a class="btn btn-blue" href="docs.html#quickstart">Get started</a>
+      <a class="btn btn-text" href="deploy.html">See Core ML</a>
+    </div>
+  </section>
+
+  <div class="phone-stage">
+    <div class="phone" aria-hidden="true">
+      <img class="scene" src="img/scene.jpg" alt="" />
+      <div class="notch"></div>
+      <div class="box" style="left:7.4%;top:75.2%;width:15.0%;height:21.2%;border-color:#64d2ff;"></div>
+      <div class="tag" style="left:7.4%;top:71.8%;background:#64d2ff;">person 0.81</div>
+      <div class="box" style="left:22.5%;top:78.0%;width:14.8%;height:21.6%;border-color:#5e5ce6;"></div>
+      <div class="tag" style="left:22.5%;top:74.6%;background:#5e5ce6;">person 0.82</div>
+      <div class="box" style="left:55.8%;top:80.2%;width:39.1%;height:16.1%;border-color:#32d74b;"></div>
+      <div class="tag" style="left:55.8%;top:76.8%;background:#32d74b;">car 0.72</div>
+    </div>
+  </div>
+
+  <section class="section gray">
+    <div class="wrap-wide">
+      <h2>Designed for Apple silicon.</h2>
+      <p class="lead">Fused convolutions. ReLU by default. A static square graph. The Neural Engine is the product path, not an afterthought.</p>
+      <div class="tiles">
+        <article class="tile">
+          <h3>Core ML first</h3>
+          <p>Export an FP16 ML Program for iOS 16 and macOS 13. GPU, Neural Engine, or both — first-class compute units.</p>
+        </article>
+        <article class="tile">
+          <h3>Apache-2.0</h3>
+          <p>Train, export, and inference under one permissive license. Closed App Store apps can ship it. No AGPL copyleft.</p>
+        </article>
+        <article class="tile">
+          <h3>Your labels</h3>
+          <p>Drop in a Roboflow YOLO or YOLO-Seg export. Same <code>data.yaml</code> you already have.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="wrap">
+      <h2>From notebook to iPhone.</h2>
+      <p class="lead">One SDK. Train, validate, predict, export. Application code loads CoreYOLO files only.</p>
+      <div class="install">
+        <code id="install-line">pip install coreyolo</code>
+        <button class="copy" type="button" data-copy="#install-line">Copy</button>
+      </div>
+      <pre><code>from coreyolo import YOLO
+
+model = YOLO("n")                 # DFL; pass family="e2e" for NMS-free
+model.train(data="data.yaml", epochs=100, imgsz=640)
+model.save("weights/app.coreyolo")
+model.export(imgsz=640)   # Core ML for iPhone</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap-wide">
+      <h2>Two graphs. One trainer.</h2>
+      <p class="lead">Pick the graph that matches the phone, not a 50-task zoo.</p>
+      <div class="grid-2">
+        <article class="card">
+          <h3>DFL</h3>
+          <p>C2f + Distribution Focal Loss. Host NMS. Optional remap from YOLOv8n tensors into a native CoreYOLO checkpoint. Detect and instance segmentation.</p>
+          <p><a href="models.html">See models ›</a></p>
+        </article>
+        <article class="card">
+          <h3>E2E</h3>
+          <p>Original C3k2 + C2PSA graph. NMS-free top-300 at inference. You train it from scratch.</p>
+          <p><a href="models.html">See models ›</a></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section gray">
+    <div class="wrap-wide">
+      <h2>Tasks that ship.</h2>
+      <p class="lead">Detection and instance segmentation today. Pose and OBB stay out of scope on purpose.</p>
+      <div class="grid-2">
+        <article class="card">
+          <h3>Detect</h3>
+          <p>Anchor-free boxes at strides 8, 16, and 32. Class-aware NMS on the host for DFL. Top-300 for E2E.</p>
+        </article>
+        <article class="card">
+          <h3>Segment</h3>
+          <p>Proto masks on P3, Roboflow YOLO-Seg polygons, three Core ML outputs. Assemble masks after NMS.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <a class="wordmark" href="index.html" style="color:#1d1d1f">Core<span>YOLO</span></a>
+        <p>Open-source YOLO-style detection for Core ML.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <a href="models.html">Models</a>
+        <a href="docs.html">Docs</a>
+        <a href="deploy.html">Deploy</a>
+      </div>
+      <div>
+        <h4>Developers</h4>
+        <a href="docs.html#quickstart">Quickstart</a>
+        <a href="docs.html#cli">CLI</a>
+        <a href="docs.html#sdk">Python SDK</a>
+        <a href="../examples/ios/README.md">iOS sample</a>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <a href="../README.md">Repository README</a>
+        <a href="../docs/CoreYOLO-White-Paper.pdf">White paper</a>
+        <a href="../LICENSE">Apache-2.0</a>
+      </div>
+    </div>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Original software under Apache License 2.0. Inspired by the YOLO family and the Roboflow YOLO label layout. Not a fork of Ultralytics. Not affiliated with Ultralytics or Apple.</p>
+  </footer>
+  <script src="js/site.js"></script>
+</body>
+</html>

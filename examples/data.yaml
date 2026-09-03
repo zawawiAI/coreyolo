@@ -1,0 +1,14 @@
+# Roboflow YOLO export (YOLOv5 / YOLOv8 / YOLOv11) — drop-in compatible.
+# Unzip the export so this file sits next to train/ and valid/.
+#
+# Label files are one .txt per image:
+#   class_id  x_center  y_center  width  height
+# All four box values are normalized to [0, 1] (Roboflow default).
+
+path: .
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 2
+names: ["cat", "dog"]

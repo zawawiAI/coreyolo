@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Training / export artifacts
+runs/
+*.pt
+*.coreyolo
+*.pth
+*.onnx
+*.mlpackage/
+*.mlmodel
+*.mlmodelc/
+
+# Downloaded / user datasets (keep the Python package coreyolo/data/)
+datasets/
+/data/
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.webp
+!examples/**
+!website/img/**
+
+# Accidental third-party config dumps
+Ultralytics/
+
+# Xcode user data
+examples/ios/**/xcuserdata/
+*.xcuserstate
+xcuserdata/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Models — CoreYOLO</title>
+  <meta name="description" content="CoreYOLO scales n through x, DFL and E2E graphs, detect and segment." />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="wordmark" href="index.html">Core<span>YOLO</span></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="models.html" aria-current="page">Models</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="deploy.html">Deploy</a></li>
+        <li><a class="nav-cta" href="docs.html#quickstart">Get started</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <header class="page-hero">
+    <p class="eyebrow">Models</p>
+    <h1>A scale for every device.</h1>
+    <p>Nano for phones. Small for Mac and iPad. Larger when accuracy leads and the model can wait.</p>
+  </header>
+
+  <section class="section" style="padding-top:12px">
+    <div class="wrap-wide">
+      <h2>Compound scaling</h2>
+      <p class="lead">DFL follows the usual n / s / m / l / x ladder. E2E uses depth 0.50 on n / s / m.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scale</th>
+              <th>DFL depth / width</th>
+              <th>Nano params (detect, nc=80)</th>
+              <th>Typical use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>n</td>
+              <td>0.33 / 0.25</td>
+              <td>3.16M (DFL) · 2.73M (E2E)</td>
+              <td>iPhone, real-time camera</td>
+            </tr>
+            <tr>
+              <td>s</td>
+              <td>0.33 / 0.50</td>
+              <td>—</td>
+              <td>Mac / iPad</td>
+            </tr>
+            <tr>
+              <td>m</td>
+              <td>0.67 / 0.75</td>
+              <td>—</td>
+              <td>Accuracy-biased</td>
+            </tr>
+            <tr>
+              <td>l / x</td>
+              <td>1.00 / 1.00–1.25</td>
+              <td>—</td>
+              <td>Offline / max accuracy</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section gray">
+    <div class="wrap-wide">
+      <h2>Graphs</h2>
+      <p class="lead">Same trainer. Different graphs. Choose at train time with <code>--family dfl</code> or <code>--family e2e</code>.</p>
+      <div class="grid-2">
+        <article class="card">
+          <h3>DFL — default</h3>
+          <p>C2f, SPPF, PAN-FPN, decoupled DFL head, <code>reg_max=16</code>. Eval is decoded xywh plus class scores. NMS on the host. Core ML layout <code>(1, 4+nc, N)</code>.</p>
+          <p>Optional one-time tensor remap from YOLOv8n / YOLOv8n-seg into a native <code>.coreyolo</code> file. YOLO11n and YOLO26n cannot map.</p>
+        </article>
+        <article class="card">
+          <h3>E2E</h3>
+          <p>Original C3k2, residual SPPF, C2PSA, dual TAL head, <code>reg_max=1</code>. Eval is NMS-free top-300, <code>(B, 300, 6)</code> as xyxy, conf, cls. Train from scratch.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap-wide">
+      <h2>Zoo</h2>
+      <p class="lead">Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Graph</th>
+              <th>Task</th>
+              <th>Act</th>
+              <th>How</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>coreyolo-n-coco</td>
+              <td>dfl</td>
+              <td>detect</td>
+              <td>SiLU</td>
+              <td><code>coreyolo convert --weights yolov8n.pt</code></td>
+            </tr>
+            <tr>
+              <td>coreyolo-n-coco-seg</td>
+              <td>dfl</td>
+              <td>segment</td>
+              <td>SiLU</td>
+              <td><code>coreyolo convert --weights yolov8n-seg.pt</code></td>
+            </tr>
+            <tr>
+              <td>coreyolo-n-coco-relu</td>
+              <td>dfl</td>
+              <td>detect</td>
+              <td>ReLU</td>
+              <td><code>coreyolo train --recipe coco-n</code></td>
+            </tr>
+            <tr>
+              <td>coreyolo-e2e-n-coco</td>
+              <td>e2e</td>
+              <td>detect</td>
+              <td>ReLU</td>
+              <td><code>coreyolo train --recipe coco-n-e2e</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead" style="margin-top:28px">See <code>weights/manifest.json</code> in the repository.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <a class="wordmark" href="index.html" style="color:#1d1d1f">Core<span>YOLO</span></a>
+        <p>Open-source YOLO-style detection for Core ML.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <a href="models.html">Models</a>
+        <a href="docs.html">Docs</a>
+        <a href="deploy.html">Deploy</a>
+      </div>
+      <div>
+        <h4>Developers</h4>
+        <a href="docs.html#quickstart">Quickstart</a>
+        <a href="docs.html#cli">CLI</a>
+        <a href="docs.html#sdk">Python SDK</a>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <a href="../LICENSE">Apache-2.0</a>
+      </div>
+    </div>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Not affiliated with Ultralytics or Apple.</p>
+  </footer>
+  <script src="js/site.js"></script>
+</body>
+</html>

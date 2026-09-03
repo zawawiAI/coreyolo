@@ -1,0 +1,65 @@
+name: Release zoo
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag for this zoo drop (e.g. v0.1.0-zoo)
+        required: true
+      notes:
+        description: Release notes
+        required: false
+        default: See weights/manifest.json for ids, files, and mAP (null until val is recorded).
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack listed zoo files
+        run: |
+          python3 - <<'PY'
+          import json, shutil, subprocess, sys
+          from pathlib import Path
+          catalog = json.loads(Path("weights/manifest.json").read_text())
+          packed = []
+          missing = []
+          for entry in catalog["models"]:
+              for name in (entry.get("files") or {}).values():
+                  path = Path("weights") / name
+                  if path.is_dir() and path.suffix == ".mlpackage":
+                      zip_path = Path("weights") / f"{path.name}.zip"
+                      if zip_path.exists():
+                          zip_path.unlink()
+                      shutil.make_archive(str(zip_path.with_suffix("")), "zip", path.parent, path.name)
+                      packed.append(zip_path)
+                  elif path.is_file():
+                      packed.append(path)
+                  else:
+                      missing.append(str(path))
+          Path("weights/_release_files.txt").write_text("\n".join(str(p) for p in packed))
+          print("packed", packed)
+          print("missing", missing)
+          if not packed:
+              print("No zoo binaries under weights/. Convert or train, then re-run.")
+              sys.exit(1)
+          PY
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          NOTES="${{ github.event.inputs.notes }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG exists"
+          else
+            gh release create "$TAG" --title "$TAG" --notes "$NOTES" weights/manifest.json
+          fi
+          gh release upload "$TAG" weights/manifest.json --clobber
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            gh release upload "$TAG" "$f" --clobber
+          done < weights/_release_files.txt

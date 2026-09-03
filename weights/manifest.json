@@ -1,0 +1,83 @@
+{
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "note": "Checkpoints and .mlpackage files are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
+  "models": [
+    {
+      "id": "coreyolo-n-coco",
+      "family": "dfl",
+      "scale": "n",
+      "task": "detect",
+      "act": "silu",
+      "imgsz": 640,
+      "nc": 80,
+      "how": "coreyolo convert --weights yolov8n.pt --out weights/coreyolo-n-coco.coreyolo",
+      "files": {
+        "checkpoint": "coreyolo-n-coco.coreyolo",
+        "coreml": "coreyolo-n-coco.mlpackage"
+      },
+      "metrics": {
+        "dataset": "COCO 2017 val",
+        "mAP50": null,
+        "mAP50-95": null
+      }
+    },
+    {
+      "id": "coreyolo-n-coco-seg",
+      "family": "dfl",
+      "scale": "n",
+      "task": "segment",
+      "act": "silu",
+      "imgsz": 640,
+      "nc": 80,
+      "how": "coreyolo convert --weights yolov8n-seg.pt --out weights/coreyolo-n-coco-seg.coreyolo",
+      "files": {
+        "checkpoint": "coreyolo-n-coco-seg.coreyolo",
+        "coreml": "coreyolo-n-coco-seg.mlpackage"
+      },
+      "metrics": {
+        "dataset": "COCO 2017 val (box mAP until mask val lands)",
+        "mAP50": null,
+        "mAP50-95": null
+      }
+    },
+    {
+      "id": "coreyolo-n-coco-relu",
+      "family": "dfl",
+      "scale": "n",
+      "task": "detect",
+      "act": "relu",
+      "imgsz": 640,
+      "nc": 80,
+      "how": "coreyolo train --recipe coco-n",
+      "files": {
+        "checkpoint": "coreyolo-n-coco-relu.coreyolo",
+        "coreml": "coreyolo-n-coco-relu.mlpackage"
+      },
+      "metrics": {
+        "dataset": "COCO 2017 val",
+        "mAP50": null,
+        "mAP50-95": null
+      }
+    },
+    {
+      "id": "coreyolo-e2e-n-coco",
+      "family": "e2e",
+      "scale": "n",
+      "task": "detect",
+      "act": "relu",
+      "imgsz": 640,
+      "nc": 80,
+      "how": "coreyolo train --recipe coco-n-e2e",
+      "files": {
+        "checkpoint": "coreyolo-e2e-n-coco.coreyolo",
+        "coreml": "coreyolo-e2e-n-coco.mlpackage"
+      },
+      "metrics": {
+        "dataset": "COCO 2017 val",
+        "mAP50": null,
+        "mAP50-95": null
+      }
+    }
+  ]
+}

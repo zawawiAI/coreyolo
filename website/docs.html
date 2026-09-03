@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Docs — CoreYOLO</title>
+  <meta name="description" content="Train, val, predict, and export CoreYOLO. Python SDK and CLI." />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="wordmark" href="index.html">Core<span>YOLO</span></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="models.html">Models</a></li>
+        <li><a href="docs.html" aria-current="page">Docs</a></li>
+        <li><a href="deploy.html">Deploy</a></li>
+        <li><a class="nav-cta" href="#quickstart">Get started</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <header class="page-hero">
+    <p class="eyebrow">Documentation</p>
+    <h1>From data.yaml to Core ML.</h1>
+    <p>The CLI and the Python SDK share the same internals. Application code loads CoreYOLO files only.</p>
+  </header>
+
+  <div class="docs-layout">
+    <nav class="docs-side" aria-label="Docs">
+      <h4>Start</h4>
+      <a class="active" href="#quickstart">Quickstart</a>
+      <a href="#sdk">Python SDK</a>
+      <a href="#cli">CLI</a>
+      <h4>Train</h4>
+      <a href="#graphs">DFL and E2E</a>
+      <a href="#labels">Labels</a>
+      <a href="#segment">Segmentation</a>
+      <a href="#coco">COCO</a>
+      <h4>Ship</h4>
+      <a href="deploy.html">Core ML / iPhone</a>
+    </nav>
+    <article class="docs-body">
+      <h2 id="quickstart">Quickstart</h2>
+      <p>Install CoreYOLO, then train a nano model on Roboflow YOLO labels.</p>
+      <pre><code>pip install coreyolo</code></pre>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" type="button" data-tab="py" aria-selected="true">Python</button>
+        <button class="tab" type="button" data-tab="cli" aria-selected="false">CLI</button>
+      </div>
+      <div data-panel="py">
+        <pre><code>from coreyolo import YOLO
+
+model = YOLO("n")                 # DFL graph (default)
+# model = YOLO("n", family="e2e")
+model.train(data="data.yaml", epochs=100, imgsz=640)
+model.save("weights/app.coreyolo")
+results = model.predict("photo.jpg", classes="person")
+model.export(imgsz=640)</code></pre>
+      </div>
+      <div data-panel="cli" hidden>
+        <pre><code>coreyolo dummy-data --out datasets/dummy
+coreyolo train --data datasets/dummy/data.yaml --model n --family dfl --epochs 20 --imgsz 320
+coreyolo train --data datasets/dummy/data.yaml --model n --family e2e --epochs 20 --imgsz 320
+coreyolo val --data datasets/dummy/data.yaml --weights runs/detect/train/weights/best.pt
+coreyolo export --weights runs/detect/train/weights/best.pt --imgsz 320
+coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source photo.jpg</code></pre>
+      </div>
+      <p><code>YOLO("n")</code> builds an untrained DFL nano graph. Pass <code>family="e2e"</code> for the NMS-free graph. <code>YOLO("weights/app.coreyolo")</code> or a <code>.mlpackage</code> loads a trained artifact. Do not pass Ultralytics <code>yolov8n.pt</code> into <code>YOLO()</code> — that layout is rejected.</p>
+
+      <h2 id="sdk">Python SDK</h2>
+      <p><code>from coreyolo import YOLO, Result</code>. Methods: <code>train</code>, <code>val</code>, <code>predict</code>, <code>export</code>, <code>save</code>, <code>info</code>, <code>dummy_data</code>. Webcam: <code>model.predict(0)</code> on a Mac. That is not the iPhone runtime.</p>
+      <p>Native checkpoints are tagged <code>format: "coreyolo"</code> with <code>stem.*</code> / <code>head.*</code> tensors. Suffix may be <code>.coreyolo</code> or <code>.pt</code>.</p>
+
+      <h2 id="cli">CLI</h2>
+      <pre><code>coreyolo train | val | predict | export | convert | coco | dummy-data</code></pre>
+      <p>Device: <code>--device gpu</code> (default) uses PyTorch MPS / Core ML CPU_AND_GPU. Also <code>all</code>, <code>ane</code>, <code>cpu</code>.</p>
+      <p>Graph: <code>--family dfl</code> (default, C2f + host NMS) or <code>--family e2e</code> (C3k2 + C2PSA, NMS-free). Old <code>8</code> / <code>26</code> flags still load.</p>
+
+      <h2 id="graphs">DFL and E2E</h2>
+      <p><strong>DFL</strong> is the default detect graph: C2f, SPPF, PAN-FPN, Distribution Focal Loss, decoded xywh, class-aware NMS on the host. Core ML layout <code>(1, 4+nc, N)</code>. Optional one-time remap from YOLOv8n into a native <code>.coreyolo</code> file.</p>
+      <p><strong>E2E</strong> is C3k2 + C2PSA with a dual TAL head and NMS-free top-300 at inference. Core ML layout <code>(1, 300, 6)</code> as xyxy, conf, cls. Train from scratch: <code>--family e2e</code> or <code>--recipe coco-n-e2e</code>.</p>
+
+      <h2 id="labels">Labels</h2>
+      <p>Roboflow YOLO export: <code>data.yaml</code> plus <code>train|valid/{images,labels}</code>. Each detect line is normalized <code>class xc yc w h</code>. Segmentation uses polygons. The loader accepts list or dict <code>names</code>, <code>val</code> or <code>valid</code>.</p>
+
+      <h2 id="segment">Segmentation</h2>
+      <pre><code>coreyolo dummy-data --out datasets/dummy-seg --segment
+coreyolo train --data datasets/dummy-seg/data.yaml --model n --task segment --epochs 20 --imgsz 320</code></pre>
+      <p>DFL is the supported seg graph. Mosaic is off so polygons stay valid. Core ML writes three outputs: detections, mask coefficients, proto.</p>
+
+      <h2 id="coco">COCO</h2>
+      <pre><code>coreyolo coco --out datasets/coco --download
+coreyolo coco --out datasets/coco --splits val --max-images 512 --no-download
+coreyolo train --recipe coco-n-fast
+coreyolo train --recipe coco-n-e2e</code></pre>
+      <p>Optional bootstrap, once, not in the app:</p>
+      <pre><code>coreyolo convert --weights yolov8n.pt --out weights/coreyolo-n-coco.coreyolo</code></pre>
+    </article>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <a class="wordmark" href="index.html" style="color:#1d1d1f">Core<span>YOLO</span></a>
+        <p>Open-source YOLO-style detection for Core ML.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <a href="models.html">Models</a>
+        <a href="docs.html">Docs</a>
+        <a href="deploy.html">Deploy</a>
+      </div>
+      <div>
+        <h4>Developers</h4>
+        <a href="#quickstart">Quickstart</a>
+        <a href="#cli">CLI</a>
+        <a href="#sdk">Python SDK</a>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <a href="../LICENSE">Apache-2.0</a>
+      </div>
+    </div>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Not affiliated with Ultralytics or Apple.</p>
+  </footer>
+  <script src="js/site.js"></script>
+</body>
+</html>

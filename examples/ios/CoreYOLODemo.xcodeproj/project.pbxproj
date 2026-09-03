@@ -1,0 +1,269 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000100000001 /* CoreYOLODemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000100000001 /* CoreYOLODemoApp.swift */; };
+		A10000000000000100000002 /* CameraDetectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000100000002 /* CameraDetectView.swift */; };
+		A10000000000000100000003 /* Detector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000100000003 /* Detector.swift */; };
+		A10000000000000100000004 /* HostNMS.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000100000004 /* HostNMS.swift */; };
+		A10000000000000100000005 /* Letterbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000100000005 /* Letterbox.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000100000001 /* CoreYOLODemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreYOLODemoApp.swift; sourceTree = "<group>"; };
+		A20000000000000100000002 /* CameraDetectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDetectView.swift; sourceTree = "<group>"; };
+		A20000000000000100000003 /* Detector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Detector.swift; sourceTree = "<group>"; };
+		A20000000000000100000004 /* HostNMS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostNMS.swift; sourceTree = "<group>"; };
+		A20000000000000100000005 /* Letterbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Letterbox.swift; sourceTree = "<group>"; };
+		A20000000000000100000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A30000000000000100000001 /* CoreYOLODemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreYOLODemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A40000000000000100000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A50000000000000100000001 = {
+			isa = PBXGroup;
+			children = (
+				A50000000000000100000002 /* CoreYOLODemo */,
+				A50000000000000100000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A50000000000000100000002 /* CoreYOLODemo */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000100000001 /* CoreYOLODemoApp.swift */,
+				A20000000000000100000002 /* CameraDetectView.swift */,
+				A20000000000000100000003 /* Detector.swift */,
+				A20000000000000100000004 /* HostNMS.swift */,
+				A20000000000000100000005 /* Letterbox.swift */,
+				A20000000000000100000006 /* Info.plist */,
+			);
+			path = CoreYOLODemo;
+			sourceTree = "<group>";
+		};
+		A50000000000000100000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A30000000000000100000001 /* CoreYOLODemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A60000000000000100000001 /* CoreYOLODemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000000000000100000002 /* Build configuration list for PBXNativeTarget "CoreYOLODemo" */;
+			buildPhases = (
+				A70000000000000100000001 /* Sources */,
+				A40000000000000100000001 /* Frameworks */,
+				A70000000000000100000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CoreYOLODemo;
+			productName = CoreYOLODemo;
+			productReference = A30000000000000100000001 /* CoreYOLODemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A90000000000000100000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A60000000000000100000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A80000000000000100000001 /* Build configuration list for PBXProject "CoreYOLODemo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A50000000000000100000001;
+			productRefGroup = A50000000000000100000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A60000000000000100000001 /* CoreYOLODemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A70000000000000100000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A70000000000000100000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000100000001 /* CoreYOLODemoApp.swift in Sources */,
+				A10000000000000100000002 /* CameraDetectView.swift in Sources */,
+				A10000000000000100000003 /* Detector.swift in Sources */,
+				A10000000000000100000004 /* HostNMS.swift in Sources */,
+				A10000000000000100000005 /* Letterbox.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA0000000000000100000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA0000000000000100000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AA0000000000000100000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CoreYOLODemo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CoreYOLO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera frames are processed on this device for CoreYOLO object detection.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.coreyolo.CoreYOLODemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA0000000000000100000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CoreYOLODemo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CoreYOLO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera frames are processed on this device for CoreYOLO object detection.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.coreyolo.CoreYOLODemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A80000000000000100000001 /* Build configuration list for PBXProject "CoreYOLODemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000100000001 /* Debug */,
+				AA0000000000000100000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000000000000100000002 /* Build configuration list for PBXNativeTarget "CoreYOLODemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000100000003 /* Debug */,
+				AA0000000000000100000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A90000000000000100000001 /* Project object */;
+}

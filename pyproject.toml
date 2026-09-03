@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coreyolo"
+version = "0.1.0"
+description = "Open-source YOLO-style detector trained in PyTorch and deployed with Core ML on Apple silicon."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "CoreYOLO contributors" }]
+keywords = ["yolo", "object-detection", "coreml", "apple-silicon", "roboflow"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.2",
+    "torchvision>=0.17",
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "pillow>=10.0",
+    "tqdm>=4.66",
+    "coremltools>=8.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "build>=1.2", "twine>=5.0"]
+video = ["opencv-python>=4.8"]
+
+[project.scripts]
+coreyolo = "coreyolo.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/zawawiAI/coreyolo"
+Repository = "https://github.com/zawawiAI/coreyolo"
+Issues = "https://github.com/zawawiAI/coreyolo/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["coreyolo*"]
+
+[tool.setuptools.package-data]
+coreyolo = ["recipes/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "coreml: Core ML export/load (macOS only)",
+]
