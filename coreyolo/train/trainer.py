@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -18,9 +19,18 @@ from coreyolo.data.yaml import YOLODatasetYAML
 from coreyolo.infer.nms import non_max_suppression
 from coreyolo.nn.decode import xywh_to_xyxy
 from coreyolo.nn.model import build_model, normalize_family
+from coreyolo.nn.modules import normalize_act
 from coreyolo.train.loss import DetectionLoss, SegmentationLoss
 from coreyolo.train.metrics import ap_per_class
-from coreyolo.utils import increment_path, load_checkpoint, place_module, save_checkpoint, select_device
+from coreyolo.utils import (
+    increment_path,
+    load_checkpoint,
+    MIT_WEIGHT_LICENSE,
+    origin_metadata,
+    place_module,
+    save_checkpoint,
+    select_device,
+)
 
 
 @dataclass
@@ -40,7 +50,7 @@ class TrainConfig:
     project: str = "runs/detect"
     name: str = "train"
     act: str = "relu"
-    family: str = "dfl"
+    family: str = "gelan"
     task: str = "detect"
     box: float = 7.5
     cls: float = 0.5
@@ -62,6 +72,7 @@ class TrainConfig:
     def __post_init__(self) -> None:
         self.family = normalize_family(self.family)
         self.task = str(self.task).lower()
+        self.act = normalize_act(self.act)
 
 
 class ModelEMA:
@@ -106,9 +117,11 @@ def _sgd_param_groups(model: torch.nn.Module, lr: float, momentum: float, weight
 
 def train(cfg: TrainConfig) -> Path:
     torch.manual_seed(cfg.seed)
+    cfg.act = normalize_act(cfg.act)
+    cfg.family = normalize_family(cfg.family)
     device = select_device(cfg.device)
     task = str(cfg.task).lower()
-    print(f"device: {device}  family={cfg.family}  task={task}")
+    print(f"device: {device}  family={cfg.family}  task={task}  act={cfg.act}")
     spec = YOLODatasetYAML(cfg.data)
     project = cfg.project
     if task == "segment" and project == "runs/detect":
@@ -164,9 +177,17 @@ def train(cfg: TrainConfig) -> Path:
         build_model(nc=spec.nc, scale=cfg.model, act=cfg.act, family=cfg.family, task=task),
         device,
     )
+    origin: dict = {}
     if cfg.resume:
         ckpt = load_checkpoint(cfg.resume, map_location=device)
         model.load_state_dict(ckpt["model"])
+        origin = origin_metadata(ckpt)
+        if origin:
+            print(
+                "warning: --resume is converted Ultralytics tensors (AGPL-3.0). "
+                "Fine-tunes stay AGPL-3.0; they are not MIT. See docs/licenses.md.",
+                file=sys.stderr,
+            )
 
     if task == "segment":
         criterion = SegmentationLoss(model, box=cfg.box, cls=cfg.cls, dfl=cfg.dfl)
@@ -255,7 +276,10 @@ def train(cfg: TrainConfig) -> Path:
             "reg_max": int(getattr(model.head, "reg_max", 16)),
             "imgsz": cfg.imgsz,
             "args": asdict(cfg),
+            "weights_license": MIT_WEIGHT_LICENSE,
         }
+        if origin:
+            ckpt.update(origin)
         save_checkpoint(wdir / "last.pt", ckpt)
         if did_val:
             if fitness >= best_fitness:

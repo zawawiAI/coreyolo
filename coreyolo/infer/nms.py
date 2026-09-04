@@ -63,12 +63,10 @@ def non_max_suppression(
         xyxy = xywh_to_xyxy(boxes)
         # offset boxes by class so NMS is class-aware in one call
         max_wh = 7680
-        offset = cls_id.float() * max_wh
+        offset = cls_id.to(dtype=xyxy.dtype) * max_wh
         nms_boxes = xyxy + offset[:, None]
-        if nms_boxes.device.type != "cpu":
-            keep_idx = nms(nms_boxes.cpu(), conf.cpu(), iou_thres).to(pred.device)
-        else:
-            keep_idx = nms(nms_boxes, conf, iou_thres)
+        # torchvision NMS wants matching float32 CPU tensors
+        keep_idx = nms(nms_boxes.float().cpu(), conf.float().cpu(), iou_thres).to(pred.device)
         keep_idx = keep_idx[:max_det]
         det = torch.cat((xyxy[keep_idx], conf[keep_idx, None], cls_id[keep_idx].float()[:, None]), 1)
         out.append(det)

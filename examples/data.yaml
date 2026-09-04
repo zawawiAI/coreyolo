@@ -1,4 +1,4 @@
-# Roboflow YOLO export (YOLOv5 / YOLOv8 / YOLOv11) — drop-in compatible.
+# Roboflow YOLO export (YOLOv5 / YOLOv9 / YOLOv11) — drop-in compatible.
 # Unzip the export so this file sits next to train/ and valid/.
 #
 # Label files are one .txt per image:

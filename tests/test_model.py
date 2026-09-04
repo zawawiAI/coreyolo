@@ -20,17 +20,21 @@ def test_forward_shapes_train_and_eval() -> None:
 
 
 def test_family_aliases() -> None:
-    from coreyolo.nn.model import is_e2e_family, normalize_family
+    from coreyolo.nn.model import is_e2e_family, is_gelan_family, normalize_family
 
-    assert normalize_family(None) == "dfl"
+    assert normalize_family(None) == "gelan"
     assert normalize_family("8") == "dfl"
     assert normalize_family("v8") == "dfl"
     assert normalize_family("dfl") == "dfl"
+    assert normalize_family("9") == "gelan"
+    assert normalize_family("v9") == "gelan"
+    assert normalize_family("yolov9") == "gelan"
     assert normalize_family("26") == "e2e"
     assert normalize_family("v26") == "e2e"
     assert normalize_family("e2e") == "e2e"
     assert is_e2e_family("26") is True
     assert is_e2e_family("8") is False
+    assert is_gelan_family("9") is True
     dfl = build_model(nc=3, scale="n", family="8")
     assert dfl.family == "dfl"
     assert dfl.end2end is False
@@ -57,6 +61,32 @@ def test_e2e_c3k2_c2psa() -> None:
     assert decoded.shape[1] <= 300
 
 
+def test_gelan_yolov9n_graph() -> None:
+    model = build_model(nc=3, scale="n", family="gelan")
+    info = model.info()
+    assert info["family"] == "gelan"
+    assert info["reg_max"] == 16
+    assert info["end2end"] is False
+    names = {type(m).__name__ for m in model.modules()}
+    assert "ELAN1" in names
+    assert "RepNCSPELAN4" in names
+    assert "SPPELAN" in names
+    assert "AConv" in names
+    x = torch.zeros(2, 3, 64, 64)
+    model.train()
+    outs = model(x)
+    assert len(outs) == 3
+    assert outs[0].shape[-1] == 8
+    model.eval()
+    decoded = model(x)
+    assert decoded.shape[0] == 2
+    assert decoded.shape[1] == 4 + 3
+    fused = model.fuse()
+    fused.eval()
+    out = fused(torch.zeros(1, 3, 64, 64))
+    assert out.shape[0] == 1
+
+
 def test_nms_empty_and_peaked() -> None:
     pred = torch.zeros(1, 6, 4)
     out = non_max_suppression(pred, conf_thres=0.5)
@@ -68,6 +98,20 @@ def test_nms_empty_and_peaked() -> None:
     pred[0, 4, 0] = 0.9
     out = non_max_suppression(pred, conf_thres=0.25)
     assert out[0].shape[0] == 1
+
+
+def test_nms_fp16_matches_float() -> None:
+    pred = torch.zeros(1, 6, 4)
+    pred[0, 0, 0] = 32
+    pred[0, 1, 0] = 32
+    pred[0, 2, 0] = 10
+    pred[0, 3, 0] = 10
+    pred[0, 4, 0] = 0.9
+    extra = torch.randn(1, 32, 4)
+    extra[0, :, 0] = 1.0
+    dets, coeffs = non_max_suppression(pred.half(), conf_thres=0.25, extra=extra.half())
+    assert dets[0].shape[0] == 1
+    assert coeffs[0].shape[0] == 1
 
 
 def test_gpu_device_aliases() -> None:
@@ -91,3 +135,50 @@ def test_gpu_device_aliases() -> None:
 
         if mps_usable():
             assert select_device("gpu").type == "mps"
+
+
+def test_modern_activations_forward() -> None:
+    from coreyolo.nn.modules import StarReLU, make_act, normalize_act
+
+    assert normalize_act("GELU") == "gelu"
+    assert normalize_act("starrelu") == "star"
+    assert normalize_act("swish") == "silu"
+    assert isinstance(make_act("star"), StarReLU)
+    x = torch.linspace(-3, 3, 16)
+    gelu = make_act("gelu")(x)
+    silu = make_act("silu")(x)
+    star = make_act("star")(x)
+    assert gelu.shape == x.shape
+    assert not torch.allclose(gelu, silu)
+    assert float(star.min()) >= -1.0
+    for act in ("gelu", "star", "hardswish"):
+        model = build_model(nc=3, scale="n", act=act)
+        assert model.act == act
+        model.eval()
+        out = model(torch.zeros(1, 3, 64, 64))
+        assert out.shape[0] == 1
+
+
+def test_unknown_activation_rejected() -> None:
+    from coreyolo.nn.modules import normalize_act
+
+    try:
+        normalize_act("swiglu")
+        raised = False
+    except ValueError:
+        raised = True
+    assert raised
+
+
+def test_fuse_keeps_parameter_device() -> None:
+    from coreyolo.utils import mps_usable
+
+    if not mps_usable():
+        return
+    model = build_model(nc=3, scale="n", family="dfl").to("mps")
+    model.eval()
+    model.fuse()
+    weight = next(model.parameters())
+    assert weight.device.type == "mps"
+    out = model(torch.zeros(1, 3, 64, 64, device="mps"))
+    assert out.device.type == "mps"

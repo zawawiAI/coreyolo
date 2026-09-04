@@ -82,7 +82,7 @@ def test_coco_n_recipe() -> None:
     assert cfg.data.endswith("coco/data.yaml")
     assert cfg.val_period == 5
     assert cfg.close_mosaic == 10
-    assert cfg.family == "dfl"
+    assert cfg.family == "gelan"
 
 
 def test_coco_n_e2e_recipe() -> None:
@@ -101,3 +101,10 @@ def test_recipes_ship_inside_package() -> None:
     assert path.is_file()
     assert "coreyolo" in path.parts
     assert path.name == "coco-n.yaml"
+
+
+def test_native_recipes_use_relu() -> None:
+    assert train_config_from_recipe(load_recipe("coco-n")).act == "relu"
+    assert train_config_from_recipe(load_recipe("coco-s")).act == "relu"
+    assert train_config_from_recipe(load_recipe("coco-m")).act == "relu"
+    assert train_config_from_recipe(load_recipe("coco-l")).act == "relu"

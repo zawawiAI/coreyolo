@@ -58,7 +58,7 @@ def _labels_for_images(images_dir: Path) -> Path | None:
 class YOLODatasetYAML:
     """Roboflow YOLO export layout.
 
-    Expected tree (Roboflow YOLOv8 / YOLOv11 / YOLOv5 export)::
+    Expected tree (Roboflow YOLO export)::
 
         dataset/
           data.yaml
@@ -113,7 +113,7 @@ class YOLODatasetYAML:
         if images is None or labels is None:
             raise FileNotFoundError(
                 f"Split '{name}' is missing images/ or labels/ under {self.root}. "
-                "Export from Roboflow as YOLOv8 (or YOLOv5/YOLOv11) and unzip so "
+                "Export from Roboflow as YOLO detect txt (or YOLO-Seg) and unzip so "
                 "data.yaml sits next to train/ and valid/."
             )
         return images, labels

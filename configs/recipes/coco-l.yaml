@@ -1,9 +1,10 @@
-# COCO 2017 — CoreYOLO-m. 16 GB machines: batch 4.
+# COCO 2017 — CoreYOLO-l. Native train uses ReLU (ANE). Converted yolov9c.pt stays SiLU (AGPL).
+# 16 GB machines: batch 2.
 
 data: datasets/coco/data.yaml
-model: m
+model: l
 epochs: 300
-batch: 6
+batch: 4
 imgsz: 640
 device: gpu
 workers: 4
@@ -30,4 +31,4 @@ patience: 100
 val_period: 10
 seed: 0
 project: runs/detect
-name: coco-m
+name: coco-l

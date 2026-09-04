@@ -1,17 +1,39 @@
-from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, normalize_family
-from coreyolo.nn.modules import C2f, C2PSA, C3k2, Conv, DFL, Proto, SPPF, fuse_model
+from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, is_gelan_family, normalize_family
+from coreyolo.nn.modules import (
+    C2f,
+    C2PSA,
+    C3k2,
+    Conv,
+    DFL,
+    ELAN1,
+    Proto,
+    RepNCSPELAN4,
+    SPPF,
+    SPPELAN,
+    StarReLU,
+    fuse_model,
+    make_act,
+    normalize_act,
+)
 
 __all__ = [
     "CoreYOLO",
     "build_model",
     "normalize_family",
+    "normalize_act",
     "is_e2e_family",
+    "is_gelan_family",
     "Conv",
     "C2f",
     "C3k2",
     "C2PSA",
+    "ELAN1",
+    "RepNCSPELAN4",
     "SPPF",
+    "SPPELAN",
     "DFL",
     "Proto",
+    "StarReLU",
+    "make_act",
     "fuse_model",
 ]

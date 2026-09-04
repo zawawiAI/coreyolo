@@ -72,7 +72,7 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
   <section class="section gray">
     <div class="wrap-wide">
       <h2>Compute units</h2>
-      <p class="lead">Match the flag to the activation. ReLU graphs belong on the Neural Engine. Converted YOLOv8 weights are SiLU — prefer GPU, or fine-tune ReLU.</p>
+      <p class="lead">Match the flag to the activation. ReLU and StarReLU belong on the Neural Engine. Converted YOLOv9 weights are SiLU — prefer GPU for those, or train ReLU from scratch for ANE.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -86,12 +86,12 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
             <tr>
               <td><code>gpu</code></td>
               <td>CPU_AND_GPU</td>
-              <td>Default. Converted SiLU weights.</td>
+              <td>Default. Native ReLU, or converted SiLU (still AGPL) on GPU.</td>
             </tr>
             <tr>
               <td><code>ane</code></td>
               <td>CPU_AND_NE</td>
-              <td>ReLU-fused graphs.</td>
+              <td>ReLU or StarReLU fused graphs.</td>
             </tr>
             <tr>
               <td><code>all</code></td>
@@ -128,7 +128,8 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
       </div>
       <div>
         <h4>Project</h4>
-        <a href="../LICENSE">Apache-2.0</a>
+        <a href="../LICENSE">MIT</a>
+        <a href="../docs/licenses.md">YOLOv9 / AGPL</a>
       </div>
     </div>
     <p class="legal">Copyright © 2026 CoreYOLO contributors. Latency and device choice are yours to measure on hardware. Not affiliated with Apple.</p>

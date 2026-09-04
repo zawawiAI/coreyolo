@@ -1,6 +1,6 @@
 # CoreYOLO iPhone sample
 
-SwiftUI camera app for **iOS 16+**. Letterbox → Core ML → host NMS (DFL) or top-300 (E2E). Matches `coreyolo.data.augment.letterbox` and `coreyolo.infer.nms`.
+SwiftUI camera app for **iOS 16+**. Letterbox → Core ML → host NMS (GELAN/DFL) or top-300 (E2E). Matches `coreyolo.data.augment.letterbox` and `coreyolo.infer.nms`.
 
 ## 1. Export a model
 
@@ -19,6 +19,8 @@ Rename or copy to `CoreYOLO.mlpackage` (the name `Detector.swift` looks for in t
 5. Run on a **device** (camera + Neural Engine / GPU). The simulator has no camera and a weak Core ML path.
 
 Without the package the app still builds; the overlay tells you to add it.
+
+Use a package from **weights you trained** (`coreyolo train` then `export`) for an MIT path. A package exported from converted `yolov9*.pt` still contains Ultralytics YOLOv9 tensors (AGPL-3.0). See `docs/licenses.md`.
 
 ## 3. What the host does
 

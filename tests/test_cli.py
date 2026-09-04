@@ -4,6 +4,13 @@ from coreyolo.cli import build_parser
 from coreyolo.zoo import listed_release_files, load_manifest, record_metrics, write_metrics_json
 
 
+def test_train_cli_act_gelu() -> None:
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--act", "gelu"])
+    assert args.act == "gelu"
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--act", "star"])
+    assert args.act == "star"
+
+
 def test_train_cli_family_choices() -> None:
     args = build_parser().parse_args(["train", "--data", "data.yaml", "--family", "e2e"])
     assert args.family == "e2e"
@@ -11,6 +18,10 @@ def test_train_cli_family_choices() -> None:
     assert args.family == "8"
     args = build_parser().parse_args(["train", "--data", "data.yaml", "--family", "dfl"])
     assert args.family == "dfl"
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--family", "gelan"])
+    assert args.family == "gelan"
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--family", "9"])
+    assert args.family == "9"
 
 
 def test_coco_cli_max_images() -> None:
@@ -50,3 +61,24 @@ def test_write_metrics_json(tmp_path: Path) -> None:
 def test_listed_release_files_empty_when_missing() -> None:
     files = listed_release_files("weights/manifest.json")
     assert isinstance(files, list)
+
+
+def test_manifest_marks_converted_weights_agpl() -> None:
+    catalog = load_manifest("weights/manifest.json")
+    converted = [m for m in catalog["models"] if str(m.get("how", "")).startswith("coreyolo convert")]
+    trained = [m for m in catalog["models"] if str(m.get("how", "")).startswith("coreyolo train")]
+    assert converted
+    assert trained
+    for entry in converted:
+        assert entry.get("weights_license") == "AGPL-3.0"
+    for entry in trained:
+        assert entry.get("weights_license") == "MIT"
+
+
+def test_licenses_doc_covers_yolov9_agpl() -> None:
+    text = Path("docs/licenses.md").read_text().lower()
+    assert "agpl-3.0" in text
+    assert "saas" in text
+    assert "commercial license" in text
+    assert "internal enterprise" in text
+    assert "not a relicensing" in text

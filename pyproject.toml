@@ -7,8 +7,8 @@ name = "coreyolo"
 version = "0.1.0"
 description = "Open-source YOLO-style detector trained in PyTorch and deployed with Core ML on Apple silicon."
 readme = "README.md"
-license = "Apache-2.0"
-license-files = ["LICENSE"]
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.10"
 authors = [{ name = "CoreYOLO contributors" }]
 keywords = ["yolo", "object-detection", "coreml", "apple-silicon", "roboflow"]

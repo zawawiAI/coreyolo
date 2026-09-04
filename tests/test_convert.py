@@ -1,6 +1,12 @@
 import torch
 
-from coreyolo.export.convert import detect_ultralytics_family, infer_v8_scale, remap_v8_state
+from coreyolo.export.convert import (
+    CONVERT_LICENSE_NOTICE,
+    detect_ultralytics_family,
+    infer_gelan_scale,
+    infer_v8_scale,
+    remap_v8_state,
+)
 from coreyolo.nn.model import build_model
 
 
@@ -24,6 +30,7 @@ def test_remap_v8_stem_and_dfl() -> None:
 
 def test_detect_families() -> None:
     assert detect_ultralytics_family(["model.22.dfl.conv.weight"]) == "yolov8"
+    assert detect_ultralytics_family(["model.9.cv5.conv.weight", "model.22.dfl.conv.weight"]) == "yolov9"
     assert detect_ultralytics_family(["model.23.dfl.conv.weight"]) == "yolo11"
     assert detect_ultralytics_family(["model.23.one2one_cv2.0.0.weight"]) == "yolo26"
 
@@ -31,13 +38,24 @@ def test_detect_families() -> None:
 def test_infer_v8_scale() -> None:
     assert infer_v8_scale({"model.0.conv.weight": torch.zeros(16, 3, 3, 3)}) == "n"
     assert infer_v8_scale({"model.0.conv.weight": torch.zeros(32, 3, 3, 3)}) == "s"
+    assert infer_v8_scale({"model.0.conv.weight": torch.zeros(48, 3, 3, 3)}) == "m"
+    assert infer_v8_scale({"model.0.conv.weight": torch.zeros(64, 3, 3, 3)}) == "l"
+    assert infer_v8_scale({"model.0.conv.weight": torch.zeros(80, 3, 3, 3)}) == "x"
 
 
-def test_v8_map_covers_coreyolo_n() -> None:
-    dst = build_model(80, "n", act="silu").state_dict()
-    fake = {("model.22." + k[len("head.") :] if k.startswith("head.") else k): v for k, v in dst.items()}
-    # invert is hard; just ensure remap of a full v8-style copy of dst via reverse names
-    src = {}
+def test_infer_gelan_scale() -> None:
+    assert infer_gelan_scale({"model.0.conv.weight": torch.zeros(16, 3, 3, 3)}) == "n"
+    assert infer_gelan_scale(
+        {"model.0.conv.weight": torch.zeros(32, 3, 3, 3), "model.3.cv1.conv.weight": torch.zeros(128, 32, 3, 3)}
+    ) == "s"
+    assert infer_gelan_scale(
+        {"model.0.conv.weight": torch.zeros(32, 3, 3, 3), "model.3.cv1.conv.weight": torch.zeros(240, 128, 3, 3)}
+    ) == "m"
+    assert infer_gelan_scale({"model.0.conv.weight": torch.zeros(64, 3, 3, 3)}) == "l"
+
+
+def _fake_ultralytics_from_coreyolo(scale: str, family: str = "dfl") -> dict[str, torch.Tensor]:
+    dst = build_model(80, scale, act="silu", family=family).state_dict()
     inv = {
         "stem.": "model.0.",
         "stage2.0.": "model.1.",
@@ -57,6 +75,7 @@ def test_v8_map_covers_coreyolo_n() -> None:
         "n5b.": "model.21.",
         "head.": "model.22.",
     }
+    src: dict[str, torch.Tensor] = {}
     for k, v in dst.items():
         uk = k
         for c, u in inv.items():
@@ -67,6 +86,34 @@ def test_v8_map_covers_coreyolo_n() -> None:
             uk = uk.replace("dfl.proj", "dfl.conv.weight")
             v = v.view(1, -1, 1, 1)
         src[uk] = v
-    mapped = remap_v8_state(src)
-    model = build_model(80, "n", act="silu")
+    return src
+
+
+def test_v8_map_covers_coreyolo_n() -> None:
+    mapped = remap_v8_state(_fake_ultralytics_from_coreyolo("n", family="dfl"))
+    model = build_model(80, "n", act="silu", family="dfl")
     model.load_state_dict(mapped, strict=True)
+
+
+def test_v8_map_covers_coreyolo_l() -> None:
+    mapped = remap_v8_state(_fake_ultralytics_from_coreyolo("l", family="dfl"))
+    model = build_model(80, "l", act="silu", family="dfl")
+    model.load_state_dict(mapped, strict=True)
+
+
+def test_gelan_map_covers_coreyolo_n() -> None:
+    mapped = remap_v8_state(_fake_ultralytics_from_coreyolo("n", family="gelan"))
+    model = build_model(80, "n", act="silu", family="gelan")
+    model.load_state_dict(mapped, strict=True)
+    fake = _fake_ultralytics_from_coreyolo("n", family="gelan")
+    assert detect_ultralytics_family(list(fake)) == "yolov9"
+    assert infer_gelan_scale(fake) == "n"
+
+
+def test_convert_license_notice_covers_agpl_saas_and_commercial() -> None:
+    text = CONVERT_LICENSE_NOTICE.lower()
+    assert "agpl-3.0" in text
+    assert "saas" in text or "network" in text
+    assert "commercial license" in text
+    assert "does not relicense" in text
+    assert "docs/licenses.md" in CONVERT_LICENSE_NOTICE

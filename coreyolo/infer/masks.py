@@ -57,3 +57,34 @@ def scale_masks(
         return masks.new_zeros((masks.shape[0], orig_h, orig_w), dtype=torch.bool)
     scaled = F.interpolate(cropped.unsqueeze(1), (orig_h, orig_w), mode="bilinear", align_corners=False)[:, 0]
     return scaled > 0.5
+
+
+def instance_masks(
+    proto: torch.Tensor,
+    coeff: torch.Tensor,
+    boxes_xyxy: torch.Tensor,
+    imgsz: int,
+    orig_wh: tuple[int, int],
+    pad: tuple[float, float],
+    ratio: float,
+) -> torch.Tensor:
+    """Proto coefficients → boolean masks on the original image in one upsample."""
+    orig_w, orig_h = orig_wh
+    if coeff.numel() == 0:
+        return proto.new_zeros((0, orig_h, orig_w), dtype=torch.bool)
+    nm, mh, mw = proto.shape
+    masks = (coeff @ proto.view(nm, -1)).sigmoid().view(-1, mh, mw)
+    gain = boxes_xyxy.new_tensor([mw / imgsz, mh / imgsz, mw / imgsz, mh / imgsz])
+    masks = crop_mask(masks, boxes_xyxy * gain)
+    pad_x, pad_y = pad
+    nw = max(int(round(orig_w * ratio)), 1)
+    nh = max(int(round(orig_h * ratio)), 1)
+    x1 = int(round(pad_x * mw / imgsz))
+    y1 = int(round(pad_y * mh / imgsz))
+    x2 = min(x1 + max(int(round(nw * mw / imgsz)), 1), mw)
+    y2 = min(y1 + max(int(round(nh * mh / imgsz)), 1), mh)
+    cropped = masks[:, y1:y2, x1:x2]
+    if cropped.shape[-2] == 0 or cropped.shape[-1] == 0:
+        return proto.new_zeros((masks.shape[0], orig_h, orig_w), dtype=torch.bool)
+    scaled = F.interpolate(cropped.unsqueeze(1), (orig_h, orig_w), mode="bilinear", align_corners=False)[:, 0]
+    return scaled > 0.5

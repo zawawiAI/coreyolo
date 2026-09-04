@@ -542,6 +542,34 @@ th {
   font-size: 17px;
 }
 
+.note {
+  background: #fff6e5;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: left;
+}
+
+.docs-body .note {
+  margin: 16px 0 28px;
+  color: var(--text);
+}
+
+.docs-body .note p {
+  color: var(--text);
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+.docs-body .note p:last-child {
+  margin-bottom: 0;
+}
+
 .footer {
   background: var(--bg-alt);
   padding: 48px 22px 36px;

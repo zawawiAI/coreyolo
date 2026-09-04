@@ -2,19 +2,19 @@
 
 Open-source YOLO-style object detection, trained in PyTorch and **deployed with Core ML on Apple silicon**.
 
-CoreYOLO is original code under Apache-2.0. It is inspired by the YOLO detector family (CSP backbone, PAN-FPN, decoupled DFL head) and by the Roboflow YOLO label layout. It is not a fork of Ultralytics and is not affiliated with Ultralytics or Apple.
+CoreYOLO is original code under MIT. It is inspired by the YOLO detector family (CSP backbone, PAN-FPN, decoupled DFL head) and by the Roboflow YOLO label layout. It is not a fork of Ultralytics and is not affiliated with Ultralytics or Apple.
 
 ## Why CoreYOLO
 
-- **Fully open source** (Apache-2.0), including train, export, and inference.
+- **Fully open source** (MIT), including train, export, and inference.
 - **Core ML first**: fused Conv-BN, ReLU by default, static `imgsz`, FP16 ML Program. Inference defaults to the **GPU** (`CPU_AND_GPU`); pass `--device all` for GPU+ANE or `--device ane` for Neural Engine only.
-- **Two detect graphs**: `--family dfl` is C2f + Distribution Focal Loss (host NMS). `--family e2e` is **C3k2 + C2PSA + NMS-free** top-300.
-- **Instance segmentation**: `--task segment` adds a proto mask branch (YOLOv8-seg style). Roboflow **YOLO-Seg** polygon labels work; detect stays the default.
-- **Roboflow YOLO labels**: drop in a Roboflow **YOLOv5 / YOLOv8 / YOLOv11** export (`data.yaml` + `train|valid/{images,labels}`).
+- **Three detect graphs**: `--family gelan` is **YOLOv9 GELAN** (default; scale `n` matches Ultralytics `yolov9t`). `--family dfl` is C2f + Distribution Focal Loss (host NMS). `--family e2e` is **C3k2 + C2PSA + NMS-free** top-300.
+- **Instance segmentation**: `--task segment` adds a proto mask branch. Roboflow **YOLO-Seg** polygon labels work; detect stays the default.
+- **Roboflow YOLO labels**: drop in a Roboflow **YOLO** export (`data.yaml` + `train|valid/{images,labels}`).
 
 ## Python SDK
 
-App code loads **CoreYOLO** files only (``.coreyolo``, trained ``best.pt``, or ``.mlpackage``). Do not pass Ultralytics ``yolov8n.pt`` into ``YOLO()`` — that layout is rejected.
+App code loads **CoreYOLO** files only (``.coreyolo``, trained ``best.pt``, or ``.mlpackage``). Do not pass Ultralytics ``yolov9t.pt`` into ``YOLO()`` — that layout is rejected (AGPL-3.0 pickle, not a CoreYOLO checkpoint).
 
 ```python
 from coreyolo import YOLO
@@ -29,7 +29,7 @@ results[0].save("out.jpg")
 model.export(imgsz=320)
 ```
 
-`model.val(data="data.yaml")` returns mAP. `model.predict(0)` opens the webcam. Optional one-time bootstrap (not in the app): `coreyolo convert --weights yolov8n.pt --out weights/coreyolo-n-coco.coreyolo`.
+`model.val(data="data.yaml")` returns mAP. `model.predict(0)` opens the webcam. Optional one-time bootstrap (not in the app): `coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo`.
 
 ## Install
 
@@ -50,7 +50,7 @@ Apple silicon: PyTorch **train / val / predict** use **MPS (GPU)** whenever it a
 
 ## Roboflow labelling
 
-In Roboflow, label bounding boxes as usual, then **Export → YOLOv8** (YOLOv5 / YOLOv11 YOLO txt is the same detect format). Unzip so the tree looks like this:
+In Roboflow, label bounding boxes as usual, then **Export → YOLO** (detect txt). Unzip so the tree looks like this:
 
 ```
 dataset/
@@ -128,13 +128,13 @@ Do not use `VNRecognizedObjectObservation` with this graph. Outputs are raw tens
 | `l`   | 1.00  | 1.00  | offline            |
 | `x`   | 1.00  | 1.25  | max accuracy       |
 
-Default activation is **ReLU** so fused Conv-BN-ReLU maps onto the Neural Engine. Pass `--act silu` if you care more about train-time accuracy than ANE mapping.
+Default activation is **ReLU** so fused Conv-BN-ReLU maps onto the Neural Engine. Native recipes (`coco-n` / `coco-s` / `coco-m` / `coco-l`) all train ReLU. **SiLU** is only for converted YOLOv9 tensors — do not swap it on those checkpoints. **StarReLU** (`--act star`) is a 2024 ReLU-family option that still maps to the Neural Engine. **GELU** remains available via `--act gelu`.
 
-`--family dfl` (default): C2f backbone, DFL `reg_max=16`, host NMS. `--family e2e`: C3k2 backbone, residual SPPF, C2PSA, dual one-to-many / one-to-one head, DFL removed, NMS-free top-300 at inference.
+`--family gelan` (default, aliases `9` / `v9`): YOLOv9 GELAN, DFL head; scale `n` is Ultralytics `yolov9t` (there is no `yolov9n.yaml`). `--family dfl`: C2f backbone, DFL `reg_max=16`, host NMS. `--family e2e`: C3k2 backbone, residual SPPF, C2PSA, dual one-to-many / one-to-one head, DFL removed, NMS-free top-300 at inference.
 
 Loss: task-aligned assignment, CIoU, Distribution Focal Loss (DFL graph), BCE classification. E2E trains both heads (TAL top-k and TAL top-1). Segmentation adds cropped mask BCE against proto coefficients.
 
-`--task segment` swaps the detect head for a Segment head (32 proto maps on P3, per-anchor coefficients). Detect checkpoints and YOLOv8n conversion are unchanged.
+`--task segment` swaps the detect head for a Segment head (32 proto maps on P3, per-anchor coefficients). Detect checkpoints and YOLOv9 conversion are unchanged.
 
 ## Train on COCO
 
@@ -160,10 +160,11 @@ Recipes live in `configs/recipes/`:
 | Recipe | Scale | Epochs | Batch | Val every | Notes |
 |--------|-------|--------|-------|-----------|--------|
 | `coco-n-fast` | n | 100 | 16 | 5 | first COCO run |
-| `coco-n` | n / DFL | 300 | 16 | 5 | default pretrained |
+| `coco-n` | n / GELAN | 300 | 16 | 5 | default pretrained |
 | `coco-n-e2e` | n / E2E | 300 | 16 | 5 | C3k2 + C2PSA, NMS-free |
-| `coco-s` | s | 300 | 8 | 5 | drop batch if RAM-bound |
-| `coco-m` | m | 300 | 6 | 10 | |
+| `coco-s` | s | 300 | 8 | 5 | ReLU; drop batch if RAM-bound |
+| `coco-m` | m | 300 | 6 | 10 | ReLU |
+| `coco-l` | l | 300 | 4 | 10 | ReLU; ~YOLOv9-c size; drop to batch 2 if RAM-bound |
 
 SGD + cosine LR (`lr0=0.01`, `lrf=0.01`), 3-epoch warmup, mosaic until the last 10 epochs, weight decay on conv weights only. Override any field from the CLI: `--recipe coco-n --batch 8 --device gpu --epochs 50`.
 
@@ -186,21 +187,22 @@ Publish with the **Release zoo** workflow, or see [`weights/README.md`](weights/
 
 ### COCO weights from Ultralytics
 
-YOLO26n / YOLO11n **weights** cannot be copied (different tensors, AGPL checkpoint). CoreYOLO **E2E** is an original C3k2 + C2PSA + NMS-free graph you train yourself (`--family e2e` or `--recipe coco-n-e2e`). YOLOv8n **can** map onto DFL — same C2f + DFL graph, 355/355 tensors:
+YOLO26n / YOLO11n **weights** cannot be copied (different tensors, AGPL checkpoint). CoreYOLO **E2E** is an original C3k2 + C2PSA + NMS-free graph you train yourself (`--family e2e` or `--recipe coco-n-e2e`). Compact **YOLOv9** (`yolov9t` / s / m / c) maps onto GELAN — nano is Ultralytics `yolov9t.pt` (no `yolov9n.yaml`):
 
 ```bash
-coreyolo convert --weights yolov8n.pt --out weights/coreyolo-n-coco.coreyolo
+coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo
+coreyolo convert --weights yolov9c.pt --out weights/coreyolo-l-coco.coreyolo
 coreyolo predict --weights weights/coreyolo-n-coco.coreyolo --source photo.jpg --device gpu
 coreyolo export --weights weights/coreyolo-n-coco.coreyolo --imgsz 640
 ```
 
-That convert step is optional and one-shot. The file you ship is CoreYOLO (``format: coreyolo``, ``stem.*`` tensors), not Ultralytics. The converted checkpoint uses **SiLU** (how YOLOv8 was trained).
+That convert step is optional and one-shot. It remaps **names** onto a CoreYOLO file (`format: coreyolo`, `stem.*` tensors, SiLU). It does **not** relicense the Ultralytics tensors (AGPL-3.0). See [Licenses](docs/licenses.md).
 
 ## CLI
 
 ```
 coreyolo coco        --out datasets/coco --download [--max-images 512]
-coreyolo convert     --weights yolov8n.pt --out weights/coreyolo-n-coco.coreyolo
+coreyolo convert     --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo
 coreyolo train       --recipe coco-n-fast
 coreyolo train       --data data.yaml --model n --family e2e --epochs 100 --device gpu
 coreyolo val         --data data.yaml --weights best.pt --device gpu [--json metrics.json --zoo-id coreyolo-n-coco]
@@ -213,4 +215,6 @@ coreyolo dummy-data  --out datasets/dummy --segment
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+**CoreYOLO code** is [MIT](LICENSE): you may view, share, modify, and distribute it, including in a closed app, subject to the MIT copyright and permission notice. Train **from scratch** on your own labels for an MIT **weight** path. This repo is not a fork of Ultralytics and does not include Ultralytics source.
+
+**Ultralytics YOLOv9** is a separate project. Its source is open under **AGPL-3.0** (view, share, modify, distribute). The AGPL catch: if you **modify** YOLOv9 or offer it as a **network service (SaaS)** so users interact with it over a network, you typically must release **your whole application** under AGPL-3.0. For a **commercial product** or a **closed-source internal enterprise tool** without publishing that source, Ultralytics sells a [commercial license](https://www.ultralytics.com/license). `coreyolo convert` remaps names only — converted tensors, fine-tunes, and Core ML exports of those files stay AGPL-3.0. Do not rehost them as MIT. YOLO / YOLOv9 / Ultralytics are their trademarks. Details: [docs/licenses.md](docs/licenses.md). This is not legal advice.

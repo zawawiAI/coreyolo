@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CoreYOLO — Object detection for Apple silicon</title>
-  <meta name="description" content="Apache-2.0 YOLO-style detector trained in PyTorch and deployed with Core ML on iPhone and Mac." />
+  <meta name="description" content="MIT YOLO-style detector trained in PyTorch and deployed with Core ML on iPhone and Mac." />
   <link rel="stylesheet" href="css/site.css?v=kl" />
 </head>
 <body>
-  <div class="ribbon">Version 0.1.0 alpha. Apache License 2.0. Not affiliated with Ultralytics or Apple. <a href="docs.html">Read the docs</a></div>
+  <div class="ribbon">Version 0.1.0 alpha. MIT License. Not affiliated with Ultralytics or Apple. <a href="docs.html">Read the docs</a></div>
   <header class="nav">
     <div class="nav-inner">
       <a class="wordmark" href="index.html">Core<span>YOLO</span></a>
@@ -26,7 +26,7 @@
   <section class="hero">
     <p class="eyebrow">Core ML. First.</p>
     <h1>Object detection.<br />Built for Apple.</h1>
-    <p class="sub">Train a YOLO-style detector in Python. Ship a Core ML package to iPhone. Apache-2.0, end to end.</p>
+    <p class="sub">Train a YOLO-style detector in Python. Ship a Core ML package to iPhone. MIT, end to end.</p>
     <div class="hero-actions">
       <a class="btn btn-blue" href="docs.html#quickstart">Get started</a>
       <a class="btn btn-text" href="deploy.html">See Core ML</a>
@@ -56,8 +56,8 @@
           <p>Export an FP16 ML Program for iOS 16 and macOS 13. GPU, Neural Engine, or both — first-class compute units.</p>
         </article>
         <article class="tile">
-          <h3>Apache-2.0</h3>
-          <p>Train, export, and inference under one permissive license. Closed App Store apps can ship it. No AGPL copyleft.</p>
+          <h3>MIT</h3>
+          <p>CoreYOLO’s code is permissive. Closed App Store apps can ship models you train here from scratch. Converted YOLOv9 weights stay AGPL-3.0 — that is not a relicensing.</p>
         </article>
         <article class="tile">
           <h3>Your labels</h3>
@@ -77,7 +77,7 @@
       </div>
       <pre><code>from coreyolo import YOLO
 
-model = YOLO("n")                 # DFL; pass family="e2e" for NMS-free
+model = YOLO("n")                 # YOLOv9 GELAN; pass family="e2e" for NMS-free
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
 model.export(imgsz=640)   # Core ML for iPhone</code></pre>
@@ -86,12 +86,17 @@ model.export(imgsz=640)   # Core ML for iPhone</code></pre>
 
   <section class="section">
     <div class="wrap-wide">
-      <h2>Two graphs. One trainer.</h2>
+      <h2>Three graphs. One trainer.</h2>
       <p class="lead">Pick the graph that matches the phone, not a 50-task zoo.</p>
       <div class="grid-2">
         <article class="card">
+          <h3>GELAN — default</h3>
+          <p>YOLOv9 GELAN. Scale n matches Ultralytics yolov9t. Same DFL head; remap from yolov9t.pt.</p>
+          <p><a href="models.html">See models ›</a></p>
+        </article>
+        <article class="card">
           <h3>DFL</h3>
-          <p>C2f + Distribution Focal Loss. Host NMS. Optional remap from YOLOv8n tensors into a native CoreYOLO checkpoint. Detect and instance segmentation.</p>
+          <p>C2f + Distribution Focal Loss. Host NMS. Detect and instance segmentation.</p>
           <p><a href="models.html">See models ›</a></p>
         </article>
         <article class="card">
@@ -110,7 +115,7 @@ model.export(imgsz=640)   # Core ML for iPhone</code></pre>
       <div class="grid-2">
         <article class="card">
           <h3>Detect</h3>
-          <p>Anchor-free boxes at strides 8, 16, and 32. Class-aware NMS on the host for DFL. Top-300 for E2E.</p>
+          <p>Anchor-free boxes at strides 8, 16, and 32. Class-aware NMS on the host for GELAN. Top-300 for E2E.</p>
         </article>
         <article class="card">
           <h3>Segment</h3>
@@ -143,10 +148,11 @@ model.export(imgsz=640)   # Core ML for iPhone</code></pre>
         <h4>Project</h4>
         <a href="../README.md">Repository README</a>
         <a href="../docs/CoreYOLO-White-Paper.pdf">White paper</a>
-        <a href="../LICENSE">Apache-2.0</a>
+        <a href="../LICENSE">MIT</a>
+        <a href="../docs/licenses.md">YOLOv9 / AGPL</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Original software under Apache License 2.0. Inspired by the YOLO family and the Roboflow YOLO label layout. Not a fork of Ultralytics. Not affiliated with Ultralytics or Apple.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Original software under the MIT License. Inspired by the YOLO family and the Roboflow YOLO label layout. Not a fork of Ultralytics. YOLO and Ultralytics are trademarks of their owners. Not affiliated with Ultralytics or Apple.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

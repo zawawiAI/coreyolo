@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, normalize_family
-from coreyolo.utils import __version__, load_checkpoint
+from coreyolo.utils import __version__, MIT_WEIGHT_LICENSE, checkpoint_weight_license, load_checkpoint, origin_metadata
 
 
 def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
@@ -17,7 +17,7 @@ def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
     nc = int(ckpt.get("nc", 80))
     scale = ckpt.get("scale", "n")
     act = ckpt.get("act", "relu")
-    family = normalize_family(ckpt.get("family", "dfl"))
+    family = normalize_family(ckpt.get("family", "gelan"))
     names = ckpt.get("names") or [f"class_{i}" for i in range(nc)]
     task = str(ckpt.get("task", "detect"))
     nm = int(ckpt.get("nm", 32))
@@ -27,6 +27,7 @@ def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
     model.fuse()
     model.head.export = True
     end2end = bool(ckpt.get("end2end", is_e2e_family(family)))
+    origin = origin_metadata(ckpt)
     return model, {
         "nc": nc,
         "scale": scale,
@@ -37,6 +38,8 @@ def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
         "end2end": end2end,
         "task": task,
         "nm": nm,
+        "weights_license": checkpoint_weight_license(ckpt),
+        **origin,
     }
 
 
@@ -126,7 +129,7 @@ def export_coreml(
     mlmodel.user_defined_metadata["imgsz"] = str(imgsz)
     mlmodel.user_defined_metadata["scale"] = str(meta["scale"])
     mlmodel.user_defined_metadata["act"] = str(meta["act"])
-    mlmodel.user_defined_metadata["family"] = str(meta.get("family", "dfl"))
+    mlmodel.user_defined_metadata["family"] = str(meta.get("family", "gelan"))
     mlmodel.user_defined_metadata["task"] = str(meta.get("task", "detect"))
     if segment:
         mlmodel.user_defined_metadata["nm"] = str(meta.get("nm", 32))
@@ -138,5 +141,18 @@ def export_coreml(
     else:
         mlmodel.user_defined_metadata["layout"] = "B,4+nc,N  xywh_pixels + class_scores"
         mlmodel.user_defined_metadata["nms"] = "host"
+    license_id = str(meta.get("weights_license") or MIT_WEIGHT_LICENSE)
+    if hasattr(mlmodel, "license"):
+        mlmodel.license = license_id
+    mlmodel.user_defined_metadata["weights_license"] = license_id
+    if license_id.upper().startswith("AGPL"):
+        mlmodel.short_description = (
+            "Contains Ultralytics tensors (AGPL-3.0). Name remap / Core ML export is not a relicensing. "
+            + str(mlmodel.short_description)
+        )
+        if meta.get("source_vendor"):
+            mlmodel.user_defined_metadata["source_vendor"] = str(meta["source_vendor"])
+        if meta.get("source_family"):
+            mlmodel.user_defined_metadata["source_family"] = str(meta["source_family"])
     mlmodel.save(str(out))
     return out

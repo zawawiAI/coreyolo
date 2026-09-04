@@ -14,6 +14,9 @@ def test_sdk_family_aliases() -> None:
     e2e = YOLO("n", nc=2, family="26", device="cpu", imgsz=64)
     assert e2e.family == "e2e"
     assert e2e.end2end is True
+    gelan = YOLO("n", nc=2, family="9", device="cpu", imgsz=64)
+    assert gelan.family == "gelan"
+    assert gelan.end2end is False
 
 
 def test_sdk_predict_scale_and_result(tmp_path: Path) -> None:
@@ -84,7 +87,7 @@ def test_rejects_ultralytics_pt(tmp_path: Path) -> None:
 
     from coreyolo.utils import load_checkpoint
 
-    fake = tmp_path / "yolov8n.pt"
+    fake = tmp_path / "yolov9t.pt"
     torch.save({"model": {"model.22.dfl.conv.weight": torch.zeros(1, 16, 1, 1)}}, fake)
     try:
         load_checkpoint(fake)
@@ -92,6 +95,7 @@ def test_rejects_ultralytics_pt(tmp_path: Path) -> None:
     except TypeError as exc:
         raised = True
         assert "Ultralytics" in str(exc)
+        assert "AGPL-3.0" in str(exc)
     assert raised
     try:
         YOLO(fake, device="cpu")

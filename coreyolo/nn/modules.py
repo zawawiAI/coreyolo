@@ -1,26 +1,67 @@
 """CoreML-friendly building blocks for a YOLO-style detector.
 
 Activations default to ReLU so fused Conv-BN-ReLU graphs map cleanly onto the
-Apple Neural Engine. SiLU remains available for training accuracy experiments.
+Apple Neural Engine. SiLU is kept so converted YOLOv9 tensors match how they
+were trained. GELU and StarReLU remain available via ``--act``.
 """
 
 from __future__ import annotations
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
+ACTIVATIONS = ("relu", "relu6", "gelu", "star", "hardswish", "silu", "none")
+ACT_ALIASES = {
+    "swish": "silu",
+    "hswish": "hardswish",
+    "starrelu": "star",
+    "star_relu": "star",
+    "identity": "none",
+}
+
+
+def normalize_act(name: str | None = None) -> str:
+    """Canonical activation id. Default ``relu`` (ANE). ``silu`` is for converted YOLOv9."""
+    raw = str(name or "relu").strip().lower().replace("-", "_")
+    key = ACT_ALIASES.get(raw, raw)
+    if key not in ACTIVATIONS:
+        raise ValueError(f"Unknown activation {name!r}. Choose from {list(ACTIVATIONS)}")
+    return key
+
+
+class StarReLU(nn.Module):
+    """``s * ReLU(x)^2 + b`` (MetaFormer / StarNet, 2024).
+
+    Piecewise and Neural-Engine friendly compared with SiLU, with a smooth
+    positive side. Scale/bias init matches the StarNet GELU-variance defaults.
+    """
+
+    def __init__(self, scale: float = 0.8944, bias: float = -0.4472) -> None:
+        super().__init__()
+        self.scale = nn.Parameter(torch.tensor(float(scale)))
+        self.bias = nn.Parameter(torch.tensor(float(bias)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.scale * torch.square(F.relu(x)) + self.bias
 
 
 def make_act(name: str = "relu") -> nn.Module:
-    name = name.lower()
-    if name in {"relu", "relu6"}:
-        return nn.ReLU(inplace=True) if name == "relu" else nn.ReLU6(inplace=True)
-    if name in {"silu", "swish"}:
+    name = normalize_act(name)
+    if name == "relu":
+        return nn.ReLU(inplace=True)
+    if name == "relu6":
+        return nn.ReLU6(inplace=True)
+    if name == "gelu":
+        # tanh approx maps cleanly to Core ML / ANE vs erf-GELU
+        return nn.GELU(approximate="tanh")
+    if name == "star":
+        return StarReLU()
+    if name == "silu":
         return nn.SiLU(inplace=True)
-    if name in {"hswish", "hardswish"}:
+    if name == "hardswish":
         return nn.Hardswish(inplace=True)
-    if name in {"identity", "none"}:
-        return nn.Identity()
-    raise ValueError(f"Unknown activation: {name}")
+    return nn.Identity()
 
 
 class Conv(nn.Module):
@@ -63,7 +104,7 @@ class Conv(nn.Module):
             conv.padding,
             groups=conv.groups,
             bias=True,
-        )
+        ).to(device=w.device, dtype=w.dtype)
         fused.weight.data.copy_(fused_w)
         fused.bias.data.copy_(fused_b)
         self.conv = fused
@@ -270,6 +311,159 @@ class C3k2(C2f):
             self.m = nn.ModuleList(Bottleneck(self.c, shortcut, act) for _ in range(n))
 
 
+class RepConv(nn.Module):
+    """3×3 + 1×1 reparameterized convolution (RepVGG). Fuse to one 3×3 for export."""
+
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, act: str = "relu") -> None:
+        super().__init__()
+        if k != 3:
+            raise ValueError("RepConv uses a 3×3 train branch")
+        self.conv1 = Conv(c1, c2, 3, s, act="none")
+        self.conv2 = Conv(c1, c2, 1, s, act="none")
+        self.act = make_act(act)
+        self.fused = False
+        self._stride = s
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.act(self.conv1(x) + self.conv2(x))
+
+    def fuse(self) -> "RepConv":
+        if self.fused:
+            return self
+        self.conv1.fuse()
+        self.conv2.fuse()
+        k3, b3 = self.conv1.conv.weight, self.conv1.conv.bias
+        k1, b1 = self.conv2.conv.weight, self.conv2.conv.bias
+        kernel = k3 + F.pad(k1, [1, 1, 1, 1])
+        bias = b3 + b1
+        fused = nn.Conv2d(
+            self.conv1.conv.in_channels,
+            self.conv1.conv.out_channels,
+            3,
+            self._stride,
+            1,
+            bias=True,
+        ).to(device=k3.device, dtype=k3.dtype)
+        fused.weight.data.copy_(kernel)
+        fused.bias.data.copy_(bias)
+        self.conv = fused
+        self.fused = True
+        return self
+
+    def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
+        return self.act(self.conv(x))
+
+
+class RepBottleneck(nn.Module):
+    """Bottleneck whose first conv is a RepConv."""
+
+    def __init__(self, c: int, shortcut: bool = True, act: str = "relu") -> None:
+        super().__init__()
+        self.cv1 = RepConv(c, c, 3, 1, act=act)
+        self.cv2 = Conv(c, c, 3, 1, act=act)
+        self.add = shortcut
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = self.cv2(self.cv1(x))
+        return x + y if self.add else y
+
+
+class RepCSP(nn.Module):
+    """CSP wrapper around stacked RepBottleneck units."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, act: str = "relu", e: float = 0.5) -> None:
+        super().__init__()
+        hidden = int(c2 * e)
+        self.cv1 = Conv(c1, hidden, 1, 1, act=act)
+        self.cv2 = Conv(c1, hidden, 1, 1, act=act)
+        self.cv3 = Conv(2 * hidden, c2, 1, 1, act=act)
+        self.m = nn.Sequential(*(RepBottleneck(hidden, True, act) for _ in range(n)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+
+
+class RepNCSPELAN4(nn.Module):
+    """GELAN CSP-ELAN block (YOLOv9)."""
+
+    def __init__(self, c1: int, c2: int, c3: int, c4: int, n: int = 1, act: str = "relu") -> None:
+        super().__init__()
+        self.c = c3 // 2
+        self.cv1 = Conv(c1, c3, 1, 1, act=act)
+        self.cv2 = nn.Sequential(RepCSP(c3 // 2, c4, n, act=act), Conv(c4, c4, 3, 1, act=act))
+        self.cv3 = nn.Sequential(RepCSP(c4, c4, n, act=act), Conv(c4, c4, 3, 1, act=act))
+        self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1, act=act)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in (self.cv2, self.cv3))
+        return self.cv4(torch.cat(y, 1))
+
+
+class ELAN1(nn.Module):
+    """Shallow ELAN used on the YOLOv9-n/s stem (convs instead of RepCSP)."""
+
+    def __init__(self, c1: int, c2: int, c3: int, c4: int, act: str = "relu") -> None:
+        super().__init__()
+        self.c = c3 // 2
+        self.cv1 = Conv(c1, c3, 1, 1, act=act)
+        self.cv2 = Conv(c3 // 2, c4, 3, 1, act=act)
+        self.cv3 = Conv(c4, c4, 3, 1, act=act)
+        self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1, act=act)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in (self.cv2, self.cv3))
+        return self.cv4(torch.cat(y, 1))
+
+
+class AConv(nn.Module):
+    """Avg-pool then stride-2 conv downsample (YOLOv9-t/s/m)."""
+
+    def __init__(self, c1: int, c2: int, act: str = "relu") -> None:
+        super().__init__()
+        self.cv1 = Conv(c1, c2, 3, 2, act=act)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = F.avg_pool2d(x, 2, 1, 0, False, True)
+        return self.cv1(x)
+
+
+class ADown(nn.Module):
+    """Split downsample used on YOLOv9-c (CoreYOLO GELAN-l)."""
+
+    def __init__(self, c1: int, c2: int, act: str = "relu") -> None:
+        super().__init__()
+        self.c = c2 // 2
+        self.cv1 = Conv(c1 // 2, self.c, 3, 2, act=act)
+        self.cv2 = Conv(c1 // 2, self.c, 1, 1, act=act)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = F.avg_pool2d(x, 2, 1, 0, False, True)
+        x1, x2 = x.chunk(2, 1)
+        x1 = self.cv1(x1)
+        x2 = F.max_pool2d(x2, 3, 2, 1)
+        x2 = self.cv2(x2)
+        return torch.cat((x1, x2), 1)
+
+
+class SPPELAN(nn.Module):
+    """Spatial pyramid pooling in ELAN form (YOLOv9)."""
+
+    def __init__(self, c1: int, c2: int, c3: int, k: int = 5, act: str = "relu") -> None:
+        super().__init__()
+        self.cv1 = Conv(c1, c3, 1, 1, act=act)
+        self.cv2 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv3 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv4 = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv5 = Conv(4 * c3, c2, 1, 1, act=act)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = [self.cv1(x)]
+        y.extend(m(y[-1]) for m in (self.cv2, self.cv3, self.cv4))
+        return self.cv5(torch.cat(y, 1))
+
+
 class Proto(nn.Module):
     """Mask prototype branch: upsample P3 2× and emit ``nm`` prototype maps."""
 
@@ -300,9 +494,12 @@ class DFL(nn.Module):
 
 
 def fuse_model(model: nn.Module) -> nn.Module:
-    """Fuse every Conv+BN pair so Core ML sees a single convolution."""
+    """Fuse Conv+BN pairs and RepConv branches so Core ML sees single convolutions."""
     for module in model.modules():
         if isinstance(module, Conv):
+            module.fuse()
+            module.forward = module.forward_fuse  # type: ignore[method-assign]
+        elif isinstance(module, RepConv):
             module.fuse()
             module.forward = module.forward_fuse  # type: ignore[method-assign]
     return model
