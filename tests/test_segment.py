@@ -35,6 +35,18 @@ def test_segment_e2e_eval_topk() -> None:
     assert proto.shape[1] == 32
 
 
+def test_instance_masks_one_upsample() -> None:
+    from coreyolo.infer.masks import instance_masks, process_mask, scale_masks
+
+    proto = torch.rand(32, 20, 20)
+    coeff = torch.rand(2, 32)
+    boxes = torch.tensor([[8.0, 8.0, 40.0, 40.0], [16.0, 16.0, 48.0, 48.0]])
+    two = scale_masks(process_mask(proto, coeff, boxes, 80), (100, 60), (0.0, 8.0), 0.8, 80)
+    one = instance_masks(proto, coeff, boxes, 80, (100, 60), (0.0, 8.0), 0.8)
+    assert one.shape == two.shape == (2, 60, 100)
+    assert float((one == two).float().mean()) > 0.9
+
+
 def test_one_segment_train_step(tmp_path) -> None:
     yaml_path = write_dummy_dataset(tmp_path, n_train=4, n_val=2, size=64, segment=True)
     spec = YOLODatasetYAML(yaml_path)

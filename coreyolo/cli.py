@@ -15,7 +15,7 @@ def _add_common(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--device",
         default="gpu",
-        help="gpu (default: MPS/CUDA if available) | all | ane | cpu | cuda",
+        help="gpu (default: MPS/CUDA if available) | auto | all | ane | cpu | cuda",
     )
 
 
@@ -29,7 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     t = sub.add_parser("train", help="Train on a Roboflow YOLO dataset or a COCO recipe")
     t.add_argument("--data", default=None, help="path to data.yaml (optional if --recipe sets it)")
-    t.add_argument("--recipe", default=None, help="coco-n | coco-n-fast | coco-n-e2e | coco-s | coco-m | path to yaml")
+    t.add_argument("--recipe", default=None, help="coco-n | coco-n-fast | coco-n-e2e | coco-s | coco-m | coco-l | path to yaml")
     t.add_argument("--model", default=None, choices=["n", "s", "m", "l", "x"])
     t.add_argument("--epochs", type=int, default=None)
     t.add_argument("--batch", type=int, default=None)
@@ -37,13 +37,18 @@ def build_parser() -> argparse.ArgumentParser:
     t.add_argument("--workers", type=int, default=None)
     t.add_argument("--project", default=None)
     t.add_argument("--name", default=None)
-    t.add_argument("--act", default=None, help="relu (ANE-friendly) or silu")
+    t.add_argument(
+        "--act",
+        default=None,
+        choices=["relu", "relu6", "gelu", "star", "hardswish", "silu"],
+        help="relu (default, ANE), silu (converted YOLOv9 only), gelu, star (StarReLU), hardswish",
+    )
     t.add_argument(
         "--family",
         default=None,
         type=lambda s: str(s).strip().lower(),
-        choices=["dfl", "e2e", "8", "26", "v8", "v26", "c2f", "c3k2"],
-        help="dfl = C2f+DFL host NMS (default); e2e = C3k2+C2PSA NMS-free. 8/26 still accepted.",
+        choices=["gelan", "dfl", "e2e", "9", "8", "26", "v9", "v8", "v26", "c2f", "c3k2", "yolov9"],
+        help="gelan = YOLOv9 GELAN (default, n = yolov9t); dfl = C2f+DFL; e2e = C3k2+C2PSA NMS-free.",
     )
     t.add_argument("--task", default=None, choices=["detect", "segment"], help="detect (default) or instance segment")
     t.add_argument("--mosaic", type=float, default=None)
@@ -76,6 +81,12 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--out", default=None)
     e.add_argument("--fp16", action=argparse.BooleanOptionalAction, default=True)
     e.add_argument("--int8", action="store_true", help="symmetric 8-bit weight quant")
+    e.add_argument(
+        "--palette",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="8-bit k-means palettize for ANE (default on with --fp16, off with --int8)",
+    )
     e.add_argument("--tensor-input", action="store_true", help="float CHW input instead of ImageType")
     _add_common(e)
 
@@ -96,9 +107,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="cap each split (e.g. 512) for a tiny debug set without the full 118k train images",
     )
-    w = sub.add_parser("convert", help="Convert Ultralytics YOLOv8 COCO .pt into CoreYOLO")
-    w.add_argument("--weights", required=True, help="yolov8n.pt or yolov8n-seg.pt (YOLO26n/YOLO11n cannot map)")
-    w.add_argument("--out", default="weights/coreyolo-n-coco.coreyolo")
+    w = sub.add_parser(
+        "convert",
+        help="Remap Ultralytics YOLOv9 .pt names into CoreYOLO (does not relicense AGPL weights)",
+    )
+    w.add_argument(
+        "--weights",
+        required=True,
+        help="yolov9t.pt (nano) / yolov9c.pt (l). YOLO26/YOLO11 cannot map. AGPL-3.0 tensors.",
+    )
+    w.add_argument("--out", default=None, help="output .coreyolo path; inferred from scale if omitted")
     w.add_argument("--model", default=None, choices=["n", "s", "m", "l", "x"], help="scale; inferred from stem if omitted")
     return parser
 
@@ -159,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
             nc=ckpt.get("nc", spec.nc),
             scale=ckpt.get("scale", "n"),
             act=ckpt.get("act", "relu"),
-            family=ckpt.get("family", "dfl"),
+            family=ckpt.get("family", "gelan"),
             task=str(ckpt.get("task", "detect")),
             nm=int(ckpt.get("nm", 32)),
         )
@@ -226,6 +244,7 @@ def main(argv: list[str] | None = None) -> int:
             imgsz=args.imgsz,
             fp16=args.fp16,
             quantize_8bit=args.int8,
+            palettize=args.palette,
             image_input=not args.tensor_input,
         )
         print(f"exported {path}")

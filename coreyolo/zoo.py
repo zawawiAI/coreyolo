@@ -11,6 +11,7 @@ from coreyolo.utils import __version__
 
 __all__ = [
     "DEFAULT_MANIFEST",
+    "assert_zoo_license_labels",
     "listed_release_files",
     "load_manifest",
     "record_metrics",
@@ -81,3 +82,23 @@ def listed_release_files(manifest: str | Path | None = None, root: str | Path | 
             if path.is_file() or path.is_dir():
                 found.append(path)
     return found
+
+
+def assert_zoo_license_labels(path: str | Path | None = None) -> None:
+    """Refuse to publish converted Ultralytics tensors under an MIT label."""
+    catalog = load_manifest(path)
+    errors: list[str] = []
+    for entry in catalog.get("models", []):
+        model_id = str(entry.get("id") or "?")
+        how = str(entry.get("how") or "")
+        origin = str(entry.get("weights_origin") or "")
+        license_id = str(entry.get("weights_license") or "")
+        converted = how.startswith("coreyolo convert") or origin.lower().startswith("ultralytics")
+        if converted and not license_id.upper().startswith("AGPL"):
+            errors.append(f"{model_id}: converted / Ultralytics tensors must be AGPL-3.0, not {license_id!r}")
+        if converted and license_id.upper() == "MIT":
+            errors.append(f"{model_id}: do not rehost converted tensors as MIT")
+        if how.startswith("coreyolo train") and license_id.upper() != "MIT":
+            errors.append(f"{model_id}: trained-from-scratch rows should be MIT, got {license_id!r}")
+    if errors:
+        raise ValueError("zoo license labels are wrong:\n  " + "\n  ".join(errors))

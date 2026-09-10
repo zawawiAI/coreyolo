@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Models — CoreYOLO</title>
-  <meta name="description" content="CoreYOLO scales n through x, DFL and E2E graphs, detect and segment." />
-  <link rel="stylesheet" href="css/site.css" />
+  <meta name="description" content="CoreYOLO scales n through x, GELAN, DFL, and E2E graphs, detect and segment." />
+  <link rel="stylesheet" href="css/site.css?v=gp" />
 </head>
 <body>
   <header class="nav">
@@ -17,6 +17,7 @@
         <li><a href="models.html" aria-current="page">Models</a></li>
         <li><a href="docs.html">Docs</a></li>
         <li><a href="deploy.html">Deploy</a></li>
+        <li><a href="https://github.com/zawawiAI/coreyolo">GitHub</a></li>
         <li><a class="nav-cta" href="docs.html#quickstart">Get started</a></li>
       </ul>
     </div>
@@ -31,7 +32,7 @@
   <section class="section" style="padding-top:12px">
     <div class="wrap-wide">
       <h2>Compound scaling</h2>
-      <p class="lead">DFL follows the usual n / s / m / l / x ladder. E2E uses depth 0.50 on n / s / m.</p>
+      <p class="lead">GELAN (default) uses a fixed channel table; n matches yolov9t. DFL follows the usual n / s / m / l / x ladder. E2E uses depth 0.50 on n / s / m.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -46,7 +47,7 @@
             <tr>
               <td>n</td>
               <td>0.33 / 0.25</td>
-              <td>3.16M (DFL) · 2.73M (E2E)</td>
+              <td>2.13M (GELAN) · 3.16M (DFL) · 2.73M (E2E)</td>
               <td>iPhone, real-time camera</td>
             </tr>
             <tr>
@@ -76,12 +77,15 @@
   <section class="section gray">
     <div class="wrap-wide">
       <h2>Graphs</h2>
-      <p class="lead">Same trainer. Different graphs. Choose at train time with <code>--family dfl</code> or <code>--family e2e</code>.</p>
+      <p class="lead">Same trainer. Different graphs. Default is <code>--family gelan</code> (YOLOv9). Also <code>dfl</code> or <code>e2e</code>.</p>
       <div class="grid-2">
         <article class="card">
-          <h3>DFL — default</h3>
-          <p>C2f, SPPF, PAN-FPN, decoupled DFL head, <code>reg_max=16</code>. Eval is decoded xywh plus class scores. NMS on the host. Core ML layout <code>(1, 4+nc, N)</code>.</p>
-          <p>Optional one-time tensor remap from YOLOv8n / YOLOv8n-seg into a native <code>.coreyolo</code> file. YOLO11n and YOLO26n cannot map.</p>
+          <h3>GELAN — default</h3>
+          <p>ELAN1, RepNCSPELAN4, SPPELAN, AConv, DFL head. Scale <code>n</code> matches Ultralytics <code>yolov9t</code> (no official <code>yolov9n.yaml</code>). Train ReLU for ANE; remap from <code>yolov9t.pt</code> stays SiLU.</p>
+        </article>
+        <article class="card">
+          <h3>DFL</h3>
+          <p>Older C2f, SPPF, PAN-FPN, decoupled DFL head, <code>reg_max=16</code>. Eval is decoded xywh plus class scores. NMS on the host. Core ML layout <code>(1, 4+nc, N)</code>.</p>
         </article>
         <article class="card">
           <h3>E2E</h3>
@@ -95,6 +99,7 @@
     <div class="wrap-wide">
       <h2>Zoo</h2>
       <p class="lead">Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val.</p>
+      <p class="note"><strong>Converted zoo rows</strong> (n-coco, l-coco) remap Ultralytics YOLOv9 tensors. Those weights stay AGPL-3.0 and keep SiLU — export them for GPU, not ANE. Train recipes (relu / e2e / segment) are the MIT + Neural Engine path. See <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -103,37 +108,56 @@
               <th>Graph</th>
               <th>Task</th>
               <th>Act</th>
+              <th>Compute</th>
               <th>How</th>
+              <th>Weights</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>coreyolo-n-coco</td>
-              <td>dfl</td>
+              <td>gelan</td>
               <td>detect</td>
               <td>SiLU</td>
-              <td><code>coreyolo convert --weights yolov8n.pt</code></td>
+              <td>GPU</td>
+              <td><code>coreyolo convert --weights yolov9t.pt</code></td>
+              <td>YOLOv9 (AGPL-3.0)</td>
+            </tr>
+            <tr>
+              <td>coreyolo-l-coco</td>
+              <td>gelan</td>
+              <td>detect</td>
+              <td>SiLU</td>
+              <td>GPU</td>
+              <td><code>coreyolo convert --weights yolov9c.pt</code></td>
+              <td>YOLOv9 (AGPL-3.0)</td>
             </tr>
             <tr>
               <td>coreyolo-n-coco-seg</td>
-              <td>dfl</td>
+              <td>gelan</td>
               <td>segment</td>
-              <td>SiLU</td>
-              <td><code>coreyolo convert --weights yolov8n-seg.pt</code></td>
+              <td>ReLU</td>
+              <td>ANE</td>
+              <td><code>coreyolo train --task segment --family gelan</code></td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-n-coco-relu</td>
-              <td>dfl</td>
+              <td>gelan</td>
               <td>detect</td>
               <td>ReLU</td>
+              <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n</code></td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-e2e-n-coco</td>
               <td>e2e</td>
               <td>detect</td>
               <td>ReLU</td>
+              <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n-e2e</code></td>
+              <td>MIT</td>
             </tr>
           </tbody>
         </table>
@@ -146,7 +170,7 @@
     <div class="footer-grid">
       <div>
         <a class="wordmark" href="index.html" style="color:#1d1d1f">Core<span>YOLO</span></a>
-        <p>Open-source YOLO-style detection for Core ML.</p>
+        <p>Open-source object detection for Core ML.</p>
       </div>
       <div>
         <h4>Explore</h4>
@@ -162,10 +186,11 @@
       </div>
       <div>
         <h4>Project</h4>
-        <a href="../LICENSE">Apache-2.0</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">YOLOv9 / AGPL</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Not affiliated with Ultralytics or Apple.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Not affiliated with, endorsed by, or sponsored by Ultralytics or Apple. YOLO is a trademark of its owners. Not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

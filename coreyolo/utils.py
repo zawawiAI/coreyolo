@@ -17,6 +17,16 @@ __version__ = "0.1.0"
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
 CHECKPOINT_FORMAT = "coreyolo"
 NATIVE_WEIGHT_EXTS = {".pt", ".coreyolo"}
+AGPL_WEIGHT_LICENSE = "AGPL-3.0"
+MIT_WEIGHT_LICENSE = "MIT"
+
+# Printed when loading/exporting converted Ultralytics tensors. Not a relicensing.
+AGPL_WEIGHTS_NOTICE = """\
+license: these tensors come from Ultralytics YOLOv9 (AGPL-3.0). CoreYOLO code is MIT;
+renaming, fine-tuning, or exporting to Core ML does not relicense them. Do not rehost this
+file as MIT. Closed products usually need an Ultralytics commercial license, or train
+CoreYOLO from scratch. Not legal advice. See docs/licenses.md.
+"""
 
 _GPU_ALIASES = {
     "auto",
@@ -127,7 +137,7 @@ def is_coreyolo_checkpoint(ckpt: Any) -> bool:
 
 
 def is_ultralytics_checkpoint(ckpt: Any) -> bool:
-    """True when tensors use Ultralytics ``model.N.*`` names (yolov8n.pt layout)."""
+    """True when tensors use Ultralytics ``model.N.*`` names (yolov9t.pt layout)."""
     if is_coreyolo_checkpoint(ckpt):
         return False
     keys = _checkpoint_state_keys(ckpt)
@@ -136,6 +146,49 @@ def is_ultralytics_checkpoint(ckpt: Any) -> bool:
     if any(k.startswith("model.22.") or k.startswith("model.23.") or k.startswith("model.0.") for k in keys):
         return True
     return False
+
+
+def checkpoint_weight_license(ckpt: Any) -> str:
+    """License on the numeric tensors, not on CoreYOLO source."""
+    if not isinstance(ckpt, dict):
+        return MIT_WEIGHT_LICENSE
+    for key in ("weights_license", "source_license"):
+        raw = ckpt.get(key)
+        if raw:
+            return str(raw)
+    family = str(ckpt.get("source_family") or "")
+    vendor = str(ckpt.get("source_vendor") or "")
+    if vendor.lower() == "ultralytics" or family.startswith("yolov8") or family.startswith("yolov9"):
+        return AGPL_WEIGHT_LICENSE
+    return MIT_WEIGHT_LICENSE
+
+
+def is_converted_ultralytics_weights(ckpt: Any) -> bool:
+    """True when this CoreYOLO file still carries Ultralytics YOLOv9 tensors."""
+    return str(checkpoint_weight_license(ckpt)).upper().startswith("AGPL")
+
+
+def origin_metadata(ckpt: Any) -> dict[str, Any]:
+    """Fields that must follow converted tensors through save, train, and export."""
+    if not is_converted_ultralytics_weights(ckpt) or not isinstance(ckpt, dict):
+        return {}
+    out: dict[str, Any] = {
+        "weights_license": AGPL_WEIGHT_LICENSE,
+        "source_license": AGPL_WEIGHT_LICENSE,
+        "source_vendor": ckpt.get("source_vendor") or "Ultralytics",
+        "source_family": ckpt.get("source_family") or "yolov9",
+    }
+    for key in ("source", "ultralytics_version"):
+        if ckpt.get(key) is not None:
+            out[key] = ckpt[key]
+    return out
+
+
+def warn_converted_weights(ckpt: Any, *, stream: Any = None) -> None:
+    """Remind that a CoreYOLO file can still be AGPL YOLOv9 numbers."""
+    if not is_converted_ultralytics_weights(ckpt):
+        return
+    print(AGPL_WEIGHTS_NOTICE, end="", file=stream or sys.stderr)
 
 
 def save_checkpoint(path: str | Path, payload: dict[str, Any]) -> None:
@@ -148,16 +201,17 @@ def save_checkpoint(path: str | Path, payload: dict[str, Any]) -> None:
 
 
 def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") -> dict[str, Any]:
-    """Load a CoreYOLO checkpoint. Ultralytics ``yolov8n.pt`` files are rejected."""
+    """Load a CoreYOLO checkpoint. Ultralytics ``yolov9t.pt`` files are rejected."""
     path = Path(path)
     ckpt = torch.load(path, map_location=map_location, weights_only=False)
     if is_ultralytics_checkpoint(ckpt):
         raise TypeError(
             f"{path.name} is an Ultralytics checkpoint (model.N.* tensors), not CoreYOLO.\n"
-            "Do not load yolov8n.pt in app code. Convert once with the CLI, then load the CoreYOLO file:\n"
-            "  coreyolo convert --weights yolov8n.pt --out weights/coreyolo-n-coco.coreyolo\n"
-            "  YOLO('weights/coreyolo-n-coco.coreyolo')\n"
-            "Or train your own weights: model.train(...) then YOLO('runs/detect/train/weights/best.pt')."
+            "That file is YOLOv9 under AGPL-3.0. Do not load it in app code.\n"
+            "Convert once (remap only — not a relicensing), then load the CoreYOLO file:\n"
+            "  coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo\n"
+            "  Detector('weights/coreyolo-n-coco.coreyolo')\n"
+            "For an MIT weight path, train CoreYOLO on your data instead. See docs/licenses.md."
         )
     if isinstance(ckpt, dict) and not is_coreyolo_checkpoint(ckpt) and "model" in ckpt:
         keys = _checkpoint_state_keys(ckpt)
@@ -166,4 +220,5 @@ def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") 
                 f"{path.name} is not a CoreYOLO checkpoint. Expected stem.*/head.* tensors "
                 f"or format={CHECKPOINT_FORMAT!r}."
             )
+    warn_converted_weights(ckpt)
     return ckpt

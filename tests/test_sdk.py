@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from coreyolo import YOLO, Result
+from coreyolo import Detector, YOLO, Result
 from coreyolo.data.dummy import write_dummy_dataset
 
 
@@ -14,6 +14,9 @@ def test_sdk_family_aliases() -> None:
     e2e = YOLO("n", nc=2, family="26", device="cpu", imgsz=64)
     assert e2e.family == "e2e"
     assert e2e.end2end is True
+    gelan = YOLO("n", nc=2, family="9", device="cpu", imgsz=64)
+    assert gelan.family == "gelan"
+    assert gelan.end2end is False
 
 
 def test_sdk_predict_scale_and_result(tmp_path: Path) -> None:
@@ -84,7 +87,7 @@ def test_rejects_ultralytics_pt(tmp_path: Path) -> None:
 
     from coreyolo.utils import load_checkpoint
 
-    fake = tmp_path / "yolov8n.pt"
+    fake = tmp_path / "yolov9t.pt"
     torch.save({"model": {"model.22.dfl.conv.weight": torch.zeros(1, 16, 1, 1)}}, fake)
     try:
         load_checkpoint(fake)
@@ -92,6 +95,7 @@ def test_rejects_ultralytics_pt(tmp_path: Path) -> None:
     except TypeError as exc:
         raised = True
         assert "Ultralytics" in str(exc)
+        assert "AGPL-3.0" in str(exc)
     assert raised
     try:
         YOLO(fake, device="cpu")
@@ -99,3 +103,41 @@ def test_rejects_ultralytics_pt(tmp_path: Path) -> None:
     except TypeError:
         yolo_raised = True
     assert yolo_raised
+
+
+def test_detector_is_public_name() -> None:
+    assert Detector is YOLO
+    model = Detector("n", nc=2, device="cpu", imgsz=64)
+    assert repr(model).startswith("Detector(")
+
+
+def test_save_preserves_agpl_origin(tmp_path: Path) -> None:
+    import torch
+
+    from coreyolo.nn.model import build_model
+    from coreyolo.utils import save_checkpoint
+
+    nn = build_model(nc=2, scale="n", act="silu", family="gelan")
+    src = tmp_path / "converted.coreyolo"
+    save_checkpoint(
+        src,
+        {
+            "model": nn.state_dict(),
+            "nc": 2,
+            "names": ["a", "b"],
+            "scale": "n",
+            "act": "silu",
+            "family": "gelan",
+            "task": "detect",
+            "weights_license": "AGPL-3.0",
+            "source_license": "AGPL-3.0",
+            "source_vendor": "Ultralytics",
+            "source_family": "yolov9",
+        },
+    )
+    loaded = Detector(src, device="cpu", imgsz=64)
+    assert loaded.info()["weights_license"] == "AGPL-3.0"
+    out = loaded.save(tmp_path / "resaved.coreyolo")
+    ckpt = torch.load(out, map_location="cpu", weights_only=False)
+    assert ckpt["weights_license"] == "AGPL-3.0"
+    assert ckpt["source_vendor"] == "Ultralytics"

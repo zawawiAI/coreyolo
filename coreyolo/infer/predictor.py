@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -10,7 +11,7 @@ from PIL import Image
 
 from coreyolo.data.augment import letterbox
 from coreyolo.infer.draw import annotate, save_annotated
-from coreyolo.infer.masks import process_mask, scale_masks
+from coreyolo.infer.masks import instance_masks
 from coreyolo.infer.nms import non_max_suppression, scale_boxes
 from coreyolo.nn.model import build_model, is_e2e_family, normalize_family
 from coreyolo.utils import IMAGE_EXTS, load_checkpoint, place_module, select_device
@@ -34,6 +35,29 @@ def resolve_class_filter(names: list[str], classes: list[str] | None) -> list[in
             raise ValueError(f"Unknown class {token!r}. Available: {names[:12]}{'…' if len(names) > 12 else ''}")
         out.append(lookup[key])
     return out or None
+
+
+def _letterbox_bgr(
+    frame: np.ndarray,
+    imgsz: int,
+    color: int = 114,
+    scaleup: bool = False,
+) -> tuple[np.ndarray, float, tuple[float, float]]:
+    """Same scale/pad contract as ``letterbox``, on an OpenCV BGR frame."""
+    import cv2
+
+    h, w = frame.shape[:2]
+    scale = min(imgsz / w, imgsz / h)
+    if not scaleup:
+        scale = min(scale, 1.0)
+    nw, nh = int(round(w * scale)), int(round(h * scale))
+    resized = cv2.resize(frame, (nw, nh), interpolation=cv2.INTER_LINEAR)
+    canvas = np.full((imgsz, imgsz, 3), color, dtype=np.uint8)
+    pad_x = (imgsz - nw) / 2
+    pad_y = (imgsz - nh) / 2
+    x0, y0 = int(round(pad_x)), int(round(pad_y))
+    canvas[y0 : y0 + nh, x0 : x0 + nw] = resized
+    return canvas, scale, (pad_x, pad_y)
 
 
 class Predictor:
@@ -69,6 +93,7 @@ class Predictor:
                 self.names = [f"class_{i}" for i in range(nc)]
             self.torch_model, self.device = place_module(module, self.device)
             self.torch_model.eval()
+            self._dtype = next(self.torch_model.parameters()).dtype
         elif self.weights is None:
             raise ValueError("Predictor needs a weights path or an in-memory module")
         else:
@@ -94,7 +119,7 @@ class Predictor:
                 nc = ckpt.get("nc", 80)
                 scale = ckpt.get("scale", "n")
                 act = ckpt.get("act", "relu")
-                family = normalize_family(ckpt.get("family", "dfl"))
+                family = normalize_family(ckpt.get("family", "gelan"))
                 self.imgsz = int(ckpt.get("imgsz", imgsz))
                 self.end2end = bool(ckpt.get("end2end", is_e2e_family(family)))
                 self.task = str(ckpt.get("task", "detect"))
@@ -111,9 +136,24 @@ class Predictor:
                 self.torch_model.load_state_dict(ckpt["model"], strict=False)
                 self.torch_model, self.device = place_module(self.torch_model, self.device)
                 self.torch_model.eval()
+                self._prepare_torch_runtime()
         if isinstance(classes, (int, str)):
             classes = [classes]
         self.classes = resolve_class_filter(self.names, [str(c) for c in classes] if classes else None)
+
+    def _prepare_torch_runtime(self) -> None:
+        """Fuse Conv-BN, cache DFL anchors, and use FP16 on MPS/CUDA."""
+        assert self.torch_model is not None
+        if hasattr(self.torch_model, "fuse"):
+            self.torch_model.fuse()
+        if self.device.type in {"mps", "cuda"}:
+            self.torch_model.half()
+        self._dtype = next(self.torch_model.parameters()).dtype
+        with torch.inference_mode():
+            dummy = torch.zeros(1, 3, self.imgsz, self.imgsz, device=self.device, dtype=self._dtype)
+            feats = self.torch_model.forward_neck(dummy)
+            self.torch_model.head.prepare_export(list(feats))
+            self.torch_model.head.export = True
 
     def _unpack_raw(self, raw):
         mc = proto = None
@@ -138,7 +178,7 @@ class Predictor:
         pred,
         mc,
         proto,
-        orig: Image.Image,
+        orig_wh: tuple[int, int],
         pad: tuple[float, float],
         ratio: float,
     ) -> tuple[np.ndarray, np.ndarray | None]:
@@ -167,23 +207,26 @@ class Predictor:
             if mc is not None and proto is not None and det.numel():
                 coeff = mc[0][keep] if mc.ndim == 3 else mc[keep]
                 proto_i = proto[0] if proto.ndim == 4 else proto
-                masks_t = process_mask(proto_i, coeff, det[:, :4], self.imgsz)
+                masks_t = instance_masks(proto_i, coeff, det[:, :4], self.imgsz, orig_wh, pad, ratio)
         elif mc is not None and proto is not None:
             dets, coeffs = non_max_suppression(pred, self.conf, self.iou, extra=mc, classes=self.classes)
             det = dets[0]
             proto_i = proto[0] if proto.ndim == 4 else proto
             if det.numel():
-                masks_t = process_mask(proto_i, coeffs[0], det[:, :4], self.imgsz)
+                masks_t = instance_masks(proto_i, coeffs[0], det[:, :4], self.imgsz, orig_wh, pad, ratio)
         else:
             det = non_max_suppression(pred, self.conf, self.iou, classes=self.classes)[0]
         if det.numel():
-            det = scale_boxes(det, (self.imgsz, self.imgsz), orig.size, pad, ratio)
-            if masks_t is not None:
-                masks_t = scale_masks(masks_t, orig.size, pad, ratio, self.imgsz)
+            det = scale_boxes(det, (self.imgsz, self.imgsz), orig_wh, pad, ratio)
         masks_np = None if masks_t is None else masks_t.detach().cpu().numpy()
         return det.detach().cpu().numpy(), masks_np
 
-    @torch.no_grad()
+    def _forward_rgb(self, rgb: np.ndarray) -> Any:
+        tensor = torch.from_numpy(np.array(rgb, copy=True, order="C"))
+        tensor = tensor.permute(2, 0, 1).unsqueeze(0).to(device=self.device, dtype=self._dtype).div_(255)
+        return self.torch_model(tensor)
+
+    @torch.inference_mode()
     def predict_full(self, image: Image.Image) -> tuple[np.ndarray, np.ndarray | None]:
         orig = image.convert("RGB")
         canvas, ratio, pad = letterbox(orig, self.imgsz, scaleup=False)
@@ -191,15 +234,24 @@ class Predictor:
             assert self.coreml_engine is not None
             raw = self.coreml_engine.predict_letterboxed(canvas)
         else:
-            tensor = torch.from_numpy(np.asarray(canvas).copy()).permute(2, 0, 1).float().div(255).unsqueeze(0)
-            tensor = tensor.to(self.device)
-            raw = self.torch_model(tensor)
+            raw = self._forward_rgb(np.asarray(canvas))
         pred, mc, proto = self._unpack_raw(raw)
-        if mc is not None:
-            mc = mc.to(pred.device) if torch.is_tensor(mc) else mc
-        if proto is not None:
-            proto = proto.to(pred.device) if torch.is_tensor(proto) else proto
-        return self._postprocess(pred, mc, proto, orig, pad, ratio)
+        return self._postprocess(pred, mc, proto, orig.size, pad, ratio)
+
+    @torch.inference_mode()
+    def predict_bgr(self, frame: np.ndarray) -> tuple[np.ndarray, np.ndarray | None]:
+        """OpenCV BGR frame → detections and masks in original pixel space."""
+        import cv2
+
+        canvas, ratio, pad = _letterbox_bgr(frame, self.imgsz)
+        rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+        if self.backend == "coreml":
+            assert self.coreml_engine is not None
+            raw = self.coreml_engine.predict_letterboxed(Image.fromarray(rgb))
+        else:
+            raw = self._forward_rgb(rgb)
+        pred, mc, proto = self._unpack_raw(raw)
+        return self._postprocess(pred, mc, proto, (int(frame.shape[1]), int(frame.shape[0])), pad, ratio)
 
     @torch.no_grad()
     def predict_image(self, image: Image.Image) -> np.ndarray:

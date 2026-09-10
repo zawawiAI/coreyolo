@@ -12,7 +12,8 @@ from PIL import Image
 def resolve_compute_units(device: str | None = "gpu"):
     """Map a device string to a Core ML ``ComputeUnit``.
 
-    ``gpu`` / ``mps`` / ``auto`` → ``CPU_AND_GPU``
+    ``gpu`` / ``mps`` → ``CPU_AND_GPU``
+    ``auto`` → ANE-first (``CPU_AND_NE``), then GPU
     ``all`` → ``ALL`` (CPU + GPU + Neural Engine)
     ``ane`` → ``CPU_AND_NE``
     ``cpu`` → ``CPU_ONLY``
@@ -21,7 +22,7 @@ def resolve_compute_units(device: str | None = "gpu"):
 
     raw = (device or "gpu").lower().replace("-", "_")
     alias = {
-        "auto": "gpu",
+        "auto": "auto",
         "gpu": "gpu",
         "mps": "gpu",
         "cuda": "gpu",
@@ -36,6 +37,7 @@ def resolve_compute_units(device: str | None = "gpu"):
     kind = alias.get(raw, "gpu")
     mapping = {
         "gpu": getattr(ct.ComputeUnit, "CPU_AND_GPU", ct.ComputeUnit.ALL),
+        "auto": getattr(ct.ComputeUnit, "CPU_AND_NE", ct.ComputeUnit.ALL),
         "all": ct.ComputeUnit.ALL,
         "ane": getattr(ct.ComputeUnit, "CPU_AND_NE", ct.ComputeUnit.CPU_ONLY),
         "cpu": ct.ComputeUnit.CPU_ONLY,
@@ -50,6 +52,7 @@ def _fallback_chain(kind: str):
     ane = getattr(ct.ComputeUnit, "CPU_AND_NE", None)
     order = {
         "gpu": [gpu, ct.ComputeUnit.ALL, ane, ct.ComputeUnit.CPU_ONLY],
+        "auto": [ane, gpu, ct.ComputeUnit.ALL, ct.ComputeUnit.CPU_ONLY],
         "all": [ct.ComputeUnit.ALL, gpu, ane, ct.ComputeUnit.CPU_ONLY],
         "ane": [ane, gpu, ct.ComputeUnit.CPU_ONLY],
         "cpu": [ct.ComputeUnit.CPU_ONLY],
@@ -69,9 +72,9 @@ def _unit_name(unit) -> str:
 
 
 class CoreMLEngine:
-    """Run an exported CoreYOLO ``.mlpackage``. Defaults to the GPU."""
+    """Run an exported CoreYOLO ``.mlpackage``. ``auto`` tries Neural Engine first."""
 
-    def __init__(self, path: str | Path, device: str = "gpu") -> None:
+    def __init__(self, path: str | Path, device: str = "auto") -> None:
         import coremltools as ct
 
         self.path = Path(path)

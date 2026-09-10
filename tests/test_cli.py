@@ -1,7 +1,14 @@
 from pathlib import Path
 
 from coreyolo.cli import build_parser
-from coreyolo.zoo import listed_release_files, load_manifest, record_metrics, write_metrics_json
+from coreyolo.zoo import assert_zoo_license_labels, listed_release_files, load_manifest, record_metrics, write_metrics_json
+
+
+def test_train_cli_act_gelu() -> None:
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--act", "gelu"])
+    assert args.act == "gelu"
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--act", "star"])
+    assert args.act == "star"
 
 
 def test_train_cli_family_choices() -> None:
@@ -11,6 +18,10 @@ def test_train_cli_family_choices() -> None:
     assert args.family == "8"
     args = build_parser().parse_args(["train", "--data", "data.yaml", "--family", "dfl"])
     assert args.family == "dfl"
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--family", "gelan"])
+    assert args.family == "gelan"
+    args = build_parser().parse_args(["train", "--data", "data.yaml", "--family", "9"])
+    assert args.family == "9"
 
 
 def test_coco_cli_max_images() -> None:
@@ -50,3 +61,49 @@ def test_write_metrics_json(tmp_path: Path) -> None:
 def test_listed_release_files_empty_when_missing() -> None:
     files = listed_release_files("weights/manifest.json")
     assert isinstance(files, list)
+
+
+def test_manifest_marks_converted_weights_agpl() -> None:
+    catalog = load_manifest("weights/manifest.json")
+    converted = [m for m in catalog["models"] if str(m.get("how", "")).startswith("coreyolo convert")]
+    trained = [m for m in catalog["models"] if str(m.get("how", "")).startswith("coreyolo train")]
+    assert converted
+    assert trained
+    for entry in converted:
+        assert entry.get("weights_license") == "AGPL-3.0"
+    for entry in trained:
+        assert entry.get("weights_license") == "MIT"
+    assert_zoo_license_labels("weights/manifest.json")
+
+
+def test_assert_zoo_license_labels_rejects_mit_convert(tmp_path: Path) -> None:
+    dest = tmp_path / "manifest.json"
+    dest.write_text(
+        '{"models":[{"id":"bad","how":"coreyolo convert --weights yolov9t.pt",'
+        '"weights_origin":"ultralytics-yolov9","weights_license":"MIT"}]}'
+    )
+    try:
+        assert_zoo_license_labels(dest)
+        raised = False
+    except ValueError as exc:
+        raised = True
+        assert "MIT" in str(exc)
+    assert raised
+
+
+def test_licenses_doc_covers_yolov9_agpl() -> None:
+    text = Path("docs/licenses.md").read_text().lower()
+    assert "agpl-3.0" in text
+    assert "saas" in text
+    assert "commercial license" in text
+    assert "internal enterprise" in text
+    assert "not a relicensing" in text
+
+
+def test_export_cli_palette_flags() -> None:
+    args = build_parser().parse_args(["export", "--weights", "a.pt", "--no-palette"])
+    assert args.palette is False
+    args = build_parser().parse_args(["export", "--weights", "a.pt", "--palette"])
+    assert args.palette is True
+    args = build_parser().parse_args(["export", "--weights", "a.pt"])
+    assert args.palette is None

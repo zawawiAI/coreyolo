@@ -1,14 +1,16 @@
-"""Python SDK: ``YOLO`` session for train, val, predict, and Core ML export.
+"""Python SDK: ``Detector`` session for train, val, predict, and Core ML export.
 
 Typical use::
 
-    from coreyolo import YOLO
+    from coreyolo import Detector
 
-    model = YOLO("n")
+    model = Detector("n")
     model.train(data="data.yaml", epochs=100, imgsz=640)
     model.save("weights/app.coreyolo")
     results = model.predict("photo.jpg", classes="person")
     model.export()
+
+``YOLO`` remains a compatibility alias. YOLO is a trademark of its owners.
 """
 
 from __future__ import annotations
@@ -22,14 +24,22 @@ from PIL import Image
 
 from coreyolo.infer.predictor import Predictor, resolve_class_filter
 from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, normalize_family
+from coreyolo.nn.modules import normalize_act
 from coreyolo.results import Result
-from coreyolo.utils import IMAGE_EXTS, load_checkpoint, save_checkpoint
+from coreyolo.utils import (
+    AGPL_WEIGHT_LICENSE,
+    IMAGE_EXTS,
+    MIT_WEIGHT_LICENSE,
+    load_checkpoint,
+    origin_metadata,
+    save_checkpoint,
+)
 
 SCALES = ("n", "s", "m", "l", "x")
 _Source = str | Path | Image.Image | np.ndarray
 
 
-class YOLO:
+class Detector:
     """High-level CoreYOLO handle. The CLI is a thin wrapper around this API.
 
     Parameters
@@ -37,7 +47,7 @@ class YOLO:
     model:
         Scale ``n``/``s``/``m``/``l``/``x`` for a new network, or a path to a
         CoreYOLO ``.coreyolo`` / ``.pt`` / Core ML ``.mlpackage``.
-        Do not pass Ultralytics files such as ``yolov8n.pt``.
+        Do not pass Ultralytics files such as ``yolov9t.pt``.
     """
 
     def __init__(
@@ -45,7 +55,7 @@ class YOLO:
         model: str | Path = "n",
         *,
         task: str = "detect",
-        family: str = "dfl",
+        family: str = "gelan",
         act: str = "relu",
         nc: int = 80,
         names: list[str] | None = None,
@@ -64,6 +74,7 @@ class YOLO:
         self.last_train: Path | None = None
         self._predictor: Predictor | None = None
         self._nn: CoreYOLO | None = None
+        self._origin: dict[str, Any] = {}
 
         raw = str(model).strip()
         path = Path(raw)
@@ -72,7 +83,7 @@ class YOLO:
             self.scale = raw.lower()
             self.family = normalize_family(family)
             self.task = str(task).lower()
-            self.act = act
+            self.act = normalize_act(act)
             self.nc = int(nc)
             self.names = names or [f"class_{i}" for i in range(self.nc)]
             self.end2end = is_e2e_family(self.family)
@@ -108,13 +119,14 @@ class YOLO:
         ckpt = load_checkpoint(self.weights, map_location="cpu")
         self.nc = int(ckpt.get("nc", self.nc))
         self.scale = str(ckpt.get("scale", self.scale))
-        self.act = str(ckpt.get("act", self.act))
+        self.act = normalize_act(str(ckpt.get("act", self.act)))
         self.family = normalize_family(ckpt.get("family", self.family))
         self.task = str(ckpt.get("task", self.task))
         self.nm = int(ckpt.get("nm", self.nm))
         self.imgsz = int(ckpt.get("imgsz", self.imgsz))
         self.end2end = bool(ckpt.get("end2end", is_e2e_family(self.family)))
         self.names = ckpt.get("names") or self.names or [f"class_{i}" for i in range(self.nc)]
+        self._origin = origin_metadata(ckpt)
 
     def _get_predictor(self, classes: Any = None) -> Predictor:
         filt = self.classes if classes is None else classes
@@ -187,6 +199,11 @@ class YOLO:
             "names": self.names,
             "imgsz": self.imgsz,
             "device": self.device,
+            "weights_license": (
+                str(self._origin.get("weights_license") or AGPL_WEIGHT_LICENSE)
+                if self._origin
+                else MIT_WEIGHT_LICENSE
+            ),
         }
         if self.weights is None or self.weights.suffix in {".pt", ".coreyolo"}:
             data.update(self.model.info())
@@ -194,7 +211,7 @@ class YOLO:
 
     def __repr__(self) -> str:
         src = self.weights or f"family={self.family} {self.scale} {self.task}"
-        return f"YOLO({src})"
+        return f"Detector({src})"
 
     def __call__(self, source: _Source | Sequence[_Source], **kwargs: Any) -> list[Result]:
         return self.predict(source, **kwargs)
@@ -212,6 +229,8 @@ class YOLO:
         payload.setdefault("act", self.act)
         payload.setdefault("device", self.device)
         payload.setdefault("imgsz", self.imgsz)
+        if self._origin and self.weights is not None and payload.get("resume") is None:
+            payload["resume"] = str(self.weights)
         cfg = TrainConfig(data=str(data), **payload)
         save_dir = train(cfg)
         self.last_train = save_dir
@@ -305,6 +324,7 @@ class YOLO:
         imgsz: int | None = None,
         fp16: bool = True,
         int8: bool = False,
+        palettize: bool | None = None,
         tensor_input: bool = False,
     ) -> Path:
         """Write a Core ML ``.mlpackage`` (Apple GPU / Neural Engine)."""
@@ -317,6 +337,7 @@ class YOLO:
             imgsz=int(imgsz or self.imgsz),
             fp16=fp16,
             quantize_8bit=int8,
+            palettize=palettize,
             image_input=not tensor_input,
         )
 
@@ -326,22 +347,27 @@ class YOLO:
         if dest.suffix not in {".pt", ".coreyolo"}:
             dest = dest.with_suffix(".coreyolo")
         nn = self.model
-        save_checkpoint(
-            dest,
-            {
-                "model": nn.state_dict(),
-                "nc": self.nc,
-                "names": self.names,
-                "scale": self.scale,
-                "act": self.act,
-                "family": self.family,
-                "task": self.task,
-                "nm": self.nm,
-                "end2end": self.end2end,
-                "reg_max": int(getattr(nn, "reg_max", 16)),
-                "imgsz": self.imgsz,
-            },
-        )
+        payload: dict[str, Any] = {
+            "model": nn.state_dict(),
+            "nc": self.nc,
+            "names": self.names,
+            "scale": self.scale,
+            "act": self.act,
+            "family": self.family,
+            "task": self.task,
+            "nm": self.nm,
+            "end2end": self.end2end,
+            "reg_max": int(getattr(nn, "reg_max", 16)),
+            "imgsz": self.imgsz,
+            "weights_license": (
+                str(self._origin.get("weights_license") or AGPL_WEIGHT_LICENSE)
+                if self._origin
+                else MIT_WEIGHT_LICENSE
+            ),
+        }
+        if self._origin:
+            payload.update(self._origin)
+        save_checkpoint(dest, payload)
         self.weights = dest
         self._predictor = None
         self._nn = None
@@ -357,10 +383,12 @@ class YOLO:
         return self.save()
 
     @classmethod
-    def convert(cls, weights: str | Path, out: str | Path | None = None, scale: str | None = None) -> "YOLO":
-        """One-time bootstrap: Ultralytics YOLOv8 ``.pt`` → CoreYOLO ``.coreyolo``.
+    def convert(cls, weights: str | Path, out: str | Path | None = None, scale: str | None = None) -> "Detector":
+        """One-time bootstrap: Ultralytics YOLOv9 ``.pt`` → CoreYOLO ``.coreyolo``.
 
-        Do not call this from app inference. Convert once, then ``YOLO(coreyolo_path)``.
+        Remaps tensor names only. Ultralytics weights stay AGPL-3.0. Do not call this
+        from app inference. Convert once, then ``Detector(coreyolo_path)``. For an
+        MIT weight path, train CoreYOLO on your labels instead.
         """
         from coreyolo.export.convert import convert_ultralytics
 
@@ -409,3 +437,6 @@ class YOLO:
             return
         for item in source:
             yield from self._expand_source(item)
+
+
+YOLO = Detector  # compatibility alias; YOLO is a trademark of its owners

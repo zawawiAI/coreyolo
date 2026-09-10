@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Deploy — CoreYOLO</title>
-  <meta name="description" content="Export CoreYOLO to Core ML and run on iPhone with letterbox and host NMS." />
-  <link rel="stylesheet" href="css/site.css" />
+  <meta name="description" content="Export CoreYOLO to a palettized FP16 Core ML package and run on iPhone Neural Engine." />
+  <link rel="stylesheet" href="css/site.css?v=gp" />
 </head>
 <body>
   <header class="nav">
@@ -17,6 +17,7 @@
         <li><a href="models.html">Models</a></li>
         <li><a href="docs.html">Docs</a></li>
         <li><a href="deploy.html" aria-current="page">Deploy</a></li>
+        <li><a href="https://github.com/zawawiAI/coreyolo">GitHub</a></li>
         <li><a class="nav-cta" href="docs.html#quickstart">Get started</a></li>
       </ul>
     </div>
@@ -33,7 +34,7 @@
       <div class="tiles">
         <article class="tile">
           <h3>Export</h3>
-          <p>Fused Conv–BN, cached anchors, FP16 ML Program, iOS 16 / macOS 13. Optional INT8 weight quant.</p>
+          <p>Fused Conv–BN, cached anchors, FP16 ML Program, 8-bit palettize, iOS 16 / macOS 13. ReLU converts for ANE. Optional INT8.</p>
         </article>
         <article class="tile">
           <h3>Letterbox</h3>
@@ -52,8 +53,11 @@
       <h2>Export</h2>
       <p class="lead">One command writes the artifact the iPhone loads.</p>
       <pre><code>coreyolo export --weights weights/app.coreyolo --imgsz 640
-# or
+# default: FP16 + 8-bit palettes, ANE-legal ops for ReLU
+# coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
+# coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8
 model.export(imgsz=640)</code></pre>
+      <p>Export fuses Conv–BN, caches DFL anchors, converts as FP16, then palettizes weights to 8-bit k-means. ReLU-family graphs convert with <code>CPU_AND_NE</code>. Skip palettes with <code>--no-palette</code>; use <code>--int8</code> for linear quant instead.</p>
     </div>
   </section>
 
@@ -62,17 +66,17 @@ model.export(imgsz=640)</code></pre>
       <h2>Swift</h2>
       <p class="lead">Use <code>MLModel</code> directly. This graph is raw tensors, not Vision <code>VNRecognizedObjectObservation</code>.</p>
       <pre><code>let config = MLModelConfiguration()
-config.computeUnits = .cpuAndGPU
+config.computeUnits = .cpuAndNeuralEngine   // ReLU; .cpuAndGPU for converted SiLU
 let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
-      <p>A camera sample lives in <code>examples/ios</code>: letterbox, host NMS, iOS 16+. Drag <code>CoreYOLO.mlpackage</code> into the Xcode target, set a signing team, run on a device.</p>
-      <p><a href="../examples/ios/README.md">Open the iOS sample ›</a></p>
+      <p>A camera sample lives in <code>examples/ios</code>: letterbox, host NMS, iOS 16+. It defaults to Neural Engine. Drag <code>CoreYOLO.mlpackage</code> into the Xcode target, set a signing team, run on a device.</p>
+      <p><a href="https://github.com/zawawiAI/coreyolo/tree/main/examples/ios">Open the iOS sample ›</a></p>
     </div>
   </section>
 
   <section class="section gray">
     <div class="wrap-wide">
       <h2>Compute units</h2>
-      <p class="lead">Match the flag to the activation. ReLU graphs belong on the Neural Engine. Converted YOLOv8 weights are SiLU — prefer GPU, or fine-tune ReLU.</p>
+      <p class="lead">Match the flag to the activation. ReLU, ReLU6, StarReLU, and HardSwish belong on the Neural Engine. Converted YOLOv9 weights are SiLU — prefer GPU for those, or train ReLU from scratch for ANE.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -84,14 +88,19 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
           </thead>
           <tbody>
             <tr>
+              <td><code>auto</code></td>
+              <td>CPU_AND_NE, then GPU</td>
+              <td>Core ML load: Neural Engine first. Use this for ReLU packages.</td>
+            </tr>
+            <tr>
               <td><code>gpu</code></td>
               <td>CPU_AND_GPU</td>
-              <td>Default. Converted SiLU weights.</td>
+              <td>CLI default. PyTorch MPS, or converted SiLU Core ML on GPU.</td>
             </tr>
             <tr>
               <td><code>ane</code></td>
               <td>CPU_AND_NE</td>
-              <td>ReLU-fused graphs.</td>
+              <td>ReLU / StarReLU fused graphs. iOS sample default.</td>
             </tr>
             <tr>
               <td><code>all</code></td>
@@ -113,7 +122,7 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
     <div class="footer-grid">
       <div>
         <a class="wordmark" href="index.html" style="color:#1d1d1f">Core<span>YOLO</span></a>
-        <p>Open-source YOLO-style detection for Core ML.</p>
+        <p>Open-source object detection for Core ML.</p>
       </div>
       <div>
         <h4>Explore</h4>
@@ -124,14 +133,15 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
       <div>
         <h4>Developers</h4>
         <a href="docs.html#quickstart">Quickstart</a>
-        <a href="../examples/ios/README.md">iOS sample</a>
+        <a href="https://github.com/zawawiAI/coreyolo/tree/main/examples/ios">iOS sample</a>
       </div>
       <div>
         <h4>Project</h4>
-        <a href="../LICENSE">Apache-2.0</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">YOLOv9 / AGPL</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Latency and device choice are yours to measure on hardware. Not affiliated with Apple.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Latency and device choice are yours to measure on hardware. Not affiliated with, endorsed by, or sponsored by Ultralytics or Apple. YOLO is a trademark of its owners. Not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

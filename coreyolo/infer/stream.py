@@ -6,9 +6,8 @@ import time
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
 
-from coreyolo.infer.draw import annotate
+from coreyolo.infer.draw import annotate_bgr
 from coreyolo.infer.predictor import Predictor
 from coreyolo.infer.track import IOUTracker
 
@@ -22,20 +21,13 @@ def parse_camera_index(source: str) -> int | None:
     return None
 
 
-def _overlay_hud(image: Image.Image, fps: float, n: int) -> Image.Image:
-    draw = ImageDraw.Draw(image)
-    try:
-        font = ImageFont.load_default()
-    except Exception:
-        font = None
-    text = f"CoreYOLO  {fps:.1f} FPS  {n} tracks   Q quit"
-    if font is not None:
-        bbox = draw.textbbox((8, 8), text, font=font)
-        draw.rectangle(bbox, fill=(0, 0, 0))
-        draw.text((8, 8), text, fill=(255, 255, 255), font=font)
-    else:
-        draw.text((8, 8), text, fill=(255, 255, 255))
-    return image
+def _overlay_hud_bgr(frame: np.ndarray, fps: float, n: int) -> np.ndarray:
+    import cv2
+
+    text = f"CoreYOLO  {fps:.1f} FPS  {n}  Q quit"
+    cv2.rectangle(frame, (6, 6), (320, 32), (0, 0, 0), -1)
+    cv2.putText(frame, text, (12, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
+    return frame
 
 
 def run_webcam(
@@ -62,6 +54,7 @@ def run_webcam(
         )
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
     frame = None
     for _ in range(40):
@@ -89,18 +82,15 @@ def run_webcam(
                 break
             continue
         drops = 0
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(rgb)
         t0 = time.perf_counter()
-        det, masks = predictor.predict_full(image)
+        det, masks = predictor.predict_bgr(frame)
         if tracker is not None:
             det = tracker.update(det)
-        vis = annotate(image, det, predictor.names, masks=masks)
+        vis = annotate_bgr(frame, det, predictor.names, masks=masks)
         dt = time.perf_counter() - t0
         fps = 0.9 * fps + 0.1 * (1.0 / dt) if dt > 0 else fps
-        vis = _overlay_hud(vis, fps, 0 if det is None else len(det))
-        bgr = cv2.cvtColor(np.asarray(vis), cv2.COLOR_RGB2BGR)
-        cv2.imshow(window, bgr)
+        vis = _overlay_hud_bgr(vis, fps, 0 if det is None else len(det))
+        cv2.imshow(window, vis)
         key = cv2.waitKey(1) & 0xFF
         if key in {ord("q"), ord("Q"), 27}:
             break
