@@ -25,7 +25,7 @@ final class Detector {
     let inputName: String
     let outputName: String
 
-    init(computeUnits: MLComputeUnits = .cpuAndGPU) throws {
+    init(computeUnits: MLComputeUnits = .cpuAndNeuralEngine) throws {
         guard let url =
             Bundle.main.url(forResource: "CoreYOLO", withExtension: "mlpackage")
             ?? Bundle.main.url(forResource: "CoreYOLO", withExtension: "mlmodelc")

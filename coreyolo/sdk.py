@@ -1,14 +1,16 @@
-"""Python SDK: ``YOLO`` session for train, val, predict, and Core ML export.
+"""Python SDK: ``Detector`` session for train, val, predict, and Core ML export.
 
 Typical use::
 
-    from coreyolo import YOLO
+    from coreyolo import Detector
 
-    model = YOLO("n")
+    model = Detector("n")
     model.train(data="data.yaml", epochs=100, imgsz=640)
     model.save("weights/app.coreyolo")
     results = model.predict("photo.jpg", classes="person")
     model.export()
+
+``YOLO`` remains a compatibility alias. YOLO is a trademark of its owners.
 """
 
 from __future__ import annotations
@@ -24,13 +26,20 @@ from coreyolo.infer.predictor import Predictor, resolve_class_filter
 from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, normalize_family
 from coreyolo.nn.modules import normalize_act
 from coreyolo.results import Result
-from coreyolo.utils import IMAGE_EXTS, MIT_WEIGHT_LICENSE, load_checkpoint, origin_metadata, save_checkpoint
+from coreyolo.utils import (
+    AGPL_WEIGHT_LICENSE,
+    IMAGE_EXTS,
+    MIT_WEIGHT_LICENSE,
+    load_checkpoint,
+    origin_metadata,
+    save_checkpoint,
+)
 
 SCALES = ("n", "s", "m", "l", "x")
 _Source = str | Path | Image.Image | np.ndarray
 
 
-class YOLO:
+class Detector:
     """High-level CoreYOLO handle. The CLI is a thin wrapper around this API.
 
     Parameters
@@ -190,7 +199,11 @@ class YOLO:
             "names": self.names,
             "imgsz": self.imgsz,
             "device": self.device,
-            "weights_license": (self._origin.get("weights_license") if self._origin else MIT_WEIGHT_LICENSE),
+            "weights_license": (
+                str(self._origin.get("weights_license") or AGPL_WEIGHT_LICENSE)
+                if self._origin
+                else MIT_WEIGHT_LICENSE
+            ),
         }
         if self.weights is None or self.weights.suffix in {".pt", ".coreyolo"}:
             data.update(self.model.info())
@@ -198,7 +211,7 @@ class YOLO:
 
     def __repr__(self) -> str:
         src = self.weights or f"family={self.family} {self.scale} {self.task}"
-        return f"YOLO({src})"
+        return f"Detector({src})"
 
     def __call__(self, source: _Source | Sequence[_Source], **kwargs: Any) -> list[Result]:
         return self.predict(source, **kwargs)
@@ -216,6 +229,8 @@ class YOLO:
         payload.setdefault("act", self.act)
         payload.setdefault("device", self.device)
         payload.setdefault("imgsz", self.imgsz)
+        if self._origin and self.weights is not None and payload.get("resume") is None:
+            payload["resume"] = str(self.weights)
         cfg = TrainConfig(data=str(data), **payload)
         save_dir = train(cfg)
         self.last_train = save_dir
@@ -309,6 +324,7 @@ class YOLO:
         imgsz: int | None = None,
         fp16: bool = True,
         int8: bool = False,
+        palettize: bool | None = None,
         tensor_input: bool = False,
     ) -> Path:
         """Write a Core ML ``.mlpackage`` (Apple GPU / Neural Engine)."""
@@ -321,6 +337,7 @@ class YOLO:
             imgsz=int(imgsz or self.imgsz),
             fp16=fp16,
             quantize_8bit=int8,
+            palettize=palettize,
             image_input=not tensor_input,
         )
 
@@ -342,7 +359,11 @@ class YOLO:
             "end2end": self.end2end,
             "reg_max": int(getattr(nn, "reg_max", 16)),
             "imgsz": self.imgsz,
-            "weights_license": MIT_WEIGHT_LICENSE,
+            "weights_license": (
+                str(self._origin.get("weights_license") or AGPL_WEIGHT_LICENSE)
+                if self._origin
+                else MIT_WEIGHT_LICENSE
+            ),
         }
         if self._origin:
             payload.update(self._origin)
@@ -362,11 +383,11 @@ class YOLO:
         return self.save()
 
     @classmethod
-    def convert(cls, weights: str | Path, out: str | Path | None = None, scale: str | None = None) -> "YOLO":
+    def convert(cls, weights: str | Path, out: str | Path | None = None, scale: str | None = None) -> "Detector":
         """One-time bootstrap: Ultralytics YOLOv9 ``.pt`` → CoreYOLO ``.coreyolo``.
 
         Remaps tensor names only. Ultralytics weights stay AGPL-3.0. Do not call this
-        from app inference. Convert once, then ``YOLO(coreyolo_path)``. For an
+        from app inference. Convert once, then ``Detector(coreyolo_path)``. For an
         MIT weight path, train CoreYOLO on your labels instead.
         """
         from coreyolo.export.convert import convert_ultralytics
@@ -416,3 +437,6 @@ class YOLO:
             return
         for item in source:
             yield from self._expand_source(item)
+
+
+YOLO = Detector  # compatibility alias; YOLO is a trademark of its owners

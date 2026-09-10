@@ -1,29 +1,33 @@
 # CoreYOLO
 
-Open-source YOLO-style object detection, trained in PyTorch and **deployed with Core ML on Apple silicon**.
+Independent object detection, trained in PyTorch and **deployed with Core ML on Apple silicon**.
 
-CoreYOLO is original code under MIT. It is inspired by the YOLO detector family (CSP backbone, PAN-FPN, decoupled DFL head) and by the Roboflow YOLO label layout. It is not a fork of Ultralytics and is not affiliated with Ultralytics or Apple.
+CoreYOLO is original code under MIT. It reimplements published detector methods (CSP backbone, PAN-FPN, decoupled DFL head) and the Roboflow YOLO label layout. It is **not** a fork of Ultralytics, **not** an Ultralytics product, and **not** affiliated with Ultralytics or Apple. YOLO, YOLOv9, and Ultralytics are trademarks of their owners — used here only to name third-party files and license duties.
+
+The Python type is `from coreyolo import Detector`. `YOLO` is a compatibility alias.
+
+This is not legal advice, and these notices do not mean nobody can sue. Details: [docs/licenses.md](docs/licenses.md).
 
 ## Why CoreYOLO
 
 - **Fully open source** (MIT), including train, export, and inference.
-- **Core ML first**: fused Conv-BN, ReLU by default, static `imgsz`, FP16 ML Program. Inference defaults to the **GPU** (`CPU_AND_GPU`); pass `--device all` for GPU+ANE or `--device ane` for Neural Engine only.
-- **Three detect graphs**: `--family gelan` is **YOLOv9 GELAN** (default; scale `n` matches Ultralytics `yolov9t`). `--family dfl` is C2f + Distribution Focal Loss (host NMS). `--family e2e` is **C3k2 + C2PSA + NMS-free** top-300.
+- **Core ML first**: fused Conv-BN, ReLU by default, static `imgsz`, FP16 ML Program with 8-bit palettized weights. Converted SiLU graphs prefer GPU (`--device gpu`); ReLU prefers ANE (`--device ane` / iOS `.cpuAndNeuralEngine`).
+- **Three detect graphs**: `--family gelan` is **GELAN** as in the YOLOv9 paper (default; scale `n` matches the public Ultralytics `yolov9t` file). `--family dfl` is C2f + Distribution Focal Loss (host NMS). `--family e2e` is **C3k2 + C2PSA + NMS-free** top-300.
 - **Instance segmentation**: `--task segment` adds a proto mask branch. Roboflow **YOLO-Seg** polygon labels work; detect stays the default.
 - **Roboflow YOLO labels**: drop in a Roboflow **YOLO** export (`data.yaml` + `train|valid/{images,labels}`).
 
 ## Python SDK
 
-App code loads **CoreYOLO** files only (``.coreyolo``, trained ``best.pt``, or ``.mlpackage``). Do not pass Ultralytics ``yolov9t.pt`` into ``YOLO()`` — that layout is rejected (AGPL-3.0 pickle, not a CoreYOLO checkpoint).
+App code loads **CoreYOLO** files only (``.coreyolo``, trained ``best.pt``, or ``.mlpackage``). Do not pass Ultralytics ``yolov9t.pt`` into ``Detector()`` — that layout is rejected (AGPL-3.0 pickle, not a CoreYOLO checkpoint).
 
 ```python
-from coreyolo import YOLO
+from coreyolo import Detector
 
-model = YOLO("n")
+model = Detector("n")
 model.train(data="datasets/dummy/data.yaml", epochs=20, batch=8, imgsz=320)
 model.save("weights/app.coreyolo")
 
-model = YOLO("weights/app.coreyolo")  # or a Core ML .mlpackage
+model = Detector("weights/app.coreyolo")  # or a Core ML .mlpackage
 results = model.predict("photo.jpg", classes="person", save=True)
 results[0].save("out.jpg")
 model.export(imgsz=320)
@@ -208,7 +212,7 @@ coreyolo train       --data data.yaml --model n --family e2e --epochs 100 --devi
 coreyolo val         --data data.yaml --weights best.pt --device gpu [--json metrics.json --zoo-id coreyolo-n-coco]
 coreyolo predict     --weights best.mlpackage --source photo.jpg --device gpu
 coreyolo predict     --weights weights/coreyolo-n-coco.mlpackage --source 0 --device gpu
-coreyolo export      --weights best.pt --imgsz 640 [--int8]
+coreyolo export      --weights best.pt --imgsz 640 [--int8] [--no-palette]
 coreyolo train       --data data.yaml --model n --task segment --epochs 100 --device gpu
 coreyolo dummy-data  --out datasets/dummy --segment
 ```
@@ -217,4 +221,4 @@ coreyolo dummy-data  --out datasets/dummy --segment
 
 **CoreYOLO code** is [MIT](LICENSE): you may view, share, modify, and distribute it, including in a closed app, subject to the MIT copyright and permission notice. Train **from scratch** on your own labels for an MIT **weight** path. This repo is not a fork of Ultralytics and does not include Ultralytics source.
 
-**Ultralytics YOLOv9** is a separate project. Its source is open under **AGPL-3.0** (view, share, modify, distribute). The AGPL catch: if you **modify** YOLOv9 or offer it as a **network service (SaaS)** so users interact with it over a network, you typically must release **your whole application** under AGPL-3.0. For a **commercial product** or a **closed-source internal enterprise tool** without publishing that source, Ultralytics sells a [commercial license](https://www.ultralytics.com/license). `coreyolo convert` remaps names only — converted tensors, fine-tunes, and Core ML exports of those files stay AGPL-3.0. Do not rehost them as MIT. YOLO / YOLOv9 / Ultralytics are their trademarks. Details: [docs/licenses.md](docs/licenses.md). This is not legal advice.
+**Ultralytics YOLOv9** is a separate project. Its source is open under **AGPL-3.0** (view, share, modify, distribute). The AGPL catch: if you **modify** YOLOv9 or offer it as a **network service (SaaS)** so users interact with it over a network, you typically must release **your whole application** under AGPL-3.0. For a **commercial product** or a **closed-source internal enterprise tool** without publishing that source, Ultralytics sells a [commercial license](https://www.ultralytics.com/license). `coreyolo convert` remaps names only — converted tensors, fine-tunes, and Core ML exports of those files stay AGPL-3.0. Do not rehost them as MIT. YOLO / YOLOv9 / Ultralytics are their trademarks. Prefer `Detector` in new code. Details: [docs/licenses.md](docs/licenses.md). This is not legal advice.

@@ -121,3 +121,21 @@ def test_export_segment_three_outputs(tmp_path: Path) -> None:
     proto = np.asarray(packed["proto"])
     assert det.shape[1] == 6
     assert proto.ndim == 4
+
+
+def test_export_fp16_relu_records_ane_optimize(tmp_path: Path) -> None:
+    from coreyolo.export.coreml import ane_preferred_act, export_coreml
+    from coreyolo.export.engine import CoreMLEngine
+
+    assert ane_preferred_act("relu")
+    assert ane_preferred_act("star")
+    assert not ane_preferred_act("silu")
+    weights = _tiny_ckpt(tmp_path, "gelan")
+    out = tmp_path / "tiny-gelan-fp16.mlpackage"
+    export_coreml(weights, out=out, imgsz=64, fp16=True, image_input=True)
+    engine = CoreMLEngine(out, device="cpu")
+    meta = dict(engine.model.user_defined_metadata)
+    assert meta.get("preferred_compute") == "ane"
+    assert meta.get("optimize") in {"palettize8", "fp16"}
+    pred = engine.predict_letterboxed(Image.new("RGB", (64, 64), (0, 0, 0)))
+    assert np.isfinite(np.asarray(pred)).all()

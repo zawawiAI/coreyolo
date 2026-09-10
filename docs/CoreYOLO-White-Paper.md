@@ -85,16 +85,16 @@ coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo
 ### 3.3 Python SDK
 
 ```python
-from coreyolo import YOLO
+from coreyolo import Detector
 
-model = YOLO("n")
+model = Detector("n")
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
 results = model.predict("photo.jpg", classes="person")
 model.export(imgsz=640)   # Core ML for iPhone / Mac
 ```
 
-`YOLO("n")` builds an untrained nano graph. `YOLO("weights/app.coreyolo")` or a `.mlpackage` loads a trained artifact. `predict(0)` is a Mac webcam helper; it is not the iPhone runtime.
+`Detector("n")` builds an untrained nano graph. `Detector("weights/app.coreyolo")` or a `.mlpackage` loads a trained artifact. `predict(0)` is a Mac webcam helper; it is not the iPhone runtime. `YOLO` is a compatibility alias.
 
 ### 3.4 Maturity
 
@@ -171,7 +171,7 @@ Ultralytics is the better **general** trainer: more pretrained models, more task
 ### 5.3 Recommended path to iPhone
 
 1. Label in Roboflow; export YOLO (or YOLO-Seg).
-2. `YOLO("n").train(data="data.yaml", epochs=…)` or a CoreYOLO COCO recipe—not `yolov9t.pt` in the app.
+2. `Detector("n").train(data="data.yaml", epochs=…)` or a CoreYOLO COCO recipe—not `yolov9t.pt` in the app.
 3. `model.save("weights/app.coreyolo")` then `model.export(imgsz=640)`.
 4. Add the `.mlpackage` to Xcode; letterbox; NMS on host for DFL; set `computeUnits` to GPU or Neural Engine.
 5. Measure on a physical iPhone.
@@ -180,7 +180,7 @@ Ultralytics is the better **general** trainer: more pretrained models, more task
 
 CoreYOLO exists so a YOLO-style detector can be trained in the open, stored in a native checkpoint, and shipped as Core ML without taking an AGPL runtime into a closed Apple app. It does not try to replace every YOLO toolkit. It tries to be the small stack you actually put on an iPhone: C2f or C3k2, ReLU, fused convolutions, host or NMS-free decode, MIT.
 
-Further work includes richer training augs, pose/OBB if needed, tighter ANE INT8, and on-device NMS options. The public interface today is `from coreyolo import YOLO` and `coreyolo export`.
+Further work includes richer training augs, pose/OBB if needed, tighter ANE INT8, and on-device NMS options. The public interface today is `from coreyolo import Detector` and `coreyolo export`.
 
 ---
 

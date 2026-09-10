@@ -11,6 +11,32 @@ import torch
 from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, normalize_family
 from coreyolo.utils import __version__, MIT_WEIGHT_LICENSE, checkpoint_weight_license, load_checkpoint, origin_metadata
 
+# Activations the Neural Engine maps well as fused conv + piecewise nonlinear.
+_ANE_ACT = frozenset({"relu", "relu6", "star", "hardswish"})
+
+
+def ane_preferred_act(act: str | None) -> bool:
+    """True when ReLU-family activations should target CPU+ANE instead of GPU."""
+    return str(act or "relu").strip().lower() in _ANE_ACT
+
+
+def _convert_compute_units(act: str, fp16: bool):
+    import coremltools as ct
+
+    if fp16 and ane_preferred_act(act):
+        return getattr(ct.ComputeUnit, "CPU_AND_NE", ct.ComputeUnit.ALL)
+    return getattr(ct.ComputeUnit, "CPU_AND_GPU", ct.ComputeUnit.ALL)
+
+
+def _palettize_weights(mlmodel):
+    """8-bit k-means palettes compress conv weights in an ANE-friendly way."""
+    from coremltools.optimize.coreml import OpPalettizerConfig, OptimizationConfig, palettize_weights
+
+    cfg = OptimizationConfig(
+        global_config=OpPalettizerConfig(mode="kmeans", nbits=8, weight_threshold=512, num_kmeans_workers=1)
+    )
+    return palettize_weights(mlmodel, cfg)
+
 
 def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
     ckpt = load_checkpoint(weights, map_location="cpu")
@@ -50,12 +76,16 @@ def export_coreml(
     fp16: bool = True,
     quantize_8bit: bool = False,
     image_input: bool = True,
+    palettize: bool | None = None,
 ) -> Path:
     """Export ``best.pt`` to ``.mlpackage`` for Apple GPU / Neural Engine.
 
     The graph is static ``(1, 3, imgsz, imgsz)``. DFL exports decoded
     ``(1, 4+nc, N)`` xywh + scores (NMS on host). E2E exports NMS-free
     ``(1, 300, 6)`` xyxy + conf + cls.
+
+    FP16 ReLU graphs convert with ``CPU_AND_NE`` so MIL keeps ANE-legal ops,
+    then 8-bit k-means palettize (off when ``fp16`` is false, or when ``--int8``).
     """
     import coremltools as ct
 
@@ -94,15 +124,24 @@ def export_coreml(
         ]
     else:
         output_types = [ct.TensorType(name="detections")]
-    mlmodel = ct.convert(
-        traced,
-        inputs=inputs,
-        outputs=output_types,
-        convert_to="mlprogram",
-        minimum_deployment_target=ct.target.macOS13,
-        compute_precision=precision,
-    )
+    act = str(meta.get("act", "relu"))
+    convert_kwargs: dict = {
+        "inputs": inputs,
+        "outputs": output_types,
+        "convert_to": "mlprogram",
+        "minimum_deployment_target": ct.target.macOS13,
+        "compute_precision": precision,
+        "pass_pipeline": ct.PassPipeline.DEFAULT,
+        "compute_units": _convert_compute_units(act, fp16),
+    }
+    try:
+        mlmodel = ct.convert(traced, **convert_kwargs)
+    except Exception:
+        convert_kwargs["compute_units"] = ct.ComputeUnit.ALL
+        mlmodel = ct.convert(traced, **convert_kwargs)
 
+    do_palette = palettize if palettize is not None else bool(fp16 and not quantize_8bit)
+    optimize = "fp16" if fp16 else "fp32"
     if quantize_8bit:
         from coremltools.optimize.coreml import (
             OptimizationConfig,
@@ -112,6 +151,13 @@ def export_coreml(
 
         qconfig = OptimizationConfig(global_config=OpLinearQuantizerConfig(mode="linear_symmetric"))
         mlmodel = linear_quantize_weights(mlmodel, qconfig)
+        optimize = "int8"
+    elif do_palette:
+        try:
+            mlmodel = _palettize_weights(mlmodel)
+            optimize = "palettize8"
+        except Exception as exc:
+            print(f"palettize skipped ({exc}); keeping {optimize}", flush=True)
 
     mlmodel.short_description = (
         "CoreYOLO instance segmenter (boxes + mask coefficients + proto)"
@@ -131,6 +177,8 @@ def export_coreml(
     mlmodel.user_defined_metadata["act"] = str(meta["act"])
     mlmodel.user_defined_metadata["family"] = str(meta.get("family", "gelan"))
     mlmodel.user_defined_metadata["task"] = str(meta.get("task", "detect"))
+    mlmodel.user_defined_metadata["optimize"] = optimize
+    mlmodel.user_defined_metadata["preferred_compute"] = "ane" if ane_preferred_act(act) else "gpu"
     if segment:
         mlmodel.user_defined_metadata["nm"] = str(meta.get("nm", 32))
         mlmodel.user_defined_metadata["layout"] = "detections + mask_coeff + proto"

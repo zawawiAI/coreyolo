@@ -100,17 +100,17 @@
   <pre>coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo</pre>
 
   <h3>3.3 Python SDK</h3>
-  <pre>from coreyolo import YOLO
+  <pre>from coreyolo import Detector
 
-model = YOLO("n")
+model = Detector("n")
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
 results = model.predict("photo.jpg", classes="person")
 model.export(imgsz=640)   # Core ML for iPhone / Mac</pre>
-  <p><code>YOLO("n")</code> builds an untrained nano graph. <code>YOLO("weights/app.coreyolo")</code> or a <code>.mlpackage</code> loads a trained artifact. <code>predict(0)</code> is a Mac webcam helper; it is not the iPhone runtime.</p>
+  <p><code>Detector("n")</code> builds an untrained nano graph. <code>Detector("weights/app.coreyolo")</code> or a <code>.mlpackage</code> loads a trained artifact. <code>predict(0)</code> is a Mac webcam helper; it is not the iPhone runtime. <code>YOLO</code> is a compatibility alias.</p>
 
   <h3>3.4 Maturity</h3>
-  <p>Version 0.1.0 is alpha. Detect and instance segmentation are implemented. Pose, OBB, and classify are not. Training recipes are simpler than a large commercial zoo (no mixup/copy-paste by default). Converted YOLOv9t is the practical COCO starting point for GELAN; E2E is trained by the user. The public interface is <code>from coreyolo import YOLO</code> and the <code>coreyolo</code> CLI; they share the same internals.</p>
+  <p>Version 0.1.0 is alpha. Detect and instance segmentation are implemented. Pose, OBB, and classify are not. Training recipes are simpler than a large commercial zoo (no mixup/copy-paste by default). Converted YOLOv9t is the practical COCO starting point for GELAN; E2E is trained by the user. The public interface is <code>from coreyolo import Detector</code> and the <code>coreyolo</code> CLI; they share the same internals.</p>
 </section>
 
 <section class="page">
@@ -159,10 +159,10 @@ let model = try VNCoreMLModel(for: CoreYOLO(configuration: config).model)</pre>
   <p>Ultralytics is the better general trainer: more pretrained models, more tasks, more export formats, more community. CoreYOLO is the better Apple product path when AGPL is unacceptable and the ship target is Core ML.</p>
 
   <h3>5.3 Recommended path to iPhone</h3>
-  <p>Label in Roboflow and export YOLO (or YOLO-Seg). Train with <code>YOLO("n").train(data="data.yaml")</code> or a CoreYOLO COCO recipe—not <code>yolov9t.pt</code> in the app. Save <code>weights/app.coreyolo</code>, then <code>model.export(imgsz=640)</code>. Add the <code>.mlpackage</code> to Xcode; letterbox; NMS on host for DFL; set <code>computeUnits</code> to GPU or Neural Engine. Measure on a physical iPhone.</p>
+  <p>Label in Roboflow and export YOLO (or YOLO-Seg). Train with <code>Detector("n").train(data="data.yaml")</code> or a CoreYOLO COCO recipe—not <code>yolov9t.pt</code> in the app. Save <code>weights/app.coreyolo</code>, then <code>model.export(imgsz=640)</code>. Add the <code>.mlpackage</code> to Xcode; letterbox; NMS on host for DFL; set <code>computeUnits</code> to GPU or Neural Engine. Measure on a physical iPhone.</p>
 
   <h3>5.4 Conclusion</h3>
-  <p>CoreYOLO exists so a YOLO-style detector can be trained in the open, stored in a native checkpoint, and shipped as Core ML without taking an AGPL runtime into a closed Apple app. It does not try to replace every YOLO toolkit. It tries to be the small stack you actually put on an iPhone: C2f or C3k2, ReLU, fused convolutions, host or NMS-free decode, MIT. Further work includes richer training augs, pose/OBB if needed, tighter ANE INT8, and on-device NMS options. The public interface today is <code>from coreyolo import YOLO</code> and <code>coreyolo export</code>.</p>
+  <p>CoreYOLO exists so a detector can be trained in the open, stored in a native checkpoint, and shipped as Core ML without taking an AGPL runtime into a closed Apple app. It does not try to replace every toolkit in this family. It tries to be the small stack you actually put on an iPhone: C2f or C3k2, ReLU, fused convolutions, host or NMS-free decode, MIT. Further work includes richer training augs, pose/OBB if needed, tighter ANE INT8, and on-device NMS options. The public interface today is <code>from coreyolo import Detector</code> and <code>coreyolo export</code>.</p>
   <p class="footer">CoreYOLO v0.1.0 · MIT License · Not affiliated with Ultralytics or Apple. Latency figures are single-machine burst measurements on Apple M4 Pro (1 Sep 2026), not product SLAs.</p>
 </section>
 

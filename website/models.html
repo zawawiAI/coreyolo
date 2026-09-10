@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Models — CoreYOLO</title>
   <meta name="description" content="CoreYOLO scales n through x, GELAN, DFL, and E2E graphs, detect and segment." />
-  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/site.css?v=gp" />
 </head>
 <body>
   <header class="nav">
@@ -17,6 +17,7 @@
         <li><a href="models.html" aria-current="page">Models</a></li>
         <li><a href="docs.html">Docs</a></li>
         <li><a href="deploy.html">Deploy</a></li>
+        <li><a href="https://github.com/zawawiAI/coreyolo">GitHub</a></li>
         <li><a class="nav-cta" href="docs.html#quickstart">Get started</a></li>
       </ul>
     </div>
@@ -80,7 +81,7 @@
       <div class="grid-2">
         <article class="card">
           <h3>GELAN — default</h3>
-          <p>ELAN1, RepNCSPELAN4, SPPELAN, AConv, DFL head. Scale <code>n</code> matches Ultralytics <code>yolov9t</code> (no official <code>yolov9n.yaml</code>). Remap from <code>yolov9t.pt</code>.</p>
+          <p>ELAN1, RepNCSPELAN4, SPPELAN, AConv, DFL head. Scale <code>n</code> matches Ultralytics <code>yolov9t</code> (no official <code>yolov9n.yaml</code>). Train ReLU for ANE; remap from <code>yolov9t.pt</code> stays SiLU.</p>
         </article>
         <article class="card">
           <h3>DFL</h3>
@@ -98,7 +99,7 @@
     <div class="wrap-wide">
       <h2>Zoo</h2>
       <p class="lead">Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val.</p>
-      <p class="note"><strong>Converted zoo rows</strong> (n-coco, l-coco) remap Ultralytics YOLOv9 tensors. Those weights stay AGPL-3.0. Train recipes (relu / e2e / segment) are the MIT weight path. See <a href="../docs/licenses.md">docs/licenses.md</a>.</p>
+      <p class="note"><strong>Converted zoo rows</strong> (n-coco, l-coco) remap Ultralytics YOLOv9 tensors. Those weights stay AGPL-3.0 and keep SiLU — export them for GPU, not ANE. Train recipes (relu / e2e / segment) are the MIT + Neural Engine path. See <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -107,6 +108,7 @@
               <th>Graph</th>
               <th>Task</th>
               <th>Act</th>
+              <th>Compute</th>
               <th>How</th>
               <th>Weights</th>
             </tr>
@@ -117,6 +119,7 @@
               <td>gelan</td>
               <td>detect</td>
               <td>SiLU</td>
+              <td>GPU</td>
               <td><code>coreyolo convert --weights yolov9t.pt</code></td>
               <td>YOLOv9 (AGPL-3.0)</td>
             </tr>
@@ -125,6 +128,7 @@
               <td>gelan</td>
               <td>detect</td>
               <td>SiLU</td>
+              <td>GPU</td>
               <td><code>coreyolo convert --weights yolov9c.pt</code></td>
               <td>YOLOv9 (AGPL-3.0)</td>
             </tr>
@@ -133,6 +137,7 @@
               <td>gelan</td>
               <td>segment</td>
               <td>ReLU</td>
+              <td>ANE</td>
               <td><code>coreyolo train --task segment --family gelan</code></td>
               <td>MIT</td>
             </tr>
@@ -141,6 +146,7 @@
               <td>gelan</td>
               <td>detect</td>
               <td>ReLU</td>
+              <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n</code></td>
               <td>MIT</td>
             </tr>
@@ -149,6 +155,7 @@
               <td>e2e</td>
               <td>detect</td>
               <td>ReLU</td>
+              <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n-e2e</code></td>
               <td>MIT</td>
             </tr>
@@ -163,7 +170,7 @@
     <div class="footer-grid">
       <div>
         <a class="wordmark" href="index.html" style="color:#1d1d1f">Core<span>YOLO</span></a>
-        <p>Open-source YOLO-style detection for Core ML.</p>
+        <p>Open-source object detection for Core ML.</p>
       </div>
       <div>
         <h4>Explore</h4>
@@ -179,11 +186,11 @@
       </div>
       <div>
         <h4>Project</h4>
-        <a href="../LICENSE">MIT</a>
-        <a href="../docs/licenses.md">YOLOv9 / AGPL</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">YOLOv9 / AGPL</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Not affiliated with Ultralytics or Apple.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Not affiliated with, endorsed by, or sponsored by Ultralytics or Apple. YOLO is a trademark of its owners. Not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

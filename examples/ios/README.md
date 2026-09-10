@@ -31,4 +31,4 @@ Use a package from **weights you trained** (`coreyolo train` then `export`) for 
 
 Pad color is `(114, 114, 114)`. Do not use Vision `VNRecognizedObjectObservation` — this graph is raw tensors, not a Vision detector with baked-in NMS.
 
-`computeUnits` defaults to `.cpuAndGPU`. Switch to `.cpuAndNeuralEngine` in `Detector.swift` for ReLU graphs.
+`computeUnits` defaults to `.cpuAndNeuralEngine` (ReLU graphs). Pass `.cpuAndGPU` in `Detector.swift` for converted SiLU packages.

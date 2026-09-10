@@ -9,7 +9,7 @@ on:
       notes:
         description: Release notes
         required: false
-        default: See weights/manifest.json for ids, files, and mAP (null until val is recorded).
+        default: Converted n-coco / l-coco assets stay AGPL-3.0 (Ultralytics tensors). Trained-from-scratch rows are MIT. See weights/manifest.json.
 
 permissions:
   contents: write
@@ -19,6 +19,8 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v5
+      - name: Refuse MIT labels on converted zoo rows
+        run: PYTHONPATH=. python3 -c "from coreyolo.zoo import assert_zoo_license_labels; assert_zoo_license_labels()"
       - name: Pack listed zoo files
         run: |
           python3 - <<'PY'

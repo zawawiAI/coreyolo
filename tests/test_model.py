@@ -121,6 +121,9 @@ def test_gpu_device_aliases() -> None:
     kind, unit = resolve_compute_units("gpu")
     assert kind == "gpu"
     assert "GPU" in unit.name
+    kind, unit = resolve_compute_units("auto")
+    assert kind == "auto"
+    assert "NE" in unit.name or unit.name == "ALL"
     kind, unit = resolve_compute_units("all")
     assert kind == "all"
     assert unit.name == "ALL"

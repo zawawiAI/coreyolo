@@ -210,7 +210,7 @@ def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") 
             "That file is YOLOv9 under AGPL-3.0. Do not load it in app code.\n"
             "Convert once (remap only — not a relicensing), then load the CoreYOLO file:\n"
             "  coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo\n"
-            "  YOLO('weights/coreyolo-n-coco.coreyolo')\n"
+            "  Detector('weights/coreyolo-n-coco.coreyolo')\n"
             "For an MIT weight path, train CoreYOLO on your data instead. See docs/licenses.md."
         )
     if isinstance(ckpt, dict) and not is_coreyolo_checkpoint(ckpt) and "model" in ckpt:

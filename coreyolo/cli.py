@@ -15,7 +15,7 @@ def _add_common(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--device",
         default="gpu",
-        help="gpu (default: MPS/CUDA if available) | all | ane | cpu | cuda",
+        help="gpu (default: MPS/CUDA if available) | auto | all | ane | cpu | cuda",
     )
 
 
@@ -81,6 +81,12 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--out", default=None)
     e.add_argument("--fp16", action=argparse.BooleanOptionalAction, default=True)
     e.add_argument("--int8", action="store_true", help="symmetric 8-bit weight quant")
+    e.add_argument(
+        "--palette",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="8-bit k-means palettize for ANE (default on with --fp16, off with --int8)",
+    )
     e.add_argument("--tensor-input", action="store_true", help="float CHW input instead of ImageType")
     _add_common(e)
 
@@ -238,6 +244,7 @@ def main(argv: list[str] | None = None) -> int:
             imgsz=args.imgsz,
             fp16=args.fp16,
             quantize_8bit=args.int8,
+            palettize=args.palette,
             image_input=not args.tensor_input,
         )
         print(f"exported {path}")

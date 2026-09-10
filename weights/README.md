@@ -10,7 +10,7 @@ coreyolo convert --weights yolov9c.pt --out weights/coreyolo-l-coco.coreyolo
 coreyolo export --weights weights/coreyolo-n-coco.coreyolo --imgsz 640 --out weights/coreyolo-n-coco.mlpackage
 ```
 
-The file you ship is CoreYOLO format (`format: coreyolo`), not the Ultralytics pickle. Nano YOLOv9 is Ultralytics `yolov9t.pt` (no `yolov9n.yaml`). Converted weights keep **SiLU** and remain **Ultralytics tensors (AGPL-3.0)** — convert remaps names, it does not relicense. For Neural Engine and an MIT weight path, train ReLU (`--recipe coco-n`) instead of converting. See [docs/licenses.md](../docs/licenses.md).
+The file you ship is CoreYOLO format (`format: coreyolo`), not the Ultralytics pickle. Nano YOLOv9 is Ultralytics `yolov9t.pt` (no `yolov9n.yaml`). Converted weights keep **SiLU** and remain **Ultralytics tensors (AGPL-3.0)** — convert remaps names, it does not relicense. GitHub Releases of those files must stay labeled AGPL-3.0, never MIT. For Neural Engine and an MIT weight path, train ReLU (`--recipe coco-n`) instead of converting. See [docs/licenses.md](../docs/licenses.md).
 
 ## Record mAP
 
