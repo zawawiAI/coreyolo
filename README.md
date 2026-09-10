@@ -1,24 +1,49 @@
 # CoreYOLO
 
-Independent object detection, trained in PyTorch and **deployed with Core ML on Apple silicon**.
+**Object detection for Apple silicon.** Train in PyTorch. Ship a palettized Core ML package to iPhone and Mac.
 
-CoreYOLO is original code under MIT. It reimplements published detector methods (CSP backbone, PAN-FPN, decoupled DFL head) and the Roboflow YOLO label layout. It is **not** a fork of Ultralytics, **not** an Ultralytics product, and **not** affiliated with Ultralytics or Apple. YOLO, YOLOv9, and Ultralytics are trademarks of their owners — used here only to name third-party files and license duties.
+<p align="center">
+  <a href="https://pypi.org/project/coreyolo/"><img alt="PyPI" src="https://img.shields.io/pypi/v/coreyolo"></a>
+  <a href="https://pypi.org/project/coreyolo/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/coreyolo"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/zawawiAI/coreyolo"></a>
+  <a href="https://github.com/zawawiAI/coreyolo/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/zawawiAI/coreyolo/ci.yml?branch=main&label=CI"></a>
+</p>
 
-The Python type is `from coreyolo import Detector`. `YOLO` is a compatibility alias.
+Independent MIT code. Not a fork of Ultralytics, and **not** affiliated with Ultralytics or Apple. The public type is `Detector` (`YOLO` is a compatibility alias). [License notes](#license).
 
-This is not legal advice, and these notices do not mean nobody can sue. Details: [docs/licenses.md](docs/licenses.md).
+```text
+Roboflow data.yaml  →  train  →  .coreyolo  →  export  →  Core ML  →  iPhone / Mac
+```
+
+## Install
+
+```bash
+pip install coreyolo
+```
+
+```python
+from coreyolo import Detector
+
+model = Detector("n")              # GELAN; pass family="e2e" for NMS-free
+model.train(data="data.yaml", epochs=100, imgsz=640)
+model.save("weights/app.coreyolo")
+model.export(imgsz=640)            # FP16 Core ML + 8-bit palettes
+```
+
+[SDK](#python-sdk) · [iOS sample](examples/ios) · [CLI](#cli) · [Docs site](website/docs.html) · [White paper](docs/CoreYOLO-White-Paper.md)
 
 ## Why CoreYOLO
 
-- **Fully open source** (MIT), including train, export, and inference.
-- **Core ML first**: fused Conv-BN, ReLU by default, static `imgsz`, FP16 ML Program with 8-bit palettized weights. Converted SiLU graphs prefer GPU (`--device gpu`); ReLU prefers ANE (`--device ane` / iOS `.cpuAndNeuralEngine`).
-- **Three detect graphs**: `--family gelan` is **GELAN** as in the YOLOv9 paper (default; scale `n` matches the public Ultralytics `yolov9t` file). `--family dfl` is C2f + Distribution Focal Loss (host NMS). `--family e2e` is **C3k2 + C2PSA + NMS-free** top-300.
-- **Instance segmentation**: `--task segment` adds a proto mask branch. Roboflow **YOLO-Seg** polygon labels work; detect stays the default.
-- **Roboflow YOLO labels**: drop in a Roboflow **YOLO** export (`data.yaml` + `train|valid/{images,labels}`).
+| | |
+| --- | --- |
+| **Core ML first** | Fused Conv-BN, ReLU by default, static `imgsz`, FP16 ML Program with 8-bit palettized weights. ReLU prefers ANE (`--device ane`); converted SiLU graphs prefer GPU. |
+| **MIT code** | Train on your own labels and ship a closed App Store app. Optional convert of Ultralytics YOLOv9 tensors stays AGPL-3.0 — that is not a relicensing. |
+| **Three graphs** | `--family gelan` (default) is GELAN as in the YOLOv9 paper; scale `n` matches the public `yolov9t` file. `--family dfl` is C2f + host NMS. `--family e2e` is C3k2 + C2PSA, NMS-free top-300. |
+| **Your labels** | Drop in a Roboflow **YOLO** or **YOLO-Seg** export (`data.yaml` + `train\|valid/{images,labels}`). |
 
 ## Python SDK
 
-App code loads **CoreYOLO** files only (``.coreyolo``, trained ``best.pt``, or ``.mlpackage``). Do not pass Ultralytics ``yolov9t.pt`` into ``Detector()`` — that layout is rejected (AGPL-3.0 pickle, not a CoreYOLO checkpoint).
+App code loads **CoreYOLO** files only (`.coreyolo`, trained `best.pt`, or `.mlpackage`). Do not pass Ultralytics `yolov9t.pt` into `Detector()` — that layout is rejected (AGPL-3.0 pickle, not a CoreYOLO checkpoint).
 
 ```python
 from coreyolo import Detector
@@ -34,12 +59,6 @@ model.export(imgsz=320)
 ```
 
 `model.val(data="data.yaml")` returns mAP. `model.predict(0)` opens the webcam. Optional one-time bootstrap (not in the app): `coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo`.
-
-## Install
-
-```bash
-pip install coreyolo
-```
 
 From a clone, for development:
 
