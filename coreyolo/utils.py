@@ -20,16 +20,17 @@ NATIVE_WEIGHT_EXTS = {".pt", ".coreyolo"}
 AGPL_WEIGHT_LICENSE = "AGPL-3.0"
 MIT_WEIGHT_LICENSE = "MIT"
 
-# Printed when loading/exporting converted third-party YOLOv9 tensors. Not a relicensing.
+# Printed when loading/exporting converted third-party YOLOv9 tensors.
 AGPL_WEIGHTS_NOTICE = """\
-license: these tensors come from a third-party YOLOv9 checkpoint (AGPL-3.0). CoreYOLO code is MIT;
-renaming, fine-tuning, or exporting to Core ML does not relicense them. Do not rehost this
-file as MIT. Prefer MultimediaTechLab v9-*.pt (MIT) or train CoreYOLO from scratch. See docs/licenses.md.
+license: these tensors inherit AGPL-3.0 from their source. They are NOT covered by
+the MIT License that applies to CoreYOLO code. Converting the file does not change
+its applicable terms. See weights/LICENSE_NOTICE.txt and docs/licenses.md.
 """
 
 MTL_WEIGHTS_NOTICE = """\
-license: these tensors come from MultimediaTechLab/YOLO (MIT), copyright Kin-Yiu Wong and Hao-Tang Tsui.
-CoreYOLO remapped names only. Keep the MIT copyright and permission notice with any copy.
+license: these tensors inherit MIT from MultimediaTechLab/YOLO, copyright Kin-Yiu Wong
+and Hao-Tang Tsui. Keep the license text and that copyright notice with any copy.
+Converting the file does not change its applicable terms.
 """
 
 _GPU_ALIASES = {
@@ -227,7 +228,7 @@ def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") 
             "  coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo\n"
             "  Detector('weights/coreyolo-n-coco.coreyolo')\n"
             "MultimediaTechLab v9-*.pt stays MIT. Ultralytics yolov9*.pt stays AGPL-3.0. "
-            "See docs/licenses.md."
+            "Converting the file does not change its applicable terms. See docs/licenses.md."
         )
     if isinstance(ckpt, dict) and not is_coreyolo_checkpoint(ckpt) and "model" in ckpt:
         keys = _checkpoint_state_keys(ckpt)

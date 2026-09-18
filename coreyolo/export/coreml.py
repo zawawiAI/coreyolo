@@ -190,7 +190,7 @@ def export_coreml(
     mlmodel.user_defined_metadata["weights_license"] = license_id
     if license_id.upper().startswith("AGPL"):
         mlmodel.short_description = (
-            "Contains third-party YOLOv9 tensors (AGPL-3.0). Name remap / Core ML export is not a relicensing. "
+            "Contains third-party YOLOv9 tensors (AGPL-3.0). Converting the file does not change its applicable terms. "
             + str(mlmodel.short_description)
         )
     if meta.get("source_vendor"):

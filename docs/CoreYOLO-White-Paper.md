@@ -10,7 +10,7 @@ version: "0.1.0"
 
 **White paper** · Version 0.1.0 (alpha) · 2 September 2026
 
-CoreYOLO is original software under the MIT License. It is inspired by the YOLO family of one-stage detectors and by the Roboflow YOLO label layout. Independent MIT code.
+CoreYOLO is original software under the MIT License. It is inspired by the YOLO family of one-stage detectors and by the Roboflow YOLO label layout. Code MIT. Weights per checkpoint.
 
 ---
 
@@ -150,15 +150,15 @@ DFL GPU Core ML ran on this Mac; official YOLO26 GPU-only Core ML aborted. ANE r
 
 CoreYOLO’s train, export, and inference code is MIT. You may embed it in a proprietary iOS or macOS binary, subject to the MIT copyright and permission notice.
 
-Public YOLOv9 weight files are **not** one license. MultimediaTechLab/YOLO `v9-t.pt` / `s` / `m` / `c` are **MIT** (copyright Kin-Yiu Wong and Hao-Tang Tsui) — the same source LibreYOLO converts. Ultralytics `yolov9t.pt` is typically **AGPL-3.0**. AGPL-3.0 is copyleft, including over a network: if you modify those AGPL tensors or offer them as a SaaS so users interact with them over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses **Ultralytics** YOLOv9 weights without publishing that source usually requires a **commercial license from the copyright holders**.
+Pretrained weights are separate. Each one carries the license of whoever trained it. Choosing a model means choosing its license. MultimediaTechLab/YOLO `v9-t.pt` / `s` / `m` / `c` are **MIT** (copyright Kin-Yiu Wong and Hao-Tang Tsui) — the authors' MIT re-release, not WongKinYiu/yolov9 (GPL-3.0). Ultralytics `yolov9t.pt` is typically **AGPL-3.0**. Converting the file does not change its applicable terms. AGPL-3.0 is copyleft, including over a network: if you modify those AGPL tensors or offer them as a SaaS so users interact with them over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses **Ultralytics** YOLOv9 weights without publishing that source usually requires a **commercial license from the copyright holders**.
 
-CoreYOLO is a separate implementation. It does not vendor third-party YOLO trainer source. Optional convert copies **tensors** into CoreYOLO names; the checkpoint format is CoreYOLO, but the **license follows the source file**. MultimediaTechLab converts stay MIT (keep the copyright notice). Ultralytics converts stay AGPL-3.0. YOLO26/YOLO11 weights are not copied. Train CoreYOLO from scratch on your labels for an original MIT + ReLU path. See `docs/licenses.md`. This is not legal advice.
+CoreYOLO does not vendor third-party YOLO trainer source. Optional convert remaps tensor names; the checkpoint format is CoreYOLO, but the **license follows the source file**. A model you train yourself on data you have the right to use is yours. YOLO26/YOLO11 weights are not copied. See `docs/licenses.md` and `weights/LICENSE_NOTICE.txt`. This is a description of the licenses involved, not legal advice.
 
 ### 5.2 Comparison (honest)
 
 | | CoreYOLO | Typical YOLO toolkit |
 |---|---|---|
-| License | MIT (code + MultimediaTechLab convert + weights you train here) | AGPL-3.0 on typical Ultralytics weights; commercial license for closed products |
+| License | Code MIT; GELAN convert MIT from MultimediaTechLab; train-from-scratch MIT. Ultralytics dumps stay AGPL-3.0 | AGPL-3.0 on typical Ultralytics weights; commercial license for closed products |
 | Deploy priority | Core ML / ANE / iPhone | Many backends |
 | Default activation | ReLU (ANE + native train) | SiLU |
 | Graphs | GELAN (YOLOv9, host NMS), E2E (C3k2, trained here) | Official v9 / 11 / 26 weights |
@@ -184,4 +184,4 @@ Further work includes richer training augs, pose/OBB if needed, tighter ANE INT8
 
 ---
 
-*CoreYOLO v0.1.0 · MIT License · Independent MIT code. Latency figures are single-machine burst measurements on Apple M4 Pro (1 Sep 2026), not product SLAs.*
+*CoreYOLO v0.1.0 · MIT License · Code MIT. Weights per checkpoint. Latency figures are single-machine burst measurements on Apple M4 Pro (1 Sep 2026), not product SLAs.*
