@@ -1,0 +1,38 @@
+NOTICE: WEIGHTS LICENSING
+
+No pretrained weight files are distributed in this directory or anywhere
+else in the source tree. The conversion code (`coreyolo convert` /
+`coreyolo/export/convert.py`) is part of the CoreYOLO source repository
+and is covered by the root MIT License.
+
+Published checkpoints belong on GitHub Releases. The catalog is
+`weights/manifest.json`. Each row states `weights_license` for that
+file. Converting a checkpoint does not change its applicable terms.
+An ONNX or Core ML artifact built from a restricted checkpoint inherits
+the restriction. Choosing a model means choosing its license.
+
+Per-source summary:
+
+ GELAN COCO (coreyolo-{n,s,m,l}-coco) MIT
+ upstream: MultimediaTechLab/YOLO v1.0-alpha
+ files: v9-t.pt → n, v9-s.pt → s, v9-m.pt → m, v9-c.pt → l
+ Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui
+ The authors' MIT re-release, not WongKinYiu/yolov9 (GPL-3.0) and
+ not Ultralytics yolov9{t,s,m,c}.pt (AGPL-3.0).
+ Convert with: coreyolo convert --weights v9-t.pt
+ Keep the MIT copyright and permission notice with any copy.
+
+ GELAN / E2E / segment trained from scratch MIT
+ upstream: CoreYOLO train (`coreyolo train` or Detector.train)
+ Native recipes (coco-n, coco-s, coco-m, coco-l, coco-n-e2e,
+ segment) are original weights. ReLU, Neural Engine.
+
+ Ultralytics yolov9{t,s,m,c}.pt AGPL-3.0
+ Those files inherit AGPL-3.0 from their source. Convert still
+ remaps names, but the checkpoint is stamped AGPL-3.0 and is NOT
+ covered by the MIT License that applies to CoreYOLO code.
+ Do not rehost them as MIT.
+
+The Hugging Face / GitHub Release page of the exact file you download
+is authoritative, and it can change without this notice changing with
+it. See docs/licenses.md. This file is a description, not legal advice.

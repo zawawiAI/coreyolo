@@ -1,41 +1,43 @@
-# Licenses
+# Licensing
 
-This page is a product summary, **not legal advice**, and **not a promise that nobody can sue**. Anyone can file a lawsuit. These notices reduce confusion; they do not waive anyone’s rights. Read the MIT text in [`LICENSE`](../LICENSE), [`NOTICE`](../NOTICE), and the [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) text.
+CoreYOLO carries two separately licensed things: its own code, and pretrained checkpoints. They are often not the same license.
 
-## CoreYOLO (this project)
+This page describes the licenses involved. It is a description, not legal advice, and it does not create any warranty. If the answer matters commercially, read the licenses yourself and take your own counsel.
 
-CoreYOLO’s **source** (train, val, predict, export, Core ML path) is original software under the **MIT License**. You may view, share, modify, and distribute it, including in a closed App Store or internal binary, subject to the MIT copyright and permission notice.
+Read the MIT text in [`LICENSE`](../LICENSE), [`NOTICE`](../NOTICE), [`weights/LICENSE_NOTICE.txt`](../weights/LICENSE_NOTICE.txt), and the [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) text.
 
-This repository does **not** vendor third-party detector source and does **not** depend on another YOLO Python package. The public Python type is `from coreyolo import Detector`. `YOLO` is a compatibility alias only.
+## CoreYOLO's own code
 
-## Independent implementation
+The library is MIT. That covers the Python API, the CLI, the trainers, validators and exporters, the dataset loaders, and the conversion code under `coreyolo/export/convert.py`. Use it in a commercial or closed-source product, keep the copyright line and the license text with any copy you redistribute, and the obligation ends there.
 
-Detectors in this family (GELAN, CSP backbone, PAN-FPN, decoupled head, Distribution Focal Loss, SiLU/Swish) are described in public papers and blogs. CoreYOLO reimplements a small Core ML-first stack of those published ideas. Similarity of architecture is not a license to copy someone else’s **source** or **pretrained weight files**.
+The grant stops at the code. The `LICENSE` file puts it plainly:
 
-## Trademarks
+> Those licenses vary and are not all permissive: some published YOLOv9 dumps are AGPL-3.0, and this MIT License does not extend to them. Choosing a model means choosing its license.
 
-“YOLO”, “YOLOv9”, “YOLO11”, and “YOLO26” are trademarks of their respective owners.
+This repository does **not** vendor third-party detector source. The public Python type is `from coreyolo import Detector`. `YOLO` is a compatibility alias only.
 
-They appear here only as **nominative** references: to name third-party files (`v9-t.pt`, `yolov9t.pt`) and to state license duties. CoreYOLO is an independent implementation.
+## Upstream code
 
-The project name includes “YOLO” as a descriptive reference to the published detector family. The SDK class is `Detector`. Prefer that name in new code.
+CoreYOLO reimplements a small Core ML-first stack of published detector ideas (GELAN, CSP backbone, PAN-FPN, decoupled head, Distribution Focal Loss). Similarity of architecture is not a license to copy someone else’s **source** or **pretrained weight files**. MIT does not overwrite an upstream checkpoint, and CoreYOLO does not relicense anyone's work.
 
-## Two different YOLOv9 weight files
+The GELAN convert path follows the authors' **MIT re-release** of YOLOv9 at [MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO) (copyright Kin-Yiu Wong and Hao-Tang Tsui), not the GPL-3.0 repository `WongKinYiu/yolov9` that carries the same model, and not Ultralytics `yolov9*.pt` (AGPL-3.0).
 
-Public “YOLOv9” checkpoints are **not** one license. Convert copies **numbers**; it does **not** relicense them. The source file decides the stamp.
+“YOLO”, “YOLOv9”, “YOLO11”, and “YOLO26” are trademarks of their respective owners. They appear only as nominative references.
 
-### MIT — MultimediaTechLab/YOLO (the LibreYOLO path)
+## Weights, per checkpoint
 
-The YOLOv9 authors re-released an MIT implementation at [MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO) (also [WongKinYiu/YOLO](https://github.com/WongKinYiu/YOLO)). Pretrained files from release `v1.0-alpha`:
+No pretrained weight file ships inside the package. Published checkpoints live on GitHub Releases. The catalog is [`weights/manifest.json`](../weights/manifest.json). That row, and the file itself (`weights_license`), are the terms for that checkpoint.
 
-- `v9-t.pt` → CoreYOLO scale `n`
-- `v9-s.pt` → `s`
-- `v9-m.pt` → `m`
-- `v9-c.pt` → `l`
+Licenses differ between sources, and converting the file does not change its applicable terms. A Core ML or ONNX artifact built from a restricted checkpoint inherits the restriction.
 
-Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui. Licensed under the MIT License.
-
-[LibreYOLO](https://www.libreyolo.com/docs/licensing) converts those same files by remapping tensor names and keeps MIT plus that copyright notice. CoreYOLO does the same onto `format: coreyolo`. Keep the MIT copyright and permission notice with every copy, fine-tune, and Core ML export.
+| Checkpoint | Upstream | Weights |
+|---|---|---|
+| `coreyolo-n-coco` from `v9-t.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
+| `coreyolo-s-coco` from `v9-s.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
+| `coreyolo-m-coco` from `v9-m.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
+| `coreyolo-l-coco` from `v9-c.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
+| `coreyolo-n-coco-relu`, `coreyolo-n-coco-seg`, `coreyolo-e2e-n-coco` | trained here | MIT |
+| Converted Ultralytics `yolov9t.pt` / `s` / `m` / `c` | Ultralytics | AGPL-3.0 |
 
 ```bash
 coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
@@ -44,42 +46,44 @@ coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
 coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo
 ```
 
-Published zoo rows that list those `v9-*.pt` files are **MIT**.
+## Finding the terms for one model
 
-### AGPL-3.0 — Ultralytics `yolov9*.pt`
+`weights/LICENSE_NOTICE.txt` is the per-source summary. `NOTICE` names the upstream files convert can remap. The zoo table on [Models](https://zawawiai.github.io/coreyolo/models.html) has a Weights column, one row per published file.
 
-Files named `yolov9t.pt` / `yolov9s.pt` / `yolov9m.pt` / `yolov9c.pt` from Ultralytics are typically **AGPL-3.0**. They are a different training dump, not the MultimediaTechLab release. Convert still remaps them, but the checkpoint is stamped `weights_license: AGPL-3.0`. Do **not** rehost those files as MIT.
+Then check the GitHub Release of the exact file you are about to download. It is authoritative, and it can change without a docs page changing with it.
 
-```bash
-coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo
-```
+## GELAN COCO (MultimediaTechLab) — interpretation
 
-### The AGPL-3.0 catch
+Original work: YOLOv9, MultimediaTechLab.
 
-AGPL-3.0 is copyleft, including over a network (the “SaaS” clause):
+Upstream license: MIT.
 
-- If you **modify** AGPL-covered YOLOv9 code or weights, or
-- If you use them **inside a software service** and let users interact with it over a network,
+Upstream source: [github.com/MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO).
 
-you typically must make the **corresponding source of your whole application** available under AGPL-3.0 (or a compatible copyleft), not only the detector file.
+CoreYOLO code: MIT.
 
-Renaming tensors, wrapping the model in another runtime, fine-tuning, or exporting Core ML does not, by itself, remove that.
+Weights: MIT. Convert remaps names onto `format: coreyolo`.
 
-### Commercial and closed internal use
+Interpretation: MIT is a permissive license, so these weights can be used in commercial and closed-source products. The one standing obligation is to keep the license text and the copyright notice, Kin-Yiu Wong and Hao-Tang Tsui, with any copy you redistribute. It places no condition on your own application code, and a model you train yourself on your own data is yours. The port follows the authors' MIT re-release of YOLOv9, not the GPL-3.0 repository that carries the same model, so the permissive terms come from the source CoreYOLO actually converts.
 
-If you want **Ultralytics** YOLOv9 weights in a **commercial product** or a **closed-source internal enterprise tool** without releasing your application source, you usually need a **separate commercial license** from the copyright holders. MIT on CoreYOLO’s *code* does not replace that for *their* pretrained weights.
+## Ultralytics `yolov9*.pt` — interpretation
 
-## Convert is not a relicensing
+Those files are a different dump, typically AGPL-3.0. Convert still remaps names; the checkpoint is stamped `weights_license: AGPL-3.0`. They are not covered by CoreYOLO's MIT License. Do not rehost them as MIT.
 
-That command remaps tensor **names** onto CoreYOLO’s GELAN graph. The file format becomes `format: coreyolo` (`stem.*` / `head.*`). The **numbers still came from** the file you passed in. `Detector()` rejects the raw pickle so app code cannot load `v9-t.pt` or `yolov9t.pt` by accident; that is a file-layout guard, not a license wash.
+AGPL-3.0 is copyleft, including over a network: if you modify those tensors or use them inside a software service (SaaS) so users interact with it over a network, you typically must make the corresponding source of your whole application available under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses those weights without publishing source usually needs a commercial license from the copyright holders.
 
-| What you ship | Typical license shape |
-|---|---|
-| CoreYOLO code + weights you trained **from scratch** here | MIT |
-| Converted MultimediaTechLab `v9-t.pt` / `s` / `m` / `c` | MIT (keep Wong/Tsui copyright) |
-| Converted Ultralytics `yolov9t.pt` / `s` / `m` / `c` | Still AGPL-3.0 unless you have a commercial license for those weights |
-| Fine-tune or Core ML export | Same license as the tensors you started from |
+## Commercial use
 
-The other MIT **weight** path is to train CoreYOLO **from scratch** on your own labels (`coreyolo train` or `Detector("n").train(...)`) and ship those checkpoints / `.mlpackage` files. Native train uses ReLU (Neural Engine). Converted files keep SiLU (GPU).
+Code is rarely the problem. MIT permits commercial and closed-source use. It asks you to keep its license text and attribution notices with copies you redistribute, and it places no conditions on your own application code.
+
+Checkpoints are where products get stuck. A restricted checkpoint stays restricted however permissive the surrounding code is, and converting the file does not change its applicable terms, which is what `weights/LICENSE_NOTICE.txt` states directly. A Core ML package exported from those tensors inherits the restriction.
+
+Where a license carries its restriction into derivative works, fine-tuning does not escape it either. Training the same architecture from scratch on data you have the right to use does: the code is permissive, so a model you train yourself is yours, and the pretrained checkpoint's terms never enter it.
+
+Decide the license question when you pick the model rather than when you ship, and read the terms on the file you actually downloaded.
 
 YOLO11 and YOLO26 **weights** cannot be converted (different graph). Train CoreYOLO E2E yourself if you want that family without taking those checkpoints.
+
+## Not legal advice
+
+This page describes the licenses involved. It is a description, not legal advice, and it does not create any warranty. If the answer matters commercially, read the licenses yourself and take your own counsel.

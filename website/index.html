@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CoreYOLO — Object detection for Apple silicon</title>
-  <meta name="description" content="Independent MIT detector trained in PyTorch and shipped as palettized Core ML." />
-  <link rel="stylesheet" href="css/site.css?v=mit" />
+  <meta name="description" content="MIT code. Weights per checkpoint. Train in PyTorch, ship palettized Core ML." />
+  <link rel="stylesheet" href="css/site.css?v=lylic" />
 </head>
 <body>
-  <div class="ribbon">Independent MIT code. YOLO is a trademark of its owners. <a href="docs.html#license">License</a></div>
+  <div class="ribbon">Code MIT. Weights per checkpoint. YOLO is a trademark of its owners. <a href="docs.html#license">License</a></div>
   <header class="nav">
     <div class="nav-inner">
       <a class="wordmark" href="index.html">Core<span>YOLO</span></a>
@@ -27,7 +27,7 @@
   <section class="hero">
     <p class="eyebrow">Core ML. First.</p>
     <h1>Object detection.<br />Built for Apple.</h1>
-    <p class="sub">Train an independent detector in Python. Ship a palettized Core ML package to Apple silicon. Code and MultimediaTechLab-converted GELAN weights are MIT.</p>
+    <p class="sub">Train an independent detector in Python. Ship a palettized Core ML package to Apple silicon. Code is MIT. Weights carry their own license, stated per checkpoint.</p>
     <div class="hero-actions">
       <a class="btn btn-blue" href="docs.html#quickstart">Get started</a>
       <a class="btn btn-text" href="deploy.html">See Core ML</a>
@@ -58,7 +58,7 @@
         </article>
         <article class="tile">
           <h3>MIT</h3>
-          <p>CoreYOLO’s code is permissive. Closed App Store apps can ship models you train here, or GELAN weights converted from MultimediaTechLab <code>v9-*.pt</code> (MIT). Ultralytics <code>yolov9*.pt</code> convert stays AGPL-3.0 — that is not a relicensing.</p>
+          <p>Code is MIT. Weights carry their own license, stated per checkpoint. Choosing a model means choosing its license. GELAN files from MultimediaTechLab <code>v9-*.pt</code> are MIT. Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0; converting the file does not change its applicable terms.</p>
         </article>
         <article class="tile">
           <h3>Your labels</h3>
@@ -176,10 +176,10 @@ model.export(imgsz=640)   # Core ML: FP16 + 8-bit palette, ANE for ReLU</code></
         <a href="https://github.com/zawawiAI/coreyolo">GitHub</a>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/CoreYOLO-White-Paper.pdf">White paper</a>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">Licenses</a>
+        <a href="docs.html#license">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Original software under the MIT License. Inspired by published detector-family methods and the Roboflow YOLO label layout. YOLO is a trademark of its owners. These notices are not legal advice.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

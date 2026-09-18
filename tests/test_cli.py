@@ -108,10 +108,28 @@ def test_licenses_doc_covers_yolov9_agpl() -> None:
     assert "saas" in text
     assert "commercial license" in text
     assert "internal enterprise" in text
-    assert "not a relicensing" in text
+    assert "does not change its applicable terms" in text
+    assert "choosing a model means choosing its license" in text
+    assert "not legal advice" in text
     assert "multimediatechlab" in text
     assert "kin-yiu" in text
     assert "v9-t.pt" in text
+
+
+def test_license_files_follow_per_checkpoint_style() -> None:
+    def folded(path: str) -> str:
+        return " ".join(Path(path).read_text().lower().split())
+
+    license_text = folded("LICENSE")
+    notice = folded("NOTICE")
+    weights = folded("weights/LICENSE_NOTICE.txt")
+    assert "choosing a model means choosing its license" in license_text
+    assert "this mit license does not extend to them" in license_text
+    assert "does not vendor" in notice
+    assert "kin-yiu wong and hao-tang tsui" in notice
+    assert "coreyolo-{n,s,m,l}-coco) mit" in weights
+    assert "ultralytics" in weights and "agpl-3.0" in weights
+    assert "converting a checkpoint does not change its applicable terms" in weights
 
 
 def test_export_cli_palette_flags() -> None:

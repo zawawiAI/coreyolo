@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Models — CoreYOLO</title>
   <meta name="description" content="CoreYOLO scales n through x, GELAN, DFL, and E2E graphs, detect and segment." />
-  <link rel="stylesheet" href="css/site.css?v=mit" />
+  <link rel="stylesheet" href="css/site.css?v=lylic" />
 </head>
 <body>
   <header class="nav">
@@ -99,7 +99,7 @@
     <div class="wrap-wide">
       <h2>Zoo</h2>
       <p class="lead">Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val.</p>
-      <p class="note"><strong>Converted zoo rows</strong> (n-coco, s-coco, m-coco, l-coco) remap MultimediaTechLab <code>v9-*.pt</code> (MIT, copyright Kin-Yiu Wong and Hao-Tang Tsui) — the same source LibreYOLO uses. They keep SiLU (GPU). Ultralytics <code>yolov9*.pt</code> is a different dump (AGPL-3.0) and must not be labeled MIT. Train recipes (<code>coco-n</code> / <code>coco-s</code> / <code>coco-m</code> / e2e / segment) are the ReLU + Neural Engine path. See <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>.</p>
+      <p class="note"><strong>Converted zoo rows</strong> (n-coco, s-coco, m-coco, l-coco): code MIT, weights MIT. Remap MultimediaTechLab <code>v9-*.pt</code>, copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep that notice. They keep SiLU (GPU). Train recipes are original MIT weights (ReLU, Neural Engine). Ultralytics <code>yolov9*.pt</code> is a different dump (AGPL-3.0); converting the file does not change its applicable terms. Choosing a model means choosing its license.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -110,7 +110,7 @@
               <th>Act</th>
               <th>Compute</th>
               <th>How</th>
-              <th>Weights</th>
+              <th>Licenses</th>
             </tr>
           </thead>
           <tbody>
@@ -121,7 +121,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-t.pt</code></td>
-              <td>MIT (MultimediaTechLab)</td>
+              <td>Code MIT, weights MIT</td>
             </tr>
             <tr>
               <td>coreyolo-s-coco</td>
@@ -130,7 +130,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-s.pt</code></td>
-              <td>MIT (MultimediaTechLab)</td>
+              <td>Code MIT, weights MIT</td>
             </tr>
             <tr>
               <td>coreyolo-m-coco</td>
@@ -139,7 +139,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-m.pt</code></td>
-              <td>MIT (MultimediaTechLab)</td>
+              <td>Code MIT, weights MIT</td>
             </tr>
             <tr>
               <td>coreyolo-l-coco</td>
@@ -148,7 +148,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-c.pt</code></td>
-              <td>MIT (MultimediaTechLab)</td>
+              <td>Code MIT, weights MIT</td>
             </tr>
             <tr>
               <td>coreyolo-n-coco-seg</td>
@@ -157,7 +157,7 @@
               <td>ReLU</td>
               <td>ANE</td>
               <td><code>coreyolo train --task segment --family gelan</code></td>
-              <td>MIT</td>
+              <td>Code MIT, weights MIT</td>
             </tr>
             <tr>
               <td>coreyolo-n-coco-relu</td>
@@ -166,7 +166,7 @@
               <td>ReLU</td>
               <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n</code></td>
-              <td>MIT</td>
+              <td>Code MIT, weights MIT</td>
             </tr>
             <tr>
               <td>coreyolo-e2e-n-coco</td>
@@ -175,12 +175,16 @@
               <td>ReLU</td>
               <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n-e2e</code></td>
-              <td>MIT</td>
+              <td>Code MIT, weights MIT</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="lead" style="margin-top:28px">See <code>weights/manifest.json</code> in the repository.</p>
+      <p class="lead" style="margin-top:28px">See <code>weights/manifest.json</code> and <code>weights/LICENSE_NOTICE.txt</code> in the repository.</p>
+
+      <h2>Licensing</h2>
+      <p class="lead">Original work: YOLOv9, MultimediaTechLab. Upstream license: MIT. Upstream source: <a href="https://github.com/MultimediaTechLab/YOLO">github.com/MultimediaTechLab/YOLO</a>. CoreYOLO code: MIT. Converted zoo weights: MIT.</p>
+      <p>MIT is a permissive license, so these weights can be used in commercial and closed-source products. The one standing obligation is to keep the license text and the copyright notice, Kin-Yiu Wong and Hao-Tang Tsui, with any copy you redistribute. It places no condition on your own application code, and a model you train yourself on your own data is yours. The port follows the authors' MIT re-release of YOLOv9, not the GPL-3.0 repository that carries the same model, and not Ultralytics <code>yolov9*.pt</code> (AGPL-3.0). Converting the file does not change its applicable terms. Choosing a model means choosing its license.</p>
     </div>
   </section>
 
@@ -205,10 +209,10 @@
       <div>
         <h4>Project</h4>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">Licenses</a>
+        <a href="docs.html#license">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. YOLO is a trademark of its owners. Not legal advice.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

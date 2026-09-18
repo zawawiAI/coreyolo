@@ -1,25 +1,42 @@
 CoreYOLO
-Copyright 2026 CoreYOLO contributors
+Copyright (c) 2026 CoreYOLO contributors.
 
-This product is original software licensed under the MIT License.
-It is inspired by published detector-family methods and the Roboflow YOLO label layout.
-It does not include third-party YOLO trainer source.
+CoreYOLO is licensed under the MIT License (see LICENSE).
+
+This product does not vendor another detector's trainer source. Optional
+`coreyolo convert` remaps tensor names from a YOLOv9 checkpoint the
+user already has. Converting a file does not change its applicable
+terms. The numbers keep the license of whoever trained them.
+
+------------------------------------------------------------------------
+Upstream weights CoreYOLO can remap
+------------------------------------------------------------------------
+
+YOLOv9 GELAN (MultimediaTechLab/YOLO) — MIT
+ Source: https://github.com/MultimediaTechLab/YOLO
+ Release: v1.0-alpha files v9-t.pt, v9-s.pt, v9-m.pt, v9-c.pt
+ Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui
+ The authors' MIT re-release, not WongKinYiu/yolov9 (GPL-3.0).
+ Converted CoreYOLO zoo rows (coreyolo-n/s/m/l-coco) keep MIT and
+ this copyright notice. Same source LibreYOLO uses for LibreYOLO9{t,s,m,c}.
+
+YOLOv9 (Ultralytics yolov9t/s/m/c.pt) — AGPL-3.0
+ Those files are a different dump. Converted checkpoints inherit
+ AGPL-3.0. They are not covered by CoreYOLO's MIT License.
+
+Weights you train from scratch on CoreYOLO — MIT
+ The code is permissive, so a model you train yourself on data you
+ have the right to use is yours. The pretrained checkpoint's terms
+ never enter it.
+
+------------------------------------------------------------------------
+Trademarks
+------------------------------------------------------------------------
 
 "YOLO", "YOLOv9", "YOLO11", and "YOLO26" are trademarks of their
-respective owners. They appear only to identify third-party files and license
-duties. The public Python type is Detector. YOLO remains a compatibility alias.
+respective owners. They appear only to identify third-party files and
+license duties. The public Python type is Detector. YOLO remains a
+compatibility alias.
 
-Optional `coreyolo convert` remaps tensor names from a YOLOv9 checkpoint the
-user already has. Convert is not a relicensing:
-
-  - MultimediaTechLab/YOLO v9-t/s/m/c.pt (release v1.0-alpha) are MIT,
-    Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui. Converted CoreYOLO
-    files keep that MIT license and this copyright notice. This is the same
-    source LibreYOLO uses for its MIT YOLOv9 weights.
-  - Ultralytics yolov9t/s/m/c.pt are typically AGPL-3.0. Converted files,
-    fine-tunes, and Core ML exports of those tensors stay AGPL-3.0. Do not
-    rehost them as MIT.
-
-Train CoreYOLO from scratch on your own labels for an original MIT weight path.
-
-See LICENSE and docs/licenses.md. This NOTICE is not legal advice.
+See LICENSE, weights/LICENSE_NOTICE.txt, and docs/licenses.md.
+This NOTICE is a description of the licenses involved, not legal advice.

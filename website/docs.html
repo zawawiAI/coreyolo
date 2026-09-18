@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Docs — CoreYOLO</title>
   <meta name="description" content="Train, val, predict, and export CoreYOLO. Python SDK and CLI." />
-  <link rel="stylesheet" href="css/site.css?v=mit" />
+  <link rel="stylesheet" href="css/site.css?v=lylic" />
 </head>
 <body>
   <header class="nav">
@@ -112,20 +112,19 @@ coreyolo train --recipe coco-n-fast
 coreyolo train --recipe coco-s
 coreyolo train --recipe coco-m
 coreyolo train --recipe coco-n-e2e</code></pre>
-      <p>Optional bootstrap, once, not in the app. MultimediaTechLab <code>v9-*.pt</code> stays MIT (keep the Wong/Tsui copyright). Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0:</p>
+      <p>Optional bootstrap, once, not in the app. Code MIT, weights MIT when the source is MultimediaTechLab <code>v9-*.pt</code> (keep the Wong/Tsui copyright). Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0; converting the file does not change its applicable terms:</p>
       <pre><code>coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
 coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo
 coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
 coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo</code></pre>
 
       <h2 id="license">License</h2>
-      <p><strong>CoreYOLO code</strong> is MIT. You may view, share, modify, and distribute it, including in a closed app, subject to the MIT copyright and permission notice.</p>
+      <p>CoreYOLO carries two separately licensed things: its own code, and pretrained checkpoints. They are often not the same license. Choosing a model means choosing its license.</p>
       <div class="note">
-        <p><strong>MIT weights:</strong> MultimediaTechLab <code>v9-t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code> (copyright Kin-Yiu Wong and Hao-Tang Tsui). This is the LibreYOLO source. Convert remaps names and keeps MIT plus that copyright notice. Train-from-scratch CoreYOLO recipes are also MIT.</p>
-        <p><strong>AGPL-3.0 weights:</strong> Ultralytics <code>yolov9t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code> are a different dump. Convert remaps names; it does not relicense them.</p>
-        <p><strong>The AGPL catch:</strong> if you modify those AGPL tensors or use them in a network service (SaaS) so users interact with it over a network, you typically must release your whole application under AGPL-3.0.</p>
-        <p><strong>Commercial / closed internal use of Ultralytics weights:</strong> a commercial product or a closed-source internal enterprise tool that uses those weights without publishing source usually needs a commercial license from the copyright holders.</p>
-        <p>This is not legal advice. Full write-up: <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>.</p>
+        <p><strong>Own code:</strong> MIT. Use it in a commercial or closed-source product; keep the copyright line and the license text with any copy you redistribute.</p>
+        <p><strong>GELAN COCO weights:</strong> Code MIT, weights MIT. Converted from MultimediaTechLab <code>v9-t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code>, copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep that notice with any copy. A model you train yourself is yours.</p>
+        <p><strong>Ultralytics <code>yolov9*.pt</code>:</strong> Code MIT, weights AGPL-3.0. Converting the file does not change its applicable terms. SaaS use of those tensors typically requires AGPL-3.0 source; a commercial or closed-source internal enterprise product usually needs a commercial license from the copyright holders.</p>
+        <p>This is a description of the licenses involved, not legal advice. Full write-up: <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>, <a href="https://github.com/zawawiAI/coreyolo/blob/main/weights/LICENSE_NOTICE.txt">weights/LICENSE_NOTICE.txt</a>.</p>
       </div>
     </article>
   </div>
@@ -151,10 +150,10 @@ coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo</code>
       <div>
         <h4>Project</h4>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">Licenses</a>
+        <a href="docs.html#license">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. YOLO is a trademark of its owners. Not legal advice.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

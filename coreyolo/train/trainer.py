@@ -187,13 +187,15 @@ def train(cfg: TrainConfig) -> Path:
             if license_id.upper().startswith("AGPL"):
                 print(
                     "warning: --resume is converted YOLOv9 tensors (AGPL-3.0). "
-                    "Fine-tunes stay AGPL-3.0; they are not MIT. See docs/licenses.md.",
+                    "Fine-tunes inherit those terms; converting the file does not change them. "
+                    "See weights/LICENSE_NOTICE.txt and docs/licenses.md.",
                     file=sys.stderr,
                 )
             else:
                 print(
                     "warning: --resume is converted MultimediaTechLab tensors (MIT). "
-                    "Keep the Kin-Yiu Wong / Hao-Tang Tsui copyright notice. See docs/licenses.md.",
+                    "Keep the license text and the copyright notice, Kin-Yiu Wong and Hao-Tang Tsui. "
+                    "See weights/LICENSE_NOTICE.txt and docs/licenses.md.",
                     file=sys.stderr,
                 )
 

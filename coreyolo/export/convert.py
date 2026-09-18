@@ -3,10 +3,11 @@
 Two public GELAN sources exist:
 
 * MultimediaTechLab/YOLO ``v9-t.pt`` / ``v9-s.pt`` / ``v9-m.pt`` / ``v9-c.pt``
-  (MIT, copyright Kin-Yiu Wong and Hao-Tang Tsui). This is the LibreYOLO
-  path: remap names, keep MIT, keep the copyright notice.
+  (MIT, copyright Kin-Yiu Wong and Hao-Tang Tsui). Remap names, keep MIT,
+  keep the copyright notice. Converting the file does not change its
+  applicable terms.
 * Ultralytics ``yolov9t.pt`` / ``s`` / ``m`` / ``c`` (AGPL-3.0). Remap names
-  only — that is not a relicensing.
+  only. Those tensors are not covered by CoreYOLO's MIT License.
 
 YOLO26n (C3k2, no DFL, end-to-end head) and YOLO11n (C3k2 + C2PSA) cannot
 be copied. See ``docs/licenses.md``.
@@ -29,22 +30,23 @@ from coreyolo.utils import (
     save_checkpoint,
 )
 
-# Printed when converting an Ultralytics / AGPL pickle. Not a relicensing.
+# Printed when converting an Ultralytics / AGPL pickle.
 CONVERT_LICENSE_NOTICE = """\
-license: CoreYOLO code is MIT. Converted tensors still come from a third-party YOLOv9
-  checkpoint (AGPL-3.0). Renaming, fine-tuning, or Core ML export does not relicense
-  the weights. SaaS use of those tensors typically requires releasing application
-  source under AGPL-3.0; a closed product usually needs a commercial license from
-  the copyright holders. Do not rehost converted files as MIT. Prefer MultimediaTechLab
-  v9-*.pt (MIT) or train CoreYOLO from scratch. See docs/licenses.md.
+license: these converted tensors inherit AGPL-3.0 from Ultralytics yolov9*.pt.
+  They are NOT covered by the MIT License that applies to CoreYOLO code.
+  Converting the file does not change its applicable terms (does not relicense).
+  SaaS / network use typically requires AGPL-3.0 source for the application;
+  a closed product usually needs a commercial license from the copyright holders.
+  See weights/LICENSE_NOTICE.txt and docs/licenses.md.
 """
 
-# Printed when converting MultimediaTechLab/YOLO MIT weights (LibreYOLO source).
+# Printed when converting MultimediaTechLab/YOLO MIT weights.
 MTL_CONVERT_LICENSE_NOTICE = """\
-license: converted tensors come from MultimediaTechLab/YOLO (MIT), copyright
-  Kin-Yiu Wong and Hao-Tang Tsui. CoreYOLO remaps names only and keeps that MIT
-  license plus the copyright notice. Ultralytics yolov9*.pt is a different file
-  (AGPL-3.0) and is not this path. See docs/licenses.md.
+license: converted tensors inherit MIT from MultimediaTechLab/YOLO,
+  copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep the license text and that
+  copyright notice with any copy. Converting the file does not change its
+  applicable terms. Ultralytics yolov9*.pt is a different dump (AGPL-3.0).
+  See weights/LICENSE_NOTICE.txt and docs/licenses.md.
 """
 
 MTL_VENDOR = "MultimediaTechLab/YOLO"
@@ -365,7 +367,8 @@ def convert_yolo_pt(
     if ultralytics and license_id == MIT_WEIGHT_LICENSE:
         raise ValueError(
             f"{weights.name} is an Ultralytics pickle (AGPL-3.0). Convert will stamp AGPL-3.0; "
-            "it cannot relicense those tensors as MIT. Use MultimediaTechLab v9-*.pt for the MIT path."
+            "converting the file does not change its applicable terms. Use MultimediaTechLab "
+            "v9-*.pt for the MIT path."
         )
     if scale is None:
         scale = inferred

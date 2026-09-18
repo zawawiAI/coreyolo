@@ -109,7 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     w = sub.add_parser(
         "convert",
-        help="Remap compact YOLOv9 .pt names into CoreYOLO (MIT from v9-*.pt; AGPL from yolov9*.pt)",
+        help="Remap compact YOLOv9 .pt names into CoreYOLO. Converting does not change the weight license.",
     )
     w.add_argument(
         "--weights",

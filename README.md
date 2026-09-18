@@ -12,7 +12,7 @@
 
 <p align="center">
   Train an independent detector in Python. Ship a palettized Core ML package to Apple silicon.<br />
-  Code and MultimediaTechLab-converted GELAN weights are MIT.
+  Code is MIT. Weights carry their own license, stated per checkpoint.
 </p>
 
 <p align="center">
@@ -54,7 +54,7 @@ model.export(imgsz=640)            # FP16 Core ML + 8-bit palettes, ANE for ReLU
 | | |
 | --- | --- |
 | **Core ML first** | Fused Conv–BN, inference branch only, cached DFL grids (no `meshgrid` / `arange`), host NMS. FP16 ML Program with 8-bit palettes. ReLU converts for the Neural Engine. iOS 16 and macOS 13. |
-| **MIT** | Closed App Store apps can ship models you train here, or GELAN weights converted from MultimediaTechLab `v9-*.pt` (MIT, keep the Wong/Tsui copyright). Ultralytics `yolov9*.pt` convert stays AGPL-3.0 — that is not a relicensing. |
+| **MIT** | Code is MIT. Weights are per checkpoint. GELAN files from MultimediaTechLab `v9-*.pt` are MIT (keep the Wong/Tsui copyright). Ultralytics `yolov9*.pt` stays AGPL-3.0; converting the file does not change its applicable terms. Choosing a model means choosing its license. |
 | **Your labels** | Drop in a Roboflow YOLO or YOLO-Seg export. Same `data.yaml` you already have. |
 
 ReLU prefers ANE (`--device ane`). Converted SiLU graphs prefer GPU.
@@ -89,17 +89,17 @@ Source: [MultimediaTechLab/YOLO v1.0-alpha](https://github.com/MultimediaTechLab
 
 ## Zoo
 
-Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val. See [`weights/manifest.json`](weights/manifest.json).
+Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val. See [`weights/manifest.json`](weights/manifest.json) and [`weights/LICENSE_NOTICE.txt`](weights/LICENSE_NOTICE.txt). Choosing a model means choosing its license.
 
-| Id | Graph | Act | Compute | How | Weights |
+| Id | Graph | Act | Compute | How | Licenses |
 | --- | --- | --- | --- | --- | --- |
-| `coreyolo-n-coco` | gelan | SiLU | GPU | `convert --weights v9-t.pt` | MIT (MultimediaTechLab) |
-| `coreyolo-s-coco` | gelan | SiLU | GPU | `convert --weights v9-s.pt` | MIT (MultimediaTechLab) |
-| `coreyolo-m-coco` | gelan | SiLU | GPU | `convert --weights v9-m.pt` | MIT (MultimediaTechLab) |
-| `coreyolo-l-coco` | gelan | SiLU | GPU | `convert --weights v9-c.pt` | MIT (MultimediaTechLab) |
-| `coreyolo-n-coco-seg` | gelan | ReLU | ANE | `train --task segment` | MIT |
-| `coreyolo-n-coco-relu` | gelan | ReLU | ANE | `train --recipe coco-n` | MIT |
-| `coreyolo-e2e-n-coco` | e2e | ReLU | ANE | `train --recipe coco-n-e2e` | MIT |
+| `coreyolo-n-coco` | gelan | SiLU | GPU | `convert --weights v9-t.pt` | Code MIT, weights MIT |
+| `coreyolo-s-coco` | gelan | SiLU | GPU | `convert --weights v9-s.pt` | Code MIT, weights MIT |
+| `coreyolo-m-coco` | gelan | SiLU | GPU | `convert --weights v9-m.pt` | Code MIT, weights MIT |
+| `coreyolo-l-coco` | gelan | SiLU | GPU | `convert --weights v9-c.pt` | Code MIT, weights MIT |
+| `coreyolo-n-coco-seg` | gelan | ReLU | ANE | `train --task segment` | Code MIT, weights MIT |
+| `coreyolo-n-coco-relu` | gelan | ReLU | ANE | `train --recipe coco-n` | Code MIT, weights MIT |
+| `coreyolo-e2e-n-coco` | e2e | ReLU | ANE | `train --recipe coco-n-e2e` | Code MIT, weights MIT |
 
 ## Python SDK
 
@@ -179,10 +179,8 @@ coreyolo dummy-data  --out datasets/dummy --segment
 
 ## License
 
-**CoreYOLO code** is [MIT](LICENSE).
+CoreYOLO's code is [MIT](LICENSE). It does not require you to open source your application, and it does not change if you sell what you build.
 
-**MIT weights:** MultimediaTechLab `v9-t.pt` / `s` / `m` / `c` (copyright Kin-Yiu Wong and Hao-Tang Tsui) — the LibreYOLO source. Convert remaps names and keeps MIT plus that copyright notice. Train-from-scratch recipes are also MIT.
+Pretrained weights are separate: each one carries the license of whoever trained it, stated per checkpoint. GELAN COCO files converted from MultimediaTechLab `v9-*.pt` are MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Ultralytics `yolov9*.pt` converts stay AGPL-3.0. A model you train yourself is yours. Converting a file does not change its applicable terms.
 
-**AGPL-3.0 weights:** Ultralytics `yolov9t.pt` / `s` / `m` / `c` are a different dump. Convert remaps names; it does not relicense them. If you modify those tensors or use them in a network service (SaaS), you typically must release your whole application under AGPL-3.0. A closed commercial or internal product usually needs a commercial license from the copyright holders.
-
-This is not legal advice. Details: [docs/licenses.md](docs/licenses.md). YOLO is a trademark of its owners.
+Choosing a model means choosing its license. See [docs/licenses.md](docs/licenses.md), [weights/LICENSE_NOTICE.txt](weights/LICENSE_NOTICE.txt), and [NOTICE](NOTICE). This is a description of the licenses involved, not legal advice. YOLO is a trademark of its owners.

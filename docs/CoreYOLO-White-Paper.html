@@ -45,7 +45,7 @@
   <div class="title-block">
     <h1>CoreYOLO: An Open Detector Built for Apple Deployment</h1>
     <p class="kicker">White paper · Version 0.1.0 (alpha) · 2 September 2026</p>
-    <p class="meta">CoreYOLO is original software under the MIT License. It is inspired by the YOLO family of one-stage detectors and by the Roboflow YOLO label layout. Independent MIT code.</p>
+    <p class="meta">CoreYOLO is original software under the MIT License. It is inspired by the YOLO family of one-stage detectors and by the Roboflow YOLO label layout. Code MIT. Weights per checkpoint.</p>
   </div>
 
   <h2>Abstract</h2>
@@ -142,13 +142,13 @@ let model = try VNCoreMLModel(for: CoreYOLO(configuration: config).model)</pre>
 
   <h3>5.1 Why MIT matters</h3>
   <p>CoreYOLO’s train, export, and inference code is MIT. You may embed it in a proprietary iOS or macOS binary, subject to the MIT copyright and permission notice.</p>
-  <p>Public YOLOv9 is a separate project whose source is open under AGPL-3.0 (view, share, modify, distribute). AGPL-3.0 is copyleft, including over a network: if you modify YOLOv9 or offer it as a SaaS so users interact with it over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses YOLOv9 without publishing that source usually requires a commercial license from the copyright holders.</p>
-  <p>CoreYOLO is a separate implementation. It does not vendor third-party YOLO trainer source. Optional convert copies tensors into CoreYOLO names; the license follows the source file. MultimediaTechLab <code>v9-*.pt</code> stays MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0. YOLO26 and YOLO11 weights are not copied. Train CoreYOLO from scratch on your labels for an original MIT + ReLU path. See <code>docs/licenses.md</code>. This is not legal advice.</p>
+  <p>Pretrained weights are separate. Each one carries the license of whoever trained it. Choosing a model means choosing its license. MultimediaTechLab/YOLO <code>v9-*.pt</code> are MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui) — the authors' MIT re-release, not WongKinYiu/yolov9 (GPL-3.0). Ultralytics <code>yolov9*.pt</code> is typically AGPL-3.0. Converting the file does not change its applicable terms. AGPL-3.0 is copyleft, including over a network: if you modify those AGPL tensors or offer them as a SaaS so users interact with them over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses Ultralytics YOLOv9 weights without publishing that source usually requires a commercial license from the copyright holders.</p>
+  <p>CoreYOLO does not vendor third-party YOLO trainer source. Optional convert remaps tensor names; the license follows the source file. A model you train yourself is yours. YOLO26 and YOLO11 weights are not copied. See <code>docs/licenses.md</code> and <code>weights/LICENSE_NOTICE.txt</code>. This is a description of the licenses involved, not legal advice.</p>
 
   <h3>5.2 Comparison</h3>
   <table>
     <tr><th></th><th>CoreYOLO</th><th>Typical YOLO toolkit</th></tr>
-    <tr><td>License</td><td>MIT (code + MultimediaTechLab convert + weights you train here)</td><td>AGPL-3.0 on typical Ultralytics weights; commercial license for closed products</td></tr>
+    <tr><td>License</td><td>Code MIT; GELAN convert MIT from MultimediaTechLab; train-from-scratch MIT. Ultralytics dumps stay AGPL-3.0</td><td>AGPL-3.0 on typical Ultralytics weights; commercial license for closed products</td></tr>
     <tr><td>Deploy priority</td><td>Core ML / ANE / iPhone</td><td>Many backends</td></tr>
     <tr><td>Default activation</td><td>ReLU (ANE + native train)</td><td>SiLU</td></tr>
     <tr><td>Graphs</td><td>GELAN (YOLOv9, host NMS), E2E (trained here)</td><td>Official v9 / 11 / 26 weights</td></tr>
@@ -163,7 +163,7 @@ let model = try VNCoreMLModel(for: CoreYOLO(configuration: config).model)</pre>
 
   <h3>5.4 Conclusion</h3>
   <p>CoreYOLO exists so a detector can be trained in the open, stored in a native checkpoint, and shipped as Core ML without taking an AGPL runtime into a closed Apple app. It does not try to replace every toolkit in this family. It tries to be the small stack you actually put on an iPhone: C2f or C3k2, ReLU, fused convolutions, host or NMS-free decode, MIT. Further work includes richer training augs, pose/OBB if needed, tighter ANE INT8, and on-device NMS options. The public interface today is <code>from coreyolo import Detector</code> and <code>coreyolo export</code>.</p>
-  <p class="footer">CoreYOLO v0.1.0 · MIT License · Independent MIT code. Latency figures are single-machine burst measurements on Apple M4 Pro (1 Sep 2026), not product SLAs.</p>
+  <p class="footer">CoreYOLO v0.1.0 · MIT License · Code MIT. Weights per checkpoint. Latency figures are single-machine burst measurements on Apple M4 Pro (1 Sep 2026), not product SLAs.</p>
 </section>
 
 </body>

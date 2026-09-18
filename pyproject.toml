@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "coreyolo"
 version = "0.2.0"
-description = "Independent object detector for Core ML on Apple silicon. Original MIT code."
+description = "Object detector for Core ML on Apple silicon. Code MIT; weights per checkpoint."
 readme = "README.md"
 license = "MIT"
-license-files = ["LICENSE", "NOTICE"]
+license-files = ["LICENSE", "NOTICE", "weights/LICENSE_NOTICE.txt"]
 requires-python = ">=3.10"
 authors = [{ name = "CoreYOLO contributors" }]
 keywords = ["object-detection", "coreml", "apple-silicon", "roboflow"]
