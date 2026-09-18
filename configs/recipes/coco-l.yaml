@@ -1,4 +1,4 @@
-# COCO 2017 — CoreYOLO-l. Native train uses ReLU (ANE). Converted yolov9c.pt stays SiLU (AGPL).
+# COCO 2017 — CoreYOLO-l. Native train uses ReLU (ANE). Converted v9-c.pt stays SiLU (MIT).
 # 16 GB machines: batch 2.
 
 data: datasets/coco/data.yaml

@@ -8,7 +8,7 @@ import math
 import torch
 import torch.nn as nn
 
-from coreyolo.nn.decode import dist2bbox, make_anchors
+from coreyolo.nn.decode import dist2bbox, make_anchors, make_static_anchors
 from coreyolo.nn.modules import Conv, DFL, Proto
 
 
@@ -92,43 +92,64 @@ class Detect(nn.Module):
         self.cv3 = nn.ModuleList(_cls_branch(c, c3, nc, act, legacy) for c in ch)
         self.dfl = DFL(reg_max) if reg_max > 1 else nn.Identity()
         self.stride = torch.zeros(self.nl)
-        self._export_anchors: torch.Tensor | None = None
-        self._export_strides: torch.Tensor | None = None
+        self.register_buffer("_export_anchors", None, persistent=False)
+        self.register_buffer("_export_strides", None, persistent=False)
         self._export_k: int | None = None
+        self._export_hw: list[tuple[int, int]] | None = None
         if end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
 
-    def prepare_export(self, feats: list[torch.Tensor]) -> None:
-        """Cache grid anchors so the Core ML graph has no meshgrid / arange."""
-        anchors, strides = make_anchors(feats, self.stride.to(feats[0].device), 0.5)
+    def prepare_export(self, feats: list[torch.Tensor] | None = None, imgsz: int | None = None) -> None:
+        """Cache static DFL grids. Core ML must not see meshgrid / arange / ``-1`` views."""
+        stride_list = [int(s) for s in self.stride.tolist()]
+        if imgsz is None:
+            if not feats:
+                raise ValueError("prepare_export requires feats or imgsz")
+            imgsz = int(feats[0].shape[-1]) * stride_list[0]
+        device = feats[0].device if feats else self.stride.device
+        dtype = feats[0].dtype if feats else torch.float32
+        anchors, strides = make_static_anchors(int(imgsz), stride_list, 0.5, dtype=dtype, device=device)
+        self._export_hw = [(int(imgsz) // s, int(imgsz) // s) for s in stride_list]
+        n = sum(h * w for h, w in self._export_hw)
         self._export_anchors = anchors.transpose(0, 1).unsqueeze(0)
         self._export_strides = strides.transpose(0, 1)
-        self._export_k = min(self.max_det, int(self._export_anchors.shape[-1]))
+        self._export_k = min(self.max_det, n)
 
     def _heads(self, feats: list[torch.Tensor], box_head: nn.ModuleList, cls_head: nn.ModuleList) -> list[torch.Tensor]:
         return [torch.cat((box_head[i](feats[i]), cls_head[i](feats[i])), 1) for i in range(self.nl)]
 
+    def _flatten_maps(self, outputs: list[torch.Tensor]) -> torch.Tensor:
+        """``(B, no, H, W)`` → ``(B, no, N)`` with static ``H*W`` on the export path."""
+        if self.export and self._export_hw is not None:
+            return torch.cat(
+                [o.reshape(o.shape[0], self.no, h * w) for o, (h, w) in zip(outputs, self._export_hw)],
+                2,
+            )
+        return torch.cat([o.flatten(2) for o in outputs], 2)
+
     def forward(self, feats: list[torch.Tensor]) -> torch.Tensor | list[torch.Tensor] | dict[str, list[torch.Tensor]]:
         if self.end2end:
-            feats_o2o = [f.detach() for f in feats] if self.training else feats
-            one2one = self._heads(feats_o2o, self.one2one_cv2, self.one2one_cv3)
-            one2many = self._heads(feats, self.cv2, self.cv3)
+            # Train keeps the one-to-many aux head. Inference / export is one-to-one only
+            # (same idea as dropping YOLOv9 PGI aux branches before Core ML trace).
             if self.training:
-                return {"one2many": one2many, "one2one": one2one}
-            return self._decode(one2one)
+                feats_o2o = [f.detach() for f in feats]
+                return {
+                    "one2many": self._heads(feats, self.cv2, self.cv3),
+                    "one2one": self._heads(feats_o2o, self.one2one_cv2, self.one2one_cv3),
+                }
+            return self._decode(self._heads(feats, self.one2one_cv2, self.one2one_cv3))
         outputs = self._heads(feats, self.cv2, self.cv3)
         if self.training:
             return outputs
         return self._decode(outputs)
 
     def _decode(self, outputs: list[torch.Tensor]) -> torch.Tensor:
-        b = outputs[0].shape[0]
-        x = torch.cat([o.view(b, self.no, -1) for o in outputs], 2)
+        x = self._flatten_maps(outputs)
         box, cls = x.split((max(self.reg_max, 1) * 4, self.nc), 1)
         if self.export and self._export_anchors is not None:
-            anchors = self._export_anchors.to(x.device, x.dtype)
-            strides = self._export_strides.to(x.device, x.dtype)
+            anchors = self._export_anchors.to(dtype=x.dtype)
+            strides = self._export_strides.to(dtype=x.dtype)
         else:
             anchors, strides = make_anchors(outputs, self.stride.to(x.device), 0.5)
             anchors = anchors.transpose(0, 1).unsqueeze(0)
@@ -189,8 +210,15 @@ class Segment(Detect):
         )
 
     def _mask_coeff(self, feats: list[torch.Tensor]) -> torch.Tensor:
-        b = feats[0].shape[0]
-        return torch.cat([self.cv4[i](feats[i]).view(b, self.nm, -1) for i in range(self.nl)], 2)
+        if self.export and self._export_hw is not None:
+            return torch.cat(
+                [
+                    self.cv4[i](feats[i]).reshape(feats[i].shape[0], self.nm, h * w)
+                    for i, (h, w) in enumerate(self._export_hw)
+                ],
+                2,
+            )
+        return torch.cat([self.cv4[i](feats[i]).flatten(2) for i in range(self.nl)], 2)
 
     def forward(
         self, feats: list[torch.Tensor]
@@ -198,12 +226,17 @@ class Segment(Detect):
         proto = self.proto(feats[0])
         mc = self._mask_coeff(feats)
         if self.end2end:
-            feats_o2o = [f.detach() for f in feats] if self.training else feats
-            one2one = self._heads(feats_o2o, self.one2one_cv2, self.one2one_cv3)
-            one2many = self._heads(feats, self.cv2, self.cv3)
             if self.training:
-                return {"one2many": one2many, "one2one": one2one}, mc, proto
-            decoded = self._decode_maps(one2one)
+                feats_o2o = [f.detach() for f in feats]
+                return (
+                    {
+                        "one2many": self._heads(feats, self.cv2, self.cv3),
+                        "one2one": self._heads(feats_o2o, self.one2one_cv2, self.one2one_cv3),
+                    },
+                    mc,
+                    proto,
+                )
+            decoded = self._decode_maps(self._heads(feats, self.one2one_cv2, self.one2one_cv3))
             topk, idx = nms_free_topk(decoded, self._topk_k(decoded), return_idx=True, nc=self.nc)
             mc_k = mc.permute(0, 2, 1).gather(1, idx.unsqueeze(-1).expand(-1, -1, self.nm))
             return topk, mc_k, proto
@@ -214,12 +247,11 @@ class Segment(Detect):
 
     def _decode_maps(self, outputs: list[torch.Tensor]) -> torch.Tensor:
         """Decoded ``(B, 4+nc, N)`` before NMS-free top-k (xyxy + scores)."""
-        b = outputs[0].shape[0]
-        x = torch.cat([o.view(b, self.no, -1) for o in outputs], 2)
+        x = self._flatten_maps(outputs)
         box, cls = x.split((max(self.reg_max, 1) * 4, self.nc), 1)
         if self.export and self._export_anchors is not None:
-            anchors = self._export_anchors.to(x.device, x.dtype)
-            strides = self._export_strides.to(x.device, x.dtype)
+            anchors = self._export_anchors.to(dtype=x.dtype)
+            strides = self._export_strides.to(dtype=x.dtype)
         else:
             anchors, strides = make_anchors(outputs, self.stride.to(x.device), 0.5)
             anchors = anchors.transpose(0, 1).unsqueeze(0)

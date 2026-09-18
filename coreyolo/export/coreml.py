@@ -49,10 +49,6 @@ def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
     nm = int(ckpt.get("nm", 32))
     model = build_model(nc=nc, scale=scale, act=act, family=family, task=task, nm=nm)
     model.load_state_dict(ckpt["model"], strict=False)
-    model.eval()
-    model.fuse()
-    model.head.export = True
-    end2end = bool(ckpt.get("end2end", is_e2e_family(family)))
     origin = origin_metadata(ckpt)
     return model, {
         "nc": nc,
@@ -61,7 +57,7 @@ def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
         "names": names,
         "imgsz": ckpt.get("imgsz", 640),
         "family": family,
-        "end2end": end2end,
+        "end2end": bool(ckpt.get("end2end", is_e2e_family(family))),
         "task": task,
         "nm": nm,
         "weights_license": checkpoint_weight_license(ckpt),
@@ -92,9 +88,8 @@ def export_coreml(
     model, meta = _load_for_export(weights)
     imgsz = int(imgsz or meta.get("imgsz") or 640)
     dummy = torch.zeros(1, 3, imgsz, imgsz)
+    model.prepare_export(imgsz)
     with torch.no_grad():
-        feats = model.forward_neck(dummy)
-        model.head.prepare_export(list(feats))
         traced = torch.jit.trace(model, dummy, strict=False)
         traced.eval()
 
@@ -195,12 +190,12 @@ def export_coreml(
     mlmodel.user_defined_metadata["weights_license"] = license_id
     if license_id.upper().startswith("AGPL"):
         mlmodel.short_description = (
-            "Contains Ultralytics tensors (AGPL-3.0). Name remap / Core ML export is not a relicensing. "
+            "Contains third-party YOLOv9 tensors (AGPL-3.0). Name remap / Core ML export is not a relicensing. "
             + str(mlmodel.short_description)
         )
-        if meta.get("source_vendor"):
-            mlmodel.user_defined_metadata["source_vendor"] = str(meta["source_vendor"])
-        if meta.get("source_family"):
-            mlmodel.user_defined_metadata["source_family"] = str(meta["source_family"])
+    if meta.get("source_vendor"):
+        mlmodel.user_defined_metadata["source_vendor"] = str(meta["source_vendor"])
+    if meta.get("source_copyright"):
+        mlmodel.user_defined_metadata["source_copyright"] = str(meta["source_copyright"])
     mlmodel.save(str(out))
     return out

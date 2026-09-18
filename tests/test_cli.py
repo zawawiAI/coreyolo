@@ -63,14 +63,16 @@ def test_listed_release_files_empty_when_missing() -> None:
     assert isinstance(files, list)
 
 
-def test_manifest_marks_converted_weights_agpl() -> None:
+def test_manifest_marks_converted_weights_mit_from_mtl() -> None:
     catalog = load_manifest("weights/manifest.json")
     converted = [m for m in catalog["models"] if str(m.get("how", "")).startswith("coreyolo convert")]
     trained = [m for m in catalog["models"] if str(m.get("how", "")).startswith("coreyolo train")]
     assert converted
     assert trained
     for entry in converted:
-        assert entry.get("weights_license") == "AGPL-3.0"
+        assert entry.get("weights_license") == "MIT"
+        assert "v9-" in str(entry.get("how"))
+        assert "MultimediaTechLab" in str(entry.get("weights_origin"))
     for entry in trained:
         assert entry.get("weights_license") == "MIT"
     assert_zoo_license_labels("weights/manifest.json")
@@ -80,7 +82,7 @@ def test_assert_zoo_license_labels_rejects_mit_convert(tmp_path: Path) -> None:
     dest = tmp_path / "manifest.json"
     dest.write_text(
         '{"models":[{"id":"bad","how":"coreyolo convert --weights yolov9t.pt",'
-        '"weights_origin":"ultralytics-yolov9","weights_license":"MIT"}]}'
+        '"weights_origin":"yolov9","weights_license":"MIT"}]}'
     )
     try:
         assert_zoo_license_labels(dest)
@@ -91,6 +93,15 @@ def test_assert_zoo_license_labels_rejects_mit_convert(tmp_path: Path) -> None:
     assert raised
 
 
+def test_assert_zoo_license_labels_allows_mtl_mit_convert(tmp_path: Path) -> None:
+    dest = tmp_path / "manifest.json"
+    dest.write_text(
+        '{"models":[{"id":"ok","how":"coreyolo convert --weights v9-t.pt",'
+        '"weights_origin":"MultimediaTechLab/YOLO v1.0-alpha v9-t.pt","weights_license":"MIT"}]}'
+    )
+    assert_zoo_license_labels(dest)
+
+
 def test_licenses_doc_covers_yolov9_agpl() -> None:
     text = Path("docs/licenses.md").read_text().lower()
     assert "agpl-3.0" in text
@@ -98,6 +109,9 @@ def test_licenses_doc_covers_yolov9_agpl() -> None:
     assert "commercial license" in text
     assert "internal enterprise" in text
     assert "not a relicensing" in text
+    assert "multimediatechlab" in text
+    assert "kin-yiu" in text
+    assert "v9-t.pt" in text
 
 
 def test_export_cli_palette_flags() -> None:

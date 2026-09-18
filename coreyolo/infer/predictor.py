@@ -149,11 +149,7 @@ class Predictor:
         if self.device.type in {"mps", "cuda"}:
             self.torch_model.half()
         self._dtype = next(self.torch_model.parameters()).dtype
-        with torch.inference_mode():
-            dummy = torch.zeros(1, 3, self.imgsz, self.imgsz, device=self.device, dtype=self._dtype)
-            feats = self.torch_model.forward_neck(dummy)
-            self.torch_model.head.prepare_export(list(feats))
-            self.torch_model.head.export = True
+        self.torch_model.prepare_export(self.imgsz)
 
     def _unpack_raw(self, raw):
         mc = proto = None

@@ -78,11 +78,9 @@ def test_export_dfl_roundtrip(tmp_path: Path) -> None:
     model.load_state_dict(loaded["model"], strict=False)
     model.eval()
     model.fuse()
-    model.head.export = True
+    model.prepare_export(64)
     dummy = torch.zeros(1, 3, 64, 64)
     with torch.no_grad():
-        feats = model.forward_neck(dummy)
-        model.head.prepare_export(list(feats))
         pt = model(dummy).numpy()
     # FP32 Core ML vs PyTorch; MIL lowering can shift logits. Shapes must match.
     assert pt.shape == arr.shape

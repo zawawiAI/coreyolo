@@ -183,11 +183,19 @@ def train(cfg: TrainConfig) -> Path:
         model.load_state_dict(ckpt["model"])
         origin = origin_metadata(ckpt)
         if origin:
-            print(
-                "warning: --resume is converted Ultralytics tensors (AGPL-3.0). "
-                "Fine-tunes stay AGPL-3.0; they are not MIT. See docs/licenses.md.",
-                file=sys.stderr,
-            )
+            license_id = str(origin.get("weights_license") or "")
+            if license_id.upper().startswith("AGPL"):
+                print(
+                    "warning: --resume is converted YOLOv9 tensors (AGPL-3.0). "
+                    "Fine-tunes stay AGPL-3.0; they are not MIT. See docs/licenses.md.",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "warning: --resume is converted MultimediaTechLab tensors (MIT). "
+                    "Keep the Kin-Yiu Wong / Hao-Tang Tsui copyright notice. See docs/licenses.md.",
+                    file=sys.stderr,
+                )
 
     if task == "segment":
         criterion = SegmentationLoss(model, box=cfg.box, cls=cfg.cls, dfl=cfg.dfl)

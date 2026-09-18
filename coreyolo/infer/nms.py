@@ -60,16 +60,17 @@ def non_max_suppression(
             if extra is not None:
                 extra_out.append(extra.new_zeros((0, extra.shape[1])))
             continue
-        xyxy = xywh_to_xyxy(boxes)
-        # offset boxes by class so NMS is class-aware in one call
+        # NMS math must be float32. Class offsets (cls * 7680) overflow float16
+        # for COCO ids ≥ 9, which is why laptop/tv duplicates survived on MPS.
+        xyxy = xywh_to_xyxy(boxes).float()
+        conf_f = conf.float()
+        cls_f = cls_id.float()
         max_wh = 7680
-        offset = cls_id.to(dtype=xyxy.dtype) * max_wh
-        nms_boxes = xyxy + offset[:, None]
-        # torchvision NMS wants matching float32 CPU tensors
-        keep_idx = nms(nms_boxes.float().cpu(), conf.float().cpu(), iou_thres).to(pred.device)
+        nms_boxes = xyxy + cls_f[:, None] * max_wh
+        keep_idx = nms(nms_boxes.cpu(), conf_f.cpu(), iou_thres).to(pred.device)
         keep_idx = keep_idx[:max_det]
-        det = torch.cat((xyxy[keep_idx], conf[keep_idx, None], cls_id[keep_idx].float()[:, None]), 1)
-        out.append(det)
+        det = torch.cat((xyxy[keep_idx], conf_f[keep_idx, None], cls_f[keep_idx, None]), 1)
+        out.append(det.to(dtype=pred.dtype))
         if extra is not None:
             extra_out.append(feat[keep_idx])
     if extra is not None:

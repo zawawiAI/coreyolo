@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "coreyolo"
 version = "0.2.0"
-description = "Independent object detector for Core ML on Apple silicon. Original MIT code. Not affiliated with Ultralytics."
+description = "Independent object detector for Core ML on Apple silicon. Original MIT code."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
@@ -40,7 +40,8 @@ video = ["opencv-python>=4.8"]
 coreyolo = "coreyolo.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/zawawiAI/coreyolo"
+Homepage = "https://zawawiai.github.io/coreyolo"
+Documentation = "https://zawawiai.github.io/coreyolo/docs.html"
 Repository = "https://github.com/zawawiAI/coreyolo"
 Issues = "https://github.com/zawawiAI/coreyolo/issues"
 

@@ -45,17 +45,17 @@
   <div class="title-block">
     <h1>CoreYOLO: An Open Detector Built for Apple Deployment</h1>
     <p class="kicker">White paper · Version 0.1.0 (alpha) · 2 September 2026</p>
-    <p class="meta">CoreYOLO is original software under the MIT License. It is inspired by the YOLO family of one-stage detectors and by the Roboflow YOLO label layout. It is <strong>not</strong> a fork of Ultralytics, and it is <strong>not</strong> affiliated with Ultralytics or Apple.</p>
+    <p class="meta">CoreYOLO is original software under the MIT License. It is inspired by the YOLO family of one-stage detectors and by the Roboflow YOLO label layout. Independent MIT code.</p>
   </div>
 
   <h2>Abstract</h2>
   <p class="abstract">Teams that want real-time object detection on iPhone and Mac often hit two constraints at once: they need a graph that maps cleanly onto Core ML and the Apple Neural Engine, and they need a license that allows a closed App Store binary. Widely used YOLO toolkits solve the first problem as one export among many, and they typically ship under AGPL-3.0, which is a poor fit for proprietary mobile apps.</p>
-  <p class="abstract">CoreYOLO is a small, original PyTorch trainer whose product path is Core ML. It implements two detector graphs (GELAN: YOLOv9 with host NMS, and E2E: C3k2 + C2PSA, NMS-free), optional instance segmentation, Roboflow YOLO labels, a Python SDK, and a native checkpoint format. Application code loads CoreYOLO files (<code>.coreyolo</code>, trained <code>.pt</code>, or <code>.mlpackage</code>)—not Ultralytics <code>yolov9t.pt</code>. This paper describes the architecture, the train-to-device workflow, measured latency on Apple silicon, and when CoreYOLO is the right choice versus a general YOLO toolkit.</p>
+  <p class="abstract">CoreYOLO is a small, original PyTorch trainer whose product path is Core ML. It implements two detector graphs (GELAN: YOLOv9 with host NMS, and E2E: C3k2 + C2PSA, NMS-free), optional instance segmentation, Roboflow YOLO labels, a Python SDK, and a native checkpoint format. Application code loads CoreYOLO files (<code>.coreyolo</code>, trained <code>.pt</code>, or <code>.mlpackage</code>)—not a sequential <code>yolov9t.pt</code> pickle. This paper describes the architecture, the train-to-device workflow, measured latency on Apple silicon, and when CoreYOLO is the right choice versus a general YOLO toolkit.</p>
   <p class="abstract"><strong>Keywords:</strong> object detection, instance segmentation, Core ML, Apple Neural Engine, MIT, YOLO, iOS</p>
 
   <h2>1. Introduction</h2>
   <p>YOLO-style detectors remain the default for on-device bounding boxes: one forward pass, a feature pyramid, and decoded boxes at several strides. The research lineage is public. The <em>product</em> problem is narrower. An iOS camera app does not need a 50-task training zoo. It needs (1) a static, fused convolution graph, (2) an activation the Neural Engine actually maps, (3) a host or in-graph NMS story that Vision.framework can consume, and (4) a license the legal team will sign.</p>
-  <p>Ultralytics YOLO is a strong general toolkit. It is also AGPL-3.0. Shipping those weights or that runtime inside a closed iPhone app usually requires an Ultralytics Enterprise license. Core ML export exists there, but the trainer is SiLU-first and Core ML is one backend among ONNX, TensorRT, OpenVINO, and TFLite.</p>
+  <p>A typical YOLO toolkit is a strong general trainer. Public YOLOv9 weights are usually AGPL-3.0. Shipping those weights inside a closed iPhone app usually requires a commercial license from the copyright holders. Core ML export exists there, but the trainer is SiLU-first and Core ML is one backend among ONNX, TensorRT, OpenVINO, and TFLite.</p>
   <p>CoreYOLO inverts that priority. The default activation is ReLU so fused Conv–BN–ReLU maps onto the Neural Engine. Native training uses ReLU; StarReLU (<code>s * ReLU(x)^2 + b</code>, 2024) is the ReLU-family option that still maps to the Neural Engine. Converted YOLOv9 tensors keep SiLU so they match the checkpoint they came from. Export is an FP16 ML Program with a fixed square <code>imgsz</code>. Compute units are first-class (<code>gpu</code>, <code>ane</code>, <code>all</code>, <code>cpu</code>). The Python package and the CLI are the same internals. The iPhone artifact is a <code>.mlpackage</code> dropped into Xcode—not a Python process on the phone.</p>
   <p>This white paper is five short chapters: problem and thesis (this page), network graphs, software and data, Apple deployment, and licensing plus conclusions.</p>
 </section>
@@ -63,7 +63,7 @@
 <section class="page">
   <h2>2. Detector graphs</h2>
   <p>CoreYOLO is an <strong>anchor-free, one-stage</strong> network. An RGB letterboxed tensor of shape <code>(1, 3, imgsz, imgsz)</code> goes through a CSP backbone, a PAN-FPN neck, and a decoupled head at strides 8, 16, and 32 (P3 / P4 / P5). At <code>imgsz = 640</code> that is 80² + 40² + 20² = 8400 prediction cells.</p>
-  <p>GELAN (the default) uses a fixed channel table; scale n matches Ultralytics yolov9t. DFL still uses the usual n / s / m / l / x compound ladder (nano: depth 0.33, width 0.25). E2E uses depth 0.50 on n/s/m. Typical use: n for real-time on phone, s on iPad/Mac, m+ when accuracy dominates.</p>
+  <p>GELAN (the default) uses a fixed channel table; scale n matches public yolov9t. DFL still uses the usual n / s / m / l / x compound ladder (nano: depth 0.33, width 0.25). E2E uses depth 0.50 on n/s/m. Typical use: n for real-time on phone, s on iPad/Mac, m+ when accuracy dominates.</p>
 
   <h3>2.1 GELAN (default, YOLOv9)</h3>
   <p><code>--family gelan</code> (aliases <code>9</code> / <code>v9</code>) is the compact GELAN detector: ELAN1 / RepNCSPELAN4, AConv (or ADown on l), SPPELAN, PAN-FPN, and a DFL head (<code>reg_max = 16</code>). Native train still defaults to ReLU; converted <code>yolov9t.pt</code> stays SiLU.</p>
@@ -89,13 +89,13 @@
 
 <section class="page">
   <h2>3. Software, data, and the SDK</h2>
-  <p>The package <code>coreyolo</code> (Python ≥ 3.10) is both the library and the CLI (<code>coreyolo train|val|predict|export|convert|coco|dummy-data</code>). There is no Ultralytics import on the inference path.</p>
+  <p>The package <code>coreyolo</code> (Python ≥ 3.10) is both the library and the CLI (<code>coreyolo train|val|predict|export|convert|coco|dummy-data</code>). The inference path does not import a third-party YOLO package.</p>
 
   <h3>3.1 Labels</h3>
   <p>The dataset is the Roboflow YOLO export: <code>data.yaml</code> plus <code>train|valid/{images,labels}</code>. Each label line is normalized <code>class xc yc w h</code>, or a polygon for segmentation. The loader accepts list or dict <code>names</code>, <code>val</code> or <code>valid</code>, and leftover Colab paths. Official COCO 2017 can be downloaded and rewritten into that layout (<code>coreyolo coco</code>), 80 contiguous classes, crowd boxes dropped.</p>
 
   <h3>3.2 Native checkpoints</h3>
-  <p>CoreYOLO does not use the Ultralytics pickle (<code>model.22.cv2…</code>). A native file is a dict tagged <code>format: "coreyolo"</code> with a state dict under <code>stem.*</code>, <code>stage*</code>, <code>head.*</code>, plus <code>nc</code>, <code>names</code>, <code>scale</code>, <code>act</code>, <code>family</code>, <code>task</code>. The suffix may be <code>.coreyolo</code> or <code>.pt</code>. <code>YOLO()</code> and <code>load_checkpoint()</code> reject Ultralytics <code>yolov9t.pt</code> so application code cannot accidentally depend on AGPL weights.</p>
+  <p>CoreYOLO does not use a sequential model.N.* pickle (<code>model.22.cv2…</code>). A native file is a dict tagged <code>format: "coreyolo"</code> with a state dict under <code>stem.*</code>, <code>stage*</code>, <code>head.*</code>, plus <code>nc</code>, <code>names</code>, <code>scale</code>, <code>act</code>, <code>family</code>, <code>task</code>. The suffix may be <code>.coreyolo</code> or <code>.pt</code>. <code>YOLO()</code> and <code>load_checkpoint()</code> reject <code>yolov9t.pt</code> so application code cannot accidentally depend on AGPL weights.</p>
   <p>Optional bootstrap, once, not in the app:</p>
   <pre>coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo</pre>
 
@@ -115,10 +115,10 @@ model.export(imgsz=640)   # Core ML for iPhone / Mac</pre>
 
 <section class="page">
   <h2>4. Core ML, iPhone, and latency</h2>
-  <p>Training happens on a Mac (PyTorch MPS when it works, else CUDA, else CPU). Deployment on iPhone is <strong>Core ML</strong>, not PyTorch. You do not need Ultralytics convert to run on a phone. Train CoreYOLO, export a <code>.mlpackage</code>, drop it into Xcode.</p>
+  <p>Training happens on a Mac (PyTorch MPS when it works, else CUDA, else CPU). Deployment on iPhone is <strong>Core ML</strong>, not PyTorch. You do not need a third-party convert to run on a phone. Train CoreYOLO, export a <code>.mlpackage</code>, drop it into Xcode.</p>
 
   <h3>4.1 Export</h3>
-  <p><code>export</code> traces a fused graph (Conv–BN merged), caches grid anchors so the Core ML graph has no meshgrid/arange, and writes an ML Program for macOS 13 / iOS 16+. Default precision is FP16. INT8 weight quant is optional. Image input is RGB <code>imgsz×imgsz</code> with 1/255 scale.</p>
+  <p><code>export</code> traces a fused inference-only graph (Conv–BN merged). GELAN never had YOLOv9 PGI auxiliary nodes; E2E drops the one-to-many train head. DFL grids are cached as static buffers so Core ML never sees <code>meshgrid</code>, <code>arange</code>, or <code>-1</code> views. Input shape is fixed <code>(1, 3, imgsz, imgsz)</code>. The result is an ML Program for macOS 13 / iOS 16+. Default precision is FP16. INT8 weight quant is optional. Image input is RGB <code>imgsz×imgsz</code> with 1/255 scale.</p>
   <p>DFL output: decoded xywh plus class scores; <strong>NMS on device</strong> (Swift or Python host). E2E output: top-300 xyxy, conf, cls; no NMS. Segmentation: three tensors; assemble masks after NMS. The camera frame must be letterboxed to <code>imgsz</code>—the same pad/ratio the trainer used—then boxes mapped back to the original pixel frame.</p>
   <pre>let config = MLModelConfiguration()
 config.computeUnits = .cpuAndGPU    // or .cpuAndNeuralEngine / .all
@@ -142,13 +142,13 @@ let model = try VNCoreMLModel(for: CoreYOLO(configuration: config).model)</pre>
 
   <h3>5.1 Why MIT matters</h3>
   <p>CoreYOLO’s train, export, and inference code is MIT. You may embed it in a proprietary iOS or macOS binary, subject to the MIT copyright and permission notice.</p>
-  <p>Ultralytics YOLOv9 is a separate project whose source is open under AGPL-3.0 (view, share, modify, distribute). AGPL-3.0 is copyleft, including over a network: if you modify YOLOv9 or offer it as a SaaS so users interact with it over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses YOLOv9 without publishing that source usually requires a commercial license from Ultralytics.</p>
-  <p>CoreYOLO is not a license-wash of Ultralytics. It is a separate implementation with no Ultralytics source in the tree. Optional convert copies tensors from a YOLOv9 file you already have into CoreYOLO names; the checkpoint format is CoreYOLO, but those numbers remain Ultralytics YOLOv9 (AGPL-3.0) unless you have their commercial license. Fine-tunes and Core ML exports of converted files stay AGPL-3.0. YOLO26 and YOLO11 weights are not copied. Train CoreYOLO from scratch on your labels for an MIT weight path. See <code>docs/licenses.md</code>. This is not legal advice.</p>
+  <p>Public YOLOv9 is a separate project whose source is open under AGPL-3.0 (view, share, modify, distribute). AGPL-3.0 is copyleft, including over a network: if you modify YOLOv9 or offer it as a SaaS so users interact with it over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses YOLOv9 without publishing that source usually requires a commercial license from the copyright holders.</p>
+  <p>CoreYOLO is a separate implementation. It does not vendor third-party YOLO trainer source. Optional convert copies tensors into CoreYOLO names; the license follows the source file. MultimediaTechLab <code>v9-*.pt</code> stays MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0. YOLO26 and YOLO11 weights are not copied. Train CoreYOLO from scratch on your labels for an original MIT + ReLU path. See <code>docs/licenses.md</code>. This is not legal advice.</p>
 
   <h3>5.2 Comparison</h3>
   <table>
-    <tr><th></th><th>CoreYOLO</th><th>Ultralytics YOLO</th></tr>
-    <tr><td>License</td><td>MIT (code + weights you train here)</td><td>AGPL-3.0; commercial license for closed products</td></tr>
+    <tr><th></th><th>CoreYOLO</th><th>Typical YOLO toolkit</th></tr>
+    <tr><td>License</td><td>MIT (code + MultimediaTechLab convert + weights you train here)</td><td>AGPL-3.0 on typical Ultralytics weights; commercial license for closed products</td></tr>
     <tr><td>Deploy priority</td><td>Core ML / ANE / iPhone</td><td>Many backends</td></tr>
     <tr><td>Default activation</td><td>ReLU (ANE + native train)</td><td>SiLU</td></tr>
     <tr><td>Graphs</td><td>GELAN (YOLOv9, host NMS), E2E (trained here)</td><td>Official v9 / 11 / 26 weights</td></tr>
@@ -156,14 +156,14 @@ let model = try VNCoreMLModel(for: CoreYOLO(configuration: config).model)</pre>
     <tr><td>App checkpoint</td><td>.coreyolo / CoreYOLO .pt / .mlpackage</td><td>yolov9t.pt and variants</td></tr>
     <tr><td>Maturity</td><td>Alpha 0.1.0</td><td>Large ecosystem</td></tr>
   </table>
-  <p>Ultralytics is the better general trainer: more pretrained models, more tasks, more export formats, more community. CoreYOLO is the better Apple product path when AGPL is unacceptable and the ship target is Core ML.</p>
+  <p>A large YOLO toolkit is the better general trainer: more pretrained models, more tasks, more export formats, more community. CoreYOLO is the better Apple product path when AGPL is unacceptable and the ship target is Core ML.</p>
 
   <h3>5.3 Recommended path to iPhone</h3>
   <p>Label in Roboflow and export YOLO (or YOLO-Seg). Train with <code>Detector("n").train(data="data.yaml")</code> or a CoreYOLO COCO recipe—not <code>yolov9t.pt</code> in the app. Save <code>weights/app.coreyolo</code>, then <code>model.export(imgsz=640)</code>. Add the <code>.mlpackage</code> to Xcode; letterbox; NMS on host for DFL; set <code>computeUnits</code> to GPU or Neural Engine. Measure on a physical iPhone.</p>
 
   <h3>5.4 Conclusion</h3>
   <p>CoreYOLO exists so a detector can be trained in the open, stored in a native checkpoint, and shipped as Core ML without taking an AGPL runtime into a closed Apple app. It does not try to replace every toolkit in this family. It tries to be the small stack you actually put on an iPhone: C2f or C3k2, ReLU, fused convolutions, host or NMS-free decode, MIT. Further work includes richer training augs, pose/OBB if needed, tighter ANE INT8, and on-device NMS options. The public interface today is <code>from coreyolo import Detector</code> and <code>coreyolo export</code>.</p>
-  <p class="footer">CoreYOLO v0.1.0 · MIT License · Not affiliated with Ultralytics or Apple. Latency figures are single-machine burst measurements on Apple M4 Pro (1 Sep 2026), not product SLAs.</p>
+  <p class="footer">CoreYOLO v0.1.0 · MIT License · Independent MIT code. Latency figures are single-machine burst measurements on Apple M4 Pro (1 Sep 2026), not product SLAs.</p>
 </section>
 
 </body>

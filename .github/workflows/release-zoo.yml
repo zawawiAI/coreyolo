@@ -9,7 +9,7 @@ on:
       notes:
         description: Release notes
         required: false
-        default: Converted n-coco / l-coco assets stay AGPL-3.0 (Ultralytics tensors). Trained-from-scratch rows are MIT. See weights/manifest.json.
+        default: Converted n/s/m/l-coco from MultimediaTechLab v9-*.pt stay MIT (keep Wong/Tsui copyright). Ultralytics yolov9*.pt converts stay AGPL-3.0. Train-from-scratch rows are MIT. See weights/manifest.json.
 
 permissions:
   contents: write
@@ -19,7 +19,7 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v5
-      - name: Refuse MIT labels on converted zoo rows
+      - name: Check zoo license labels
         run: PYTHONPATH=. python3 -c "from coreyolo.zoo import assert_zoo_license_labels; assert_zoo_license_labels()"
       - name: Pack listed zoo files
         run: |

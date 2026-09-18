@@ -1,4 +1,4 @@
-# COCO 2017 — CoreYOLO-m. 16 GB machines: batch 4.
+# COCO 2017 — CoreYOLO-m. Native train uses ReLU (ANE). Converted v9-m.pt stays SiLU (MIT).
 
 data: datasets/coco/data.yaml
 model: m

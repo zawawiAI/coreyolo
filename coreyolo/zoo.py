@@ -84,8 +84,25 @@ def listed_release_files(manifest: str | Path | None = None, root: str | Path | 
     return found
 
 
+def _convert_weight_source(how: str, origin: str) -> str | None:
+    """Classify a zoo row as MultimediaTechLab MIT, Ultralytics AGPL, or unknown convert."""
+    blob = f"{how} {origin}".lower()
+    if any(token in blob for token in ("v9-t.pt", "v9-s.pt", "v9-m.pt", "v9-c.pt", "multimediatechlab")):
+        return "mtl"
+    if any(
+        token in blob
+        for token in ("yolov9t.pt", "yolov9s.pt", "yolov9m.pt", "yolov9c.pt", "ultralytics")
+    ):
+        return "ultralytics"
+    if origin.lower() in {"yolov9", "yolov8"} or origin.lower().startswith("yolov9"):
+        return "ultralytics"
+    if how.startswith("coreyolo convert"):
+        return "unknown"
+    return None
+
+
 def assert_zoo_license_labels(path: str | Path | None = None) -> None:
-    """Refuse to publish converted Ultralytics tensors under an MIT label."""
+    """Refuse to publish Ultralytics tensors as MIT, or MTL tensors as AGPL."""
     catalog = load_manifest(path)
     errors: list[str] = []
     for entry in catalog.get("models", []):
@@ -93,11 +110,13 @@ def assert_zoo_license_labels(path: str | Path | None = None) -> None:
         how = str(entry.get("how") or "")
         origin = str(entry.get("weights_origin") or "")
         license_id = str(entry.get("weights_license") or "")
-        converted = how.startswith("coreyolo convert") or origin.lower().startswith("ultralytics")
-        if converted and not license_id.upper().startswith("AGPL"):
-            errors.append(f"{model_id}: converted / Ultralytics tensors must be AGPL-3.0, not {license_id!r}")
-        if converted and license_id.upper() == "MIT":
-            errors.append(f"{model_id}: do not rehost converted tensors as MIT")
+        source = _convert_weight_source(how, origin)
+        if source in {"ultralytics", "unknown"} and not license_id.upper().startswith("AGPL"):
+            errors.append(f"{model_id}: Ultralytics/unknown convert must stay AGPL-3.0, not {license_id!r}")
+        if source in {"ultralytics", "unknown"} and license_id.upper() == "MIT":
+            errors.append(f"{model_id}: do not rehost Ultralytics tensors as MIT")
+        if source == "mtl" and license_id.upper() != "MIT":
+            errors.append(f"{model_id}: MultimediaTechLab convert should be MIT, got {license_id!r}")
         if how.startswith("coreyolo train") and license_id.upper() != "MIT":
             errors.append(f"{model_id}: trained-from-scratch rows should be MIT, got {license_id!r}")
     if errors:
