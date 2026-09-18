@@ -20,7 +20,7 @@ Rename or copy to `CoreYOLO.mlpackage` (the name `Detector.swift` looks for in t
 
 Without the package the app still builds; the overlay tells you to add it.
 
-Use a package from **weights you trained** (`coreyolo train` then `export`) for an MIT path. A package exported from converted `yolov9*.pt` still contains Ultralytics YOLOv9 tensors (AGPL-3.0). See `docs/licenses.md`.
+Use a package from **weights you trained** or from MultimediaTechLab `v9-*.pt` convert (MIT, keep the Wong/Tsui copyright). A package exported from Ultralytics `yolov9*.pt` still contains AGPL-3.0 tensors. See `docs/licenses.md`.
 
 ## 3. What the host does
 

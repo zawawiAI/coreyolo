@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Deploy — CoreYOLO</title>
-  <meta name="description" content="Export CoreYOLO to a palettized FP16 Core ML package and run on iPhone Neural Engine." />
-  <link rel="stylesheet" href="css/site.css?v=gp" />
+  <meta name="description" content="Export an inference-only CoreYOLO graph to palettized FP16 Core ML. Static DFL grids, host NMS, Neural Engine." />
+  <link rel="stylesheet" href="css/site.css?v=mit" />
 </head>
 <body>
   <header class="nav">
@@ -34,7 +34,7 @@
       <div class="tiles">
         <article class="tile">
           <h3>Export</h3>
-          <p>Fused Conv–BN, cached anchors, FP16 ML Program, 8-bit palettize, iOS 16 / macOS 13. ReLU converts for ANE. Optional INT8.</p>
+          <p>Inference-only trace, fused Conv–BN, static DFL grids, FP16 ML Program, 8-bit palettize, iOS 16 / macOS 13. ReLU converts for ANE. Optional INT8.</p>
         </article>
         <article class="tile">
           <h3>Letterbox</h3>
@@ -57,7 +57,28 @@
 # coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
 # coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8
 model.export(imgsz=640)</code></pre>
-      <p>Export fuses Conv–BN, caches DFL anchors, converts as FP16, then palettizes weights to 8-bit k-means. ReLU-family graphs convert with <code>CPU_AND_NE</code>. Skip palettes with <code>--no-palette</code>; use <code>--int8</code> for linear quant instead.</p>
+      <p>The trace is inference-only: GELAN has no PGI aux nodes; E2E drops the one-to-many train head. DFL grids are cached as static buffers so Core ML never sees <code>meshgrid</code>, <code>arange</code>, or <code>-1</code> views. Input shape is fixed <code>(1, 3, imgsz, imgsz)</code>. Then FP16 convert and 8-bit k-means palettes. ReLU-family graphs convert with <code>CPU_AND_NE</code>. Skip palettes with <code>--no-palette</code>; use <code>--int8</code> for linear quant instead.</p>
+    </div>
+  </section>
+
+  <section class="section gray">
+    <div class="wrap-wide">
+      <h2>Built for the Neural Engine</h2>
+      <p class="lead">Dynamic YOLO ops — train-time aux heads, <code>meshgrid</code> decoders, <code>-1</code> reshapes — are what drop a Core ML graph to CPU or GPU. CoreYOLO keeps those out of the package.</p>
+      <div class="tiles">
+        <article class="tile">
+          <h3>Inference only</h3>
+          <p>YOLOv9 PGI auxiliary branches add nothing at run time. This GELAN graph never had them. E2E export is the one-to-one head only.</p>
+        </article>
+        <article class="tile">
+          <h3>Static grids</h3>
+          <p>Anchor-free DFL decode uses cached buffers for the given <code>imgsz</code>. No <code>torch.meshgrid</code> or <code>arange</code> in the ML Program.</p>
+        </article>
+        <article class="tile">
+          <h3>Static shapes</h3>
+          <p>Every <code>view</code> / <code>reshape</code> on the export path is a known size. NMS stays on the host so the Neural Engine never runs it.</p>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -138,10 +159,10 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
       <div>
         <h4>Project</h4>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">YOLOv9 / AGPL</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Latency and device choice are yours to measure on hardware. Not affiliated with, endorsed by, or sponsored by Ultralytics or Apple. YOLO is a trademark of its owners. Not legal advice.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Latency and device choice are yours to measure on hardware. YOLO is a trademark of its owners. Not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

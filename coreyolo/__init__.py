@@ -1,6 +1,5 @@
 """CoreYOLO: independent detector with a Core ML deployment path.
 
-Not affiliated with Ultralytics. YOLO is a trademark of its owners.
 Prefer ``from coreyolo import Detector``. ``YOLO`` is a compatibility alias.
 """
 

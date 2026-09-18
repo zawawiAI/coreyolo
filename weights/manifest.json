@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "license": "MIT",
-  "note": "Package code is MIT. Converted YOLOv9 tensors stay AGPL-3.0 (see docs/licenses.md). Checkpoints are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
+  "note": "Package code is MIT. Converted MultimediaTechLab v9-*.pt stay MIT (keep Wong/Tsui copyright). Ultralytics yolov9*.pt converts stay AGPL-3.0. See docs/licenses.md. Checkpoints are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
   "models": [
     {
       "id": "coreyolo-n-coco",
@@ -11,12 +11,54 @@
       "act": "silu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo",
-      "weights_origin": "ultralytics-yolov9",
-      "weights_license": "AGPL-3.0",
+      "how": "coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo",
+      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-t.pt",
+      "weights_license": "MIT",
       "files": {
         "checkpoint": "coreyolo-n-coco.coreyolo",
         "coreml": "coreyolo-n-coco.mlpackage"
+      },
+      "metrics": {
+        "dataset": "COCO 2017 val",
+        "mAP50": null,
+        "mAP50-95": null
+      }
+    },
+    {
+      "id": "coreyolo-s-coco",
+      "family": "gelan",
+      "scale": "s",
+      "task": "detect",
+      "act": "silu",
+      "imgsz": 640,
+      "nc": 80,
+      "how": "coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo",
+      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-s.pt",
+      "weights_license": "MIT",
+      "files": {
+        "checkpoint": "coreyolo-s-coco.coreyolo",
+        "coreml": "coreyolo-s-coco.mlpackage"
+      },
+      "metrics": {
+        "dataset": "COCO 2017 val",
+        "mAP50": null,
+        "mAP50-95": null
+      }
+    },
+    {
+      "id": "coreyolo-m-coco",
+      "family": "gelan",
+      "scale": "m",
+      "task": "detect",
+      "act": "silu",
+      "imgsz": 640,
+      "nc": 80,
+      "how": "coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo",
+      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-m.pt",
+      "weights_license": "MIT",
+      "files": {
+        "checkpoint": "coreyolo-m-coco.coreyolo",
+        "coreml": "coreyolo-m-coco.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",
@@ -32,9 +74,9 @@
       "act": "silu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo convert --weights yolov9c.pt --out weights/coreyolo-l-coco.coreyolo",
-      "weights_origin": "ultralytics-yolov9",
-      "weights_license": "AGPL-3.0",
+      "how": "coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo",
+      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-c.pt",
+      "weights_license": "MIT",
       "files": {
         "checkpoint": "coreyolo-l-coco.coreyolo",
         "coreml": "coreyolo-l-coco.mlpackage"

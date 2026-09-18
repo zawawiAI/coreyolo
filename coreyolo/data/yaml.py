@@ -1,4 +1,4 @@
-"""Parse Roboflow / Ultralytics-style YOLO ``data.yaml`` files."""
+"""Parse Roboflow-style YOLO ``data.yaml`` files."""
 
 from __future__ import annotations
 

@@ -87,6 +87,21 @@ def test_gelan_yolov9n_graph() -> None:
     assert out.shape[0] == 1
 
 
+def test_gelan_s_and_m_match_public_yolov9() -> None:
+    """s is 2× n channels. m AConv[180] is make_divisible to 184, as in yolov9m.pt."""
+    s = build_model(nc=80, scale="s", family="gelan")
+    m = build_model(nc=80, scale="m", family="gelan")
+    assert s.stem.conv.out_channels == 32
+    assert m.stem.conv.out_channels == 32
+    assert m.d4.cv1.conv.out_channels == 184
+    s.eval()
+    m.eval()
+    x = torch.zeros(1, 3, 64, 64)
+    with torch.no_grad():
+        assert s(x).shape == (1, 84, 84)
+        assert m(x).shape == (1, 84, 84)
+
+
 def test_nms_empty_and_peaked() -> None:
     pred = torch.zeros(1, 6, 4)
     out = non_max_suppression(pred, conf_thres=0.5)
@@ -112,6 +127,20 @@ def test_nms_fp16_matches_float() -> None:
     dets, coeffs = non_max_suppression(pred.half(), conf_thres=0.25, extra=extra.half())
     assert dets[0].shape[0] == 1
     assert coeffs[0].shape[0] == 1
+
+
+def test_nms_fp16_collapses_high_class_duplicates() -> None:
+    """cls * 7680 overflows float16; laptop/tv (62/63) must still NMS."""
+    pred = torch.zeros(1, 84, 3)
+    for i, cx in enumerate((40.0, 41.0, 200.0)):
+        pred[0, 0, i] = cx
+        pred[0, 1, i] = 40.0
+        pred[0, 2, i] = 20.0
+        pred[0, 3, i] = 20.0
+        pred[0, 4 + 63, i] = 0.9 if i < 2 else 0.8
+    out = non_max_suppression(pred.half(), conf_thres=0.25, iou_thres=0.5)
+    assert out[0].shape[0] == 2
+    assert int(out[0][0, 5].item()) == 63
 
 
 def test_gpu_device_aliases() -> None:
@@ -185,3 +214,49 @@ def test_fuse_keeps_parameter_device() -> None:
     assert weight.device.type == "mps"
     out = model(torch.zeros(1, 3, 64, 64, device="mps"))
     assert out.device.type == "mps"
+
+
+def test_e2e_eval_skips_one2many_aux() -> None:
+    model = build_model(nc=3, scale="n", family="e2e")
+    model.eval()
+    calls = {"aux": 0}
+    orig = model.head.cv2[0].forward
+
+    def counted(x):
+        calls["aux"] += 1
+        return orig(x)
+
+    model.head.cv2[0].forward = counted  # type: ignore[method-assign]
+    with torch.no_grad():
+        out = model(torch.zeros(1, 3, 64, 64))
+    assert calls["aux"] == 0
+    assert out.shape[-1] == 6
+
+
+def test_static_anchors_match_feature_grids() -> None:
+    from coreyolo.nn.decode import make_anchors, make_static_anchors
+
+    model = build_model(nc=3, scale="n", family="gelan")
+    model.eval()
+    dummy = torch.zeros(1, 3, 64, 64)
+    with torch.no_grad():
+        feats = list(model.forward_neck(dummy))
+    dynamic, dstride = make_anchors(feats, model.head.stride, 0.5)
+    static, sstride = make_static_anchors(64, [int(s) for s in model.head.stride.tolist()], 0.5)
+    assert torch.allclose(dynamic, static)
+    assert torch.allclose(dstride, sstride)
+    model.prepare_export(64)
+    assert model.head._export_hw == [(8, 8), (4, 4), (2, 2)]
+    with torch.no_grad():
+        decoded = model(dummy)
+    assert decoded.shape == (1, 7, 84)
+
+
+def test_export_trace_has_no_dynamic_grids() -> None:
+    model = build_model(nc=3, scale="n", family="gelan")
+    model.prepare_export(64)
+    dummy = torch.zeros(1, 3, 64, 64)
+    traced = torch.jit.trace(model, dummy, strict=False)
+    graph = str(traced.graph)
+    assert "meshgrid" not in graph
+    assert "aten::arange" not in graph

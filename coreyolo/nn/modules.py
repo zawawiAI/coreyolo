@@ -1,8 +1,9 @@
-"""CoreML-friendly building blocks for a YOLO-style detector.
+"""CoreML-friendly building blocks for a one-stage detector.
 
-Activations default to ReLU so fused Conv-BN-ReLU graphs map cleanly onto the
-Apple Neural Engine. SiLU is kept so converted YOLOv9 tensors match how they
-were trained. GELU and StarReLU remain available via ``--act``.
+Activations default to ReLU so fused Conv-BN-ReLU graphs map onto the Apple
+Neural Engine. ``nn.SiLU(inplace=True)`` is the standard Swish layer when a
+converted YOLOv9 checkpoint must keep that activation. GELU and StarReLU remain
+available via ``--act``.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ ACT_ALIASES = {
 
 
 def normalize_act(name: str | None = None) -> str:
-    """Canonical activation id. Default ``relu`` (ANE). ``silu`` is for converted YOLOv9."""
+    """Canonical activation id. Default ``relu`` (ANE). ``silu`` is ``nn.SiLU``."""
     raw = str(name or "relu").strip().lower().replace("-", "_")
     key = ACT_ALIASES.get(raw, raw)
     if key not in ACTIVATIONS:
@@ -94,7 +95,7 @@ class Conv(nn.Module):
         conv, bn = self.conv, self.bn
         w = conv.weight
         gamma = bn.weight / torch.sqrt(bn.running_var + bn.eps)
-        fused_w = w * gamma.reshape(-1, 1, 1, 1)
+        fused_w = w * gamma.reshape(gamma.numel(), 1, 1, 1)
         fused_b = bn.bias - bn.running_mean * gamma
         fused = nn.Conv2d(
             conv.in_channels,
@@ -488,9 +489,8 @@ class DFL(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: (B, 4 * reg_max, A) → expected bin index per side (B, 4, A)
-        b, _, a = x.shape
-        x = x.view(b, 4, self.reg_max, a).softmax(2)
-        return (x * self.proj.view(1, 1, -1, 1)).sum(2)
+        x = x.unflatten(1, (4, self.reg_max)).softmax(2)
+        return (x * self.proj.reshape(1, 1, self.reg_max, 1)).sum(2)
 
 
 def fuse_model(model: nn.Module) -> nn.Module:

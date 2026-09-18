@@ -1,4 +1,4 @@
-"""CoreYOLO detector: DFL (C2f), GELAN (YOLOv9), or E2E (C3k2 + C2PSA)."""
+"""CoreYOLO detector: DFL (C2f), GELAN (YOLOv9 paper), or E2E (C3k2 + C2PSA)."""
 
 from __future__ import annotations
 
@@ -55,8 +55,8 @@ FAMILY_ALIASES = {
     "26": "e2e",
 }
 
-# Compact GELAN (Ultralytics YOLOv9 t/s/m/c). Scale n matches yolov9t — there is
-# no official yolov9n.yaml; that is the nano-class graph people mean by "v9n".
+# Compact GELAN as in the YOLOv9 paper. Scale n is the tiny channel table
+# (same layout as public yolov9t — there is no yolov9n.yaml).
 # Tuple layout: (kind, c2, c3, c4, n) for ELAN blocks; (kind, c2) for downs.
 GELAN_SCALES: dict[str, dict[str, Any]] = {
     "n": {
@@ -110,7 +110,8 @@ GELAN_SCALES: dict[str, dict[str, Any]] = {
         "spp": (480, 240),
         "n4": (360, 360, 180, 1),
         "n3": (240, 240, 120, 1),
-        "d4": ("aconv", 180),
+        # YAML writes AConv[180]; parsers round that to make_divisible(180, 8) = 184.
+        "d4": ("aconv", 184),
         "n4b": (360, 360, 180, 1),
         "d5": ("aconv", 240),
         "n5b": (480, 480, 240, 1),
@@ -187,8 +188,8 @@ def _width(c: int, gw: float, max_channels: int) -> int:
 class CoreYOLO(nn.Module):
     """Anchor-free one-stage detector or instance segmenter.
 
-    ``family='gelan'`` is the default YOLOv9 GELAN graph (scale n matches
-    Ultralytics ``yolov9t``). ``family='dfl'`` is the older C2f + DFL graph.
+    ``family='gelan'`` is the default GELAN graph from the YOLOv9 paper (scale n
+    matches public ``yolov9t``). ``family='dfl'`` is the older C2f + DFL graph.
     ``family='e2e'`` is C3k2 + C2PSA with an NMS-free top-300 head.
     ``task='segment'`` adds a proto mask branch. Checkpoint ids ``8`` / ``9`` /
     ``26`` still load.
@@ -386,6 +387,23 @@ class CoreYOLO(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor | list[torch.Tensor] | dict[str, list[torch.Tensor]]:
         return self.head(list(self.forward_neck(x)))
+
+    def prepare_export(self, imgsz: int) -> "CoreYOLO":
+        """Inference-only Core ML graph: fuse, drop train aux, cache static grids.
+
+        YOLOv9 PGI / auxiliary reversible branches are training-only. This graph
+        never had those nodes; ``prepare_export`` still eval-fuses and skips the
+        E2E one-to-many head so the trace is the main branch only.
+        """
+        self.eval()
+        self.fuse()
+        self.head.export = True
+        param = next(self.parameters())
+        dummy = torch.zeros(1, 3, int(imgsz), int(imgsz), device=param.device, dtype=param.dtype)
+        with torch.no_grad():
+            feats = self.forward_neck(dummy)
+            self.head.prepare_export(list(feats), imgsz=int(imgsz))
+        return self
 
     def fuse(self) -> "CoreYOLO":
         fuse_model(self)

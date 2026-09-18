@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CoreYOLO — Object detection for Apple silicon</title>
-  <meta name="description" content="Independent MIT detector trained in PyTorch and shipped as palettized Core ML. Not affiliated with Ultralytics." />
-  <link rel="stylesheet" href="css/site.css?v=gp" />
+  <meta name="description" content="Independent MIT detector trained in PyTorch and shipped as palettized Core ML." />
+  <link rel="stylesheet" href="css/site.css?v=mit" />
 </head>
 <body>
-  <div class="ribbon">Independent MIT code. Not affiliated with Ultralytics or Apple. YOLO is a trademark of its owners. <a href="docs.html#license">License</a></div>
+  <div class="ribbon">Independent MIT code. YOLO is a trademark of its owners. <a href="docs.html#license">License</a></div>
   <header class="nav">
     <div class="nav-inner">
       <a class="wordmark" href="index.html">Core<span>YOLO</span></a>
@@ -27,7 +27,7 @@
   <section class="hero">
     <p class="eyebrow">Core ML. First.</p>
     <h1>Object detection.<br />Built for Apple.</h1>
-    <p class="sub">Train an independent detector in Python. Ship a palettized Core ML package to Apple silicon. Original code is MIT. Converted Ultralytics checkpoints stay AGPL-3.0.</p>
+    <p class="sub">Train an independent detector in Python. Ship a palettized Core ML package to Apple silicon. Code and MultimediaTechLab-converted GELAN weights are MIT.</p>
     <div class="hero-actions">
       <a class="btn btn-blue" href="docs.html#quickstart">Get started</a>
       <a class="btn btn-text" href="deploy.html">See Core ML</a>
@@ -50,15 +50,15 @@
   <section class="section gray">
     <div class="wrap-wide">
       <h2>Designed for Apple silicon.</h2>
-      <p class="lead">Fused convolutions. ReLU by default. Palettized Core ML. The Neural Engine is the product path, not an afterthought.</p>
+      <p class="lead">Inference-only export. Static DFL grids. ReLU by default. Palettized Core ML. The Neural Engine is the product path, not an afterthought.</p>
       <div class="tiles">
         <article class="tile">
           <h3>Core ML first</h3>
-          <p>FP16 ML Program with 8-bit palettized weights. ReLU graphs convert for the Neural Engine. iOS 16 and macOS 13.</p>
+          <p>Fused Conv–BN, inference branch only, cached DFL grids (no <code>meshgrid</code> / <code>arange</code>), host NMS. FP16 ML Program with 8-bit palettes. ReLU converts for the Neural Engine. iOS 16 and macOS 13.</p>
         </article>
         <article class="tile">
           <h3>MIT</h3>
-          <p>CoreYOLO’s code is permissive. Closed App Store apps can ship models you train here from scratch. Optional convert of Ultralytics YOLOv9 tensors stays AGPL-3.0 — that is not a relicensing.</p>
+          <p>CoreYOLO’s code is permissive. Closed App Store apps can ship models you train here, or GELAN weights converted from MultimediaTechLab <code>v9-*.pt</code> (MIT). Ultralytics <code>yolov9*.pt</code> convert stays AGPL-3.0 — that is not a relicensing.</p>
         </article>
         <article class="tile">
           <h3>Your labels</h3>
@@ -78,7 +78,7 @@
       </div>
       <pre><code>from coreyolo import Detector
 
-model = Detector("n")              # GELAN graph; pass family="e2e" for NMS-free
+model = Detector("n")              # GELAN n; also "s" / "m" / "l", or family="e2e"
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
 model.export(imgsz=640)   # Core ML: FP16 + 8-bit palette, ANE for ReLU</code></pre>
@@ -92,7 +92,7 @@ model.export(imgsz=640)   # Core ML: FP16 + 8-bit palette, ANE for ReLU</code></
       <div class="grid-2">
         <article class="card">
           <h3>GELAN — default</h3>
-          <p>GELAN as in the YOLOv9 paper. Scale n matches the public Ultralytics yolov9t file. Train ReLU here for ANE; optional convert of yolov9t.pt stays SiLU and AGPL-3.0 (GPU).</p>
+          <p>GELAN as in the YOLOv9 paper. Scales n / s / m / l match public v9-t / s / m / c. Export is the main branch only (no PGI aux). Train ReLU here for ANE; optional convert stays SiLU (GPU) and MIT when the source is MultimediaTechLab.</p>
           <p><a href="models.html">See models ›</a></p>
         </article>
         <article class="card">
@@ -110,6 +110,32 @@ model.export(imgsz=640)   # Core ML: FP16 + 8-bit palette, ANE for ReLU</code></
   </section>
 
   <section class="section gray">
+    <div class="wrap-wide">
+      <h2>n, s, m, and l.</h2>
+      <p class="lead">Same GELAN trainer. Pick the scale for the device. Converted COCO weights for all four are in the zoo.</p>
+      <div class="grid-2">
+        <article class="card">
+          <h3>n — 2.13M</h3>
+          <p>Phones, real-time camera. Matches public v9-t. Train with <code>Detector("n")</code> or convert <code>v9-t.pt</code>.</p>
+        </article>
+        <article class="card">
+          <h3>s — 7.32M</h3>
+          <p>Mac and iPad. Convert <code>v9-s.pt</code>, or train ReLU with <code>--recipe coco-s</code>.</p>
+        </article>
+        <article class="card">
+          <h3>m — 20.22M</h3>
+          <p>Accuracy-biased. Convert <code>v9-m.pt</code>, or train ReLU with <code>--recipe coco-m</code>.</p>
+        </article>
+        <article class="card">
+          <h3>l — 25.59M</h3>
+          <p>Offline / max accuracy. Convert <code>v9-c.pt</code>, or train ReLU with <code>--recipe coco-l</code>.</p>
+        </article>
+      </div>
+      <p><a href="models.html">See the full table ›</a></p>
+    </div>
+  </section>
+
+  <section class="section">
     <div class="wrap-wide">
       <h2>Tasks that ship.</h2>
       <p class="lead">Detection and instance segmentation today. Pose and OBB stay out of scope on purpose.</p>
@@ -150,10 +176,10 @@ model.export(imgsz=640)   # Core ML: FP16 + 8-bit palette, ANE for ReLU</code></
         <a href="https://github.com/zawawiAI/coreyolo">GitHub</a>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/CoreYOLO-White-Paper.pdf">White paper</a>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">YOLOv9 / AGPL</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Original software under the MIT License. Inspired by published detector-family methods and the Roboflow YOLO label layout. Not a fork of Ultralytics. YOLO and Ultralytics are trademarks of their owners. Not affiliated with, endorsed by, or sponsored by Ultralytics or Apple. These notices are not legal advice.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. Original software under the MIT License. Inspired by published detector-family methods and the Roboflow YOLO label layout. YOLO is a trademark of its owners. These notices are not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

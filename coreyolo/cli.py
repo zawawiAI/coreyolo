@@ -41,7 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--act",
         default=None,
         choices=["relu", "relu6", "gelu", "star", "hardswish", "silu"],
-        help="relu (default, ANE), silu (converted YOLOv9 only), gelu, star (StarReLU), hardswish",
+        help="relu (default, ANE), silu (nn.SiLU), gelu, star (StarReLU), hardswish",
     )
     t.add_argument(
         "--family",
@@ -109,12 +109,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     w = sub.add_parser(
         "convert",
-        help="Remap Ultralytics YOLOv9 .pt names into CoreYOLO (does not relicense AGPL weights)",
+        help="Remap compact YOLOv9 .pt names into CoreYOLO (MIT from v9-*.pt; AGPL from yolov9*.pt)",
     )
     w.add_argument(
         "--weights",
         required=True,
-        help="yolov9t.pt (nano) / yolov9c.pt (l). YOLO26/YOLO11 cannot map. AGPL-3.0 tensors.",
+        help="MIT: v9-t.pt (n) / s / m / v9-c.pt (l) from MultimediaTechLab. AGPL: yolov9t/s/m/c.pt.",
     )
     w.add_argument("--out", default=None, help="output .coreyolo path; inferred from scale if omitted")
     w.add_argument("--model", default=None, choices=["n", "s", "m", "l", "x"], help="scale; inferred from stem if omitted")
@@ -274,10 +274,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "convert":
-        from coreyolo.export.convert import convert_ultralytics
+        from coreyolo.export.convert import convert_yolo_pt
 
         try:
-            path = convert_ultralytics(args.weights, out=args.out, scale=args.model)
+            path = convert_yolo_pt(args.weights, out=args.out, scale=args.model)
         except ValueError as exc:
             print(exc, file=sys.stderr)
             return 2

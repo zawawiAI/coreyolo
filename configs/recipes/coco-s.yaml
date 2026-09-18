@@ -1,4 +1,4 @@
-# COCO 2017 — CoreYOLO-s. Drop batch to 8 if you hit memory pressure.
+# COCO 2017 — CoreYOLO-s. Native train uses ReLU (ANE). Converted v9-s.pt stays SiLU (MIT).
 
 data: datasets/coco/data.yaml
 model: s

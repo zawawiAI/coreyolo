@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Docs — CoreYOLO</title>
   <meta name="description" content="Train, val, predict, and export CoreYOLO. Python SDK and CLI." />
-  <link rel="stylesheet" href="css/site.css?v=gp" />
+  <link rel="stylesheet" href="css/site.css?v=mit" />
 </head>
 <body>
   <header class="nav">
@@ -43,7 +43,7 @@
       <h4>Ship</h4>
       <a href="#export">Export</a>
       <a href="deploy.html">Core ML / iPhone</a>
-      <a href="#license">License / AGPL</a>
+      <a href="#license">License</a>
     </nav>
     <article class="docs-body">
       <h2 id="quickstart">Quickstart</h2>
@@ -57,7 +57,8 @@
       <div data-panel="py">
         <pre><code>from coreyolo import Detector
 
-model = Detector("n")              # GELAN (default)
+model = Detector("n")              # GELAN n; also "s" / "m" / "l"
+# model = Detector("s")
 # model = Detector("n", family="e2e")
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
@@ -72,7 +73,7 @@ coreyolo val --data datasets/dummy/data.yaml --weights runs/detect/train/weights
 coreyolo export --weights runs/detect/train/weights/best.pt --imgsz 320
 coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source photo.jpg --device auto</code></pre>
       </div>
-      <p><code>Detector("n")</code> builds an untrained GELAN nano graph. Pass <code>family="e2e"</code> for the NMS-free graph. <code>Detector("weights/app.coreyolo")</code> or a <code>.mlpackage</code> loads a trained artifact. Do not pass Ultralytics <code>yolov9t.pt</code> into <code>Detector()</code> — that layout is rejected. <code>from coreyolo import YOLO</code> still works as an alias.</p>
+      <p><code>Detector("n")</code> builds an untrained GELAN nano graph. Pass <code>"s"</code>, <code>"m"</code>, or <code>"l"</code> for the larger tables, or <code>family="e2e"</code> for the NMS-free graph. <code>Detector("weights/app.coreyolo")</code> or a <code>.mlpackage</code> loads a trained artifact. Do not pass <code>v9-t.pt</code> or <code>yolov9t.pt</code> into <code>Detector()</code> — those layouts are rejected. <code>from coreyolo import YOLO</code> still works as an alias.</p>
 
       <h2 id="sdk">Python SDK</h2>
       <p><code>from coreyolo import Detector, Result</code>. Methods: <code>train</code>, <code>val</code>, <code>predict</code>, <code>export</code>, <code>save</code>, <code>info</code>, <code>dummy_data</code>. Webcam: <code>model.predict(0)</code> on a Mac. That is not the iPhone runtime. <code>YOLO</code> is a compatibility alias; YOLO is a trademark of its owners.</p>
@@ -81,19 +82,19 @@ coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source pho
       <h2 id="cli">CLI</h2>
       <pre><code>coreyolo train | val | predict | export | convert | coco | dummy-data</code></pre>
       <p>Device: <code>--device gpu</code> (default) is PyTorch MPS / Core ML CPU_AND_GPU. <code>auto</code> tries Neural Engine first on a <code>.mlpackage</code>. Also <code>ane</code>, <code>all</code>, <code>cpu</code>.</p>
-      <p>Graph: <code>--family gelan</code> (default, YOLOv9 GELAN; n = yolov9t), <code>--family dfl</code> (C2f + host NMS), or <code>--family e2e</code> (C3k2 + C2PSA, NMS-free). Old <code>9</code> / <code>8</code> / <code>26</code> flags still load.</p>
+      <p>Graph: <code>--family gelan</code> (default, YOLOv9 GELAN; n / s / m / l = v9-t / s / m / c), <code>--family dfl</code> (C2f + host NMS), or <code>--family e2e</code> (C3k2 + C2PSA, NMS-free). Old <code>9</code> / <code>8</code> / <code>26</code> flags still load.</p>
       <p>Activation: <code>--act relu</code> (default, ANE). <code>silu</code> is only for converted YOLOv9 tensors — do not swap it on those checkpoints. Also <code>star</code> (StarReLU), <code>gelu</code>, <code>hardswish</code>.</p>
 
       <h2 id="graphs">GELAN, DFL, and E2E</h2>
-      <p><strong>GELAN</strong> is the default detect graph: ELAN1 / RepNCSPELAN4 / SPPELAN, Distribution Focal Loss, decoded xywh, class-aware NMS on the host. Scale <code>n</code> matches Ultralytics <code>yolov9t</code>. Core ML layout <code>(1, 4+nc, N)</code>. Optional one-time remap from <code>yolov9t.pt</code>.</p>
+      <p><strong>GELAN</strong> is the default detect graph: ELAN1 / RepNCSPELAN4 / SPPELAN, Distribution Focal Loss, decoded xywh, class-aware NMS on the host. Scales <code>n</code> / <code>s</code> / <code>m</code> / <code>l</code> match public <code>v9-t</code> / <code>s</code> / <code>m</code> / <code>c</code>. Core ML layout <code>(1, 4+nc, N)</code>. This graph never had YOLOv9 PGI aux nodes; export is the main branch only. Optional one-time remap from MultimediaTechLab <code>v9-*.pt</code> (MIT).</p>
       <p><strong>DFL</strong> is the older C2f + SPPF graph with the same DFL head.</p>
-      <p><strong>E2E</strong> is C3k2 + C2PSA with a dual TAL head and NMS-free top-300 at inference. Core ML layout <code>(1, 300, 6)</code> as xyxy, conf, cls. Train from scratch: <code>--family e2e</code> or <code>--recipe coco-n-e2e</code>.</p>
+      <p><strong>E2E</strong> is C3k2 + C2PSA with a dual TAL head and NMS-free top-300 at inference. Core ML layout <code>(1, 300, 6)</code> as xyxy, conf, cls. Export drops the one-to-many train head. Train from scratch: <code>--family e2e</code> or <code>--recipe coco-n-e2e</code>.</p>
 
       <h2 id="export">Export</h2>
       <pre><code>coreyolo export --weights weights/app.coreyolo --imgsz 640
 coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
 coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8</code></pre>
-      <p>Default export is an FP16 ML Program (iOS 16 / macOS 13): fused Conv–BN, cached DFL anchors, MIL cleanup passes. ReLU, ReLU6, StarReLU, and HardSwish convert with <code>CPU_AND_NE</code> so the graph stays ANE-legal, then <strong>8-bit k-means palettize</strong>. <code>--int8</code> is linear weight quant instead of palettes. Converted SiLU YOLOv9 packages still prefer GPU — train ReLU from scratch for Neural Engine.</p>
+      <p>Default export is an FP16 ML Program (iOS 16 / macOS 13): fused Conv–BN, inference branch only (no train-time aux heads), cached static DFL grids (no <code>meshgrid</code> / <code>arange</code> in the package), host NMS, MIL cleanup passes. ReLU, ReLU6, StarReLU, and HardSwish convert with <code>CPU_AND_NE</code> so the graph stays ANE-legal, then <strong>8-bit k-means palettize</strong>. <code>--int8</code> is linear weight quant instead of palettes. Converted SiLU YOLOv9 packages still prefer GPU — train ReLU from scratch for Neural Engine.</p>
       <p>Python: <code>model.export(imgsz=640)</code> or <code>palettize=False</code>. Package metadata records <code>optimize</code> (<code>palettize8</code> / <code>fp16</code> / <code>int8</code>) and <code>preferred_compute</code> (<code>ane</code> or <code>gpu</code>).</p>
 
       <h2 id="labels">Labels</h2>
@@ -102,23 +103,28 @@ coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8</code></pre>
       <h2 id="segment">Segmentation</h2>
       <pre><code>coreyolo dummy-data --out datasets/dummy-seg --segment
 coreyolo train --data datasets/dummy-seg/data.yaml --model n --task segment --epochs 20 --imgsz 320</code></pre>
-      <p>GELAN is the supported seg graph. Mosaic is off so polygons stay valid. Core ML writes three outputs: detections, mask coefficients, proto.</p>
+      <p>GELAN (DFL head) is the supported seg graph. E2E can train a proto head too. Mosaic is off so polygons stay valid. Core ML writes three outputs: detections, mask coefficients, proto. NMS and mask assembly stay on the host.</p>
 
       <h2 id="coco">COCO</h2>
       <pre><code>coreyolo coco --out datasets/coco --download
 coreyolo coco --out datasets/coco --splits val --max-images 512 --no-download
 coreyolo train --recipe coco-n-fast
+coreyolo train --recipe coco-s
+coreyolo train --recipe coco-m
 coreyolo train --recipe coco-n-e2e</code></pre>
-      <p>Optional bootstrap, once, not in the app. Remaps names only — converted tensors stay Ultralytics (AGPL-3.0):</p>
-      <pre><code>coreyolo convert --weights yolov9t.pt --out weights/coreyolo-n-coco.coreyolo
-coreyolo convert --weights yolov9c.pt --out weights/coreyolo-l-coco.coreyolo</code></pre>
+      <p>Optional bootstrap, once, not in the app. MultimediaTechLab <code>v9-*.pt</code> stays MIT (keep the Wong/Tsui copyright). Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0:</p>
+      <pre><code>coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
+coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo
+coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
+coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo</code></pre>
 
       <h2 id="license">License</h2>
-      <p><strong>CoreYOLO code</strong> is MIT. You may view, share, modify, and distribute it, including in a closed app, subject to the MIT copyright and permission notice. Train on your own labels for an MIT weight path.</p>
+      <p><strong>CoreYOLO code</strong> is MIT. You may view, share, modify, and distribute it, including in a closed app, subject to the MIT copyright and permission notice.</p>
       <div class="note">
-        <p><strong>Ultralytics YOLOv9</strong> is a separate project. Its source is open under AGPL-3.0 (view, share, modify, distribute).</p>
-        <p><strong>The AGPL catch:</strong> if you modify YOLOv9 or use it in a network service (SaaS) so users interact with it over a network, you typically must release your whole application under AGPL-3.0.</p>
-        <p><strong>Commercial / closed internal use:</strong> a commercial product or a closed-source internal enterprise tool that uses Ultralytics YOLOv9 without publishing that source usually needs a commercial license from Ultralytics. <code>coreyolo convert</code> remaps tensor names; it does not relicense those weights. Fine-tunes and Core ML exports of converted files stay AGPL-3.0. Do not rehost them as MIT.</p>
+        <p><strong>MIT weights:</strong> MultimediaTechLab <code>v9-t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code> (copyright Kin-Yiu Wong and Hao-Tang Tsui). This is the LibreYOLO source. Convert remaps names and keeps MIT plus that copyright notice. Train-from-scratch CoreYOLO recipes are also MIT.</p>
+        <p><strong>AGPL-3.0 weights:</strong> Ultralytics <code>yolov9t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code> are a different dump. Convert remaps names; it does not relicense them.</p>
+        <p><strong>The AGPL catch:</strong> if you modify those AGPL tensors or use them in a network service (SaaS) so users interact with it over a network, you typically must release your whole application under AGPL-3.0.</p>
+        <p><strong>Commercial / closed internal use of Ultralytics weights:</strong> a commercial product or a closed-source internal enterprise tool that uses those weights without publishing source usually needs a commercial license from the copyright holders.</p>
         <p>This is not legal advice. Full write-up: <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>.</p>
       </div>
     </article>
@@ -145,10 +151,10 @@ coreyolo convert --weights yolov9c.pt --out weights/coreyolo-l-coco.coreyolo</co
       <div>
         <h4>Project</h4>
         <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">YOLOv9 / AGPL</a>
+        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Not affiliated with, endorsed by, or sponsored by Ultralytics or Apple. YOLO is a trademark of its owners. Not legal advice.</p>
+    <p class="legal">Copyright © 2026 CoreYOLO contributors. YOLO is a trademark of its owners. Not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

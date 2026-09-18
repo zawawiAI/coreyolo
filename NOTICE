@@ -3,20 +3,23 @@ Copyright 2026 CoreYOLO contributors
 
 This product is original software licensed under the MIT License.
 It is inspired by published detector-family methods and the Roboflow YOLO label layout.
-It is not a fork of Ultralytics and does not include Ultralytics source code.
-It is not affiliated with, endorsed by, or sponsored by Ultralytics or Apple.
+It does not include third-party YOLO trainer source.
 
-"YOLO", "YOLOv9", "YOLO11", "YOLO26", and "Ultralytics" are trademarks of their
+"YOLO", "YOLOv9", "YOLO11", and "YOLO26" are trademarks of their
 respective owners. They appear only to identify third-party files and license
 duties. The public Python type is Detector. YOLO remains a compatibility alias.
 
-Optional `coreyolo convert` remaps tensor names from an Ultralytics YOLOv9
-checkpoint the user already has. Those numeric tensors remain Ultralytics
-weights under AGPL-3.0 (or an Ultralytics commercial license). Convert is not a
-relicensing. Fine-tunes and Core ML exports of converted files stay AGPL-3.0.
-Do not rehost converted files as MIT. This repository does not ship those
-binaries in git.
+Optional `coreyolo convert` remaps tensor names from a YOLOv9 checkpoint the
+user already has. Convert is not a relicensing:
 
-The MIT weight path is to train CoreYOLO from scratch on your own labels.
+  - MultimediaTechLab/YOLO v9-t/s/m/c.pt (release v1.0-alpha) are MIT,
+    Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui. Converted CoreYOLO
+    files keep that MIT license and this copyright notice. This is the same
+    source LibreYOLO uses for its MIT YOLOv9 weights.
+  - Ultralytics yolov9t/s/m/c.pt are typically AGPL-3.0. Converted files,
+    fine-tunes, and Core ML exports of those tensors stay AGPL-3.0. Do not
+    rehost them as MIT.
+
+Train CoreYOLO from scratch on your own labels for an original MIT weight path.
 
 See LICENSE and docs/licenses.md. This NOTICE is not legal advice.

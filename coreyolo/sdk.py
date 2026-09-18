@@ -47,7 +47,7 @@ class Detector:
     model:
         Scale ``n``/``s``/``m``/``l``/``x`` for a new network, or a path to a
         CoreYOLO ``.coreyolo`` / ``.pt`` / Core ML ``.mlpackage``.
-        Do not pass Ultralytics files such as ``yolov9t.pt``.
+        Do not pass sequential ``yolov9t.pt`` pickles.
     """
 
     def __init__(
@@ -384,15 +384,16 @@ class Detector:
 
     @classmethod
     def convert(cls, weights: str | Path, out: str | Path | None = None, scale: str | None = None) -> "Detector":
-        """One-time bootstrap: Ultralytics YOLOv9 ``.pt`` → CoreYOLO ``.coreyolo``.
+        """One-time bootstrap: YOLOv9 ``.pt`` → CoreYOLO ``.coreyolo``.
 
-        Remaps tensor names only. Ultralytics weights stay AGPL-3.0. Do not call this
-        from app inference. Convert once, then ``Detector(coreyolo_path)``. For an
-        MIT weight path, train CoreYOLO on your labels instead.
+        Remaps tensor names only. MultimediaTechLab ``v9-*.pt`` stays MIT
+        (keep the Wong/Tsui copyright). Ultralytics ``yolov9*.pt`` stays AGPL-3.0.
+        Do not call this from app inference. Convert once, then
+        ``Detector(coreyolo_path)``.
         """
-        from coreyolo.export.convert import convert_ultralytics
+        from coreyolo.export.convert import convert_yolo_pt
 
-        path = convert_ultralytics(weights, out=out, scale=scale)
+        path = convert_yolo_pt(weights, out=out, scale=scale)
         return cls(path)
 
     @staticmethod
