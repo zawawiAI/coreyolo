@@ -10,7 +10,7 @@ Read the MIT text in [`LICENSE`](../LICENSE), [`NOTICE`](../NOTICE), [`weights/L
 
 The library is MIT. That covers the Python API, the CLI, the trainers, validators and exporters, the dataset loaders, and the conversion code under `coreyolo/export/convert.py`. Use it in a commercial or closed-source product, keep the copyright line and the license text with any copy you redistribute, and the obligation ends there.
 
-The grant stops at the code. The `LICENSE` file puts it plainly:
+The grant stops at the code. [`NOTICE`](../NOTICE) puts it plainly:
 
 > Those licenses vary and are not all permissive: some published YOLOv9 dumps are AGPL-3.0, and this MIT License does not extend to them. Choosing a model means choosing its license.
 
