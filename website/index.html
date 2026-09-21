@@ -50,11 +50,11 @@
   <section class="section gray">
     <div class="wrap-wide">
       <h2>Designed for Apple silicon.</h2>
-      <p class="lead">Inference-only export. Static DFL grids. ReLU by default. Palettized Core ML. The Neural Engine is the product path, not an afterthought.</p>
+      <p class="lead">Inference-only export. Static DFL grids. ReLU by default. Palettized ReLU on ANE, dense FP16 SiLU on GPU. The Neural Engine is the product path, not an afterthought.</p>
       <div class="tiles">
         <article class="tile">
           <h3>Core ML first</h3>
-          <p>Fused Conv–BN, inference branch only, cached DFL grids (no <code>meshgrid</code> / <code>arange</code>), host NMS. FP16 ML Program with 8-bit palettes. ReLU converts for the Neural Engine. iOS 16 and macOS 13.</p>
+          <p>Fused Conv–BN, inference branch only, cached DFL grids (no <code>meshgrid</code> / <code>arange</code>), host NMS. ReLU: FP16 + 8-bit palettes on the Neural Engine. Converted SiLU: dense FP16 on GPU. iOS 16 and macOS 13.</p>
         </article>
         <article class="tile">
           <h3>MIT</h3>
@@ -81,7 +81,7 @@
 model = Detector("n")              # GELAN n; also "s" / "m" / "l", or family="e2e"
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
-model.export(imgsz=640)   # Core ML: FP16 + 8-bit palette, ANE for ReLU</code></pre>
+model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU</code></pre>
     </div>
   </section>
 

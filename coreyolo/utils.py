@@ -12,7 +12,7 @@ import torch
 # Let ops without MPS kernels fall back instead of aborting a GPU run.
 os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
 CHECKPOINT_FORMAT = "coreyolo"

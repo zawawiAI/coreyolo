@@ -123,8 +123,11 @@ def test_license_files_follow_per_checkpoint_style() -> None:
     license_text = folded("LICENSE")
     notice = folded("NOTICE")
     weights = folded("weights/LICENSE_NOTICE.txt")
-    assert "choosing a model means choosing its license" in license_text
-    assert "this mit license does not extend to them" in license_text
+    assert "permission is hereby granted" in license_text
+    assert "mit license" in license_text
+    assert license_text.count("note on weights") == 0
+    assert "choosing a model means choosing its license" in notice
+    assert "this mit license does not extend to them" in notice
     assert "does not vendor" in notice
     assert "kin-yiu wong and hao-tang tsui" in notice
     assert "coreyolo-{n,s,m,l}-coco) mit" in weights

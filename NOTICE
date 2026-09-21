@@ -3,10 +3,18 @@ Copyright (c) 2026 CoreYOLO contributors.
 
 CoreYOLO is licensed under the MIT License (see LICENSE).
 
-This product does not vendor another detector's trainer source. Optional
-`coreyolo convert` remaps tensor names from a YOLOv9 checkpoint the
-user already has. Converting a file does not change its applicable
-terms. The numbers keep the license of whoever trained them.
+NOTE ON WEIGHTS: No pretrained weight files are shipped with this source
+repository. Published CoreYOLO checkpoints live separately (GitHub Releases)
+and carry their own per-file licenses, reflecting each upstream. Those
+licenses vary and are not all permissive: some published YOLOv9 dumps are
+AGPL-3.0, and this MIT License does not extend to them. Choosing a model
+means choosing its license. See weights/LICENSE_NOTICE.txt and
+docs/licenses.md for the terms on each source.
+
+NOTE ON THIRD-PARTY CODE: CoreYOLO does not vendor another detector's
+trainer source. Optional `coreyolo convert` remaps tensor names from a
+checkpoint you already have; converting a file does not change its
+applicable terms. The numbers keep the license of whoever trained them.
 
 ------------------------------------------------------------------------
 Upstream weights CoreYOLO can remap

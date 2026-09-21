@@ -19,18 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-NOTE ON WEIGHTS: No pretrained weight files are shipped with this source
-repository. Published CoreYOLO checkpoints live separately (GitHub Releases)
-and carry their own per-file licenses, reflecting each upstream. Those
-licenses vary and are not all permissive: some published YOLOv9 dumps are
-AGPL-3.0, and this MIT License does not extend to them. Choosing a model
-means choosing its license. See `weights/LICENSE_NOTICE.txt`, `NOTICE`,
-and `docs/licenses.md` for the terms on each source.
-
-NOTE ON THIRD-PARTY CODE: CoreYOLO does not vendor another detector's
-trainer source. Optional `coreyolo convert` remaps tensor names from a
-checkpoint you already have; converting a file does not change its
-applicable terms.
