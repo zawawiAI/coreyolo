@@ -2,9 +2,9 @@
 
 Binaries are **not** stored in git (`*.coreyolo` and `*.mlpackage/` are ignored). The catalog is [`manifest.json`](manifest.json). Published files belong on a GitHub Release. Per-source terms: [`LICENSE_NOTICE.txt`](LICENSE_NOTICE.txt). Choosing a model means choosing its license.
 
-## Converted COCO (SiLU, MIT from MultimediaTechLab)
+## Converted COCO (SiLU, MIT)
 
-Code MIT, weights MIT. Remap [MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO) `v1.0-alpha` files. Keep the MIT copyright notice (Kin-Yiu Wong and Hao-Tang Tsui). Converting the file does not change its applicable terms.
+Code MIT. Remap [MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO) `v1.0-alpha` files. Keep the MIT copyright notice (Kin-Yiu Wong and Hao-Tang Tsui). Converting the file does not change its applicable terms.
 
 ```bash
 # https://github.com/MultimediaTechLab/YOLO/releases/tag/v1.0-alpha

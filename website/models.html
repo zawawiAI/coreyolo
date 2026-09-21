@@ -99,7 +99,7 @@
     <div class="wrap-wide">
       <h2>Zoo</h2>
       <p class="lead">Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val.</p>
-      <p class="note"><strong>Converted zoo rows</strong> (n-coco, s-coco, m-coco, l-coco): code MIT, weights MIT. Remap MultimediaTechLab <code>v9-*.pt</code>, copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep that notice. They keep SiLU (GPU). Train recipes are original MIT weights (ReLU, Neural Engine). Ultralytics <code>yolov9*.pt</code> is a different dump (AGPL-3.0); converting the file does not change its applicable terms. Choosing a model means choosing its license.</p>
+      <p class="note"><strong>Converted zoo rows</strong> (n-coco, s-coco, m-coco, l-coco) are MIT. Remap MultimediaTechLab <code>v9-*.pt</code>, copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep that notice. They keep SiLU (GPU). Train recipes are original MIT weights (ReLU, Neural Engine). Ultralytics <code>yolov9*.pt</code> is a different dump (AGPL-3.0); converting the file does not change its applicable terms.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -110,7 +110,7 @@
               <th>Act</th>
               <th>Compute</th>
               <th>How</th>
-              <th>Licenses</th>
+              <th>License</th>
             </tr>
           </thead>
           <tbody>
@@ -121,7 +121,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-t.pt</code></td>
-              <td>Code MIT, weights MIT</td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-s-coco</td>
@@ -130,7 +130,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-s.pt</code></td>
-              <td>Code MIT, weights MIT</td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-m-coco</td>
@@ -139,7 +139,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-m.pt</code></td>
-              <td>Code MIT, weights MIT</td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-l-coco</td>
@@ -148,7 +148,7 @@
               <td>SiLU</td>
               <td>GPU</td>
               <td><code>coreyolo convert --weights v9-c.pt</code></td>
-              <td>Code MIT, weights MIT</td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-n-coco-seg</td>
@@ -157,7 +157,7 @@
               <td>ReLU</td>
               <td>ANE</td>
               <td><code>coreyolo train --task segment --family gelan</code></td>
-              <td>Code MIT, weights MIT</td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-n-coco-relu</td>
@@ -166,7 +166,7 @@
               <td>ReLU</td>
               <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n</code></td>
-              <td>Code MIT, weights MIT</td>
+              <td>MIT</td>
             </tr>
             <tr>
               <td>coreyolo-e2e-n-coco</td>
@@ -175,7 +175,7 @@
               <td>ReLU</td>
               <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n-e2e</code></td>
-              <td>Code MIT, weights MIT</td>
+              <td>MIT</td>
             </tr>
           </tbody>
         </table>

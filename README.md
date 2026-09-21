@@ -91,15 +91,15 @@ Source: [MultimediaTechLab/YOLO v1.0-alpha](https://github.com/MultimediaTechLab
 
 Binaries live on GitHub Releases, not in git. mAP stays blank until you record COCO val. See [`weights/manifest.json`](weights/manifest.json) and [`weights/LICENSE_NOTICE.txt`](weights/LICENSE_NOTICE.txt). Choosing a model means choosing its license.
 
-| Id | Graph | Act | Compute | How | Licenses |
+| Id | Graph | Act | Compute | How | License |
 | --- | --- | --- | --- | --- | --- |
-| `coreyolo-n-coco` | gelan | SiLU | GPU | `convert --weights v9-t.pt` | Code MIT, weights MIT |
-| `coreyolo-s-coco` | gelan | SiLU | GPU | `convert --weights v9-s.pt` | Code MIT, weights MIT |
-| `coreyolo-m-coco` | gelan | SiLU | GPU | `convert --weights v9-m.pt` | Code MIT, weights MIT |
-| `coreyolo-l-coco` | gelan | SiLU | GPU | `convert --weights v9-c.pt` | Code MIT, weights MIT |
-| `coreyolo-n-coco-seg` | gelan | ReLU | ANE | `train --task segment` | Code MIT, weights MIT |
-| `coreyolo-n-coco-relu` | gelan | ReLU | ANE | `train --recipe coco-n` | Code MIT, weights MIT |
-| `coreyolo-e2e-n-coco` | e2e | ReLU | ANE | `train --recipe coco-n-e2e` | Code MIT, weights MIT |
+| `coreyolo-n-coco` | gelan | SiLU | GPU | `convert --weights v9-t.pt` | MIT |
+| `coreyolo-s-coco` | gelan | SiLU | GPU | `convert --weights v9-s.pt` | MIT |
+| `coreyolo-m-coco` | gelan | SiLU | GPU | `convert --weights v9-m.pt` | MIT |
+| `coreyolo-l-coco` | gelan | SiLU | GPU | `convert --weights v9-c.pt` | MIT |
+| `coreyolo-n-coco-seg` | gelan | ReLU | ANE | `train --task segment` | MIT |
+| `coreyolo-n-coco-relu` | gelan | ReLU | ANE | `train --recipe coco-n` | MIT |
+| `coreyolo-e2e-n-coco` | e2e | ReLU | ANE | `train --recipe coco-n-e2e` | MIT |
 
 ## Python SDK
 
