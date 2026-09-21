@@ -13,7 +13,7 @@ def resolve_compute_units(device: str | None = "gpu"):
     """Map a device string to a Core ML ``ComputeUnit``.
 
     ``gpu`` / ``mps`` → ``CPU_AND_GPU``
-    ``auto`` → ANE-first (``CPU_AND_NE``), then GPU
+    ``auto`` → package ``preferred_compute`` if set, else ANE-first then GPU
     ``all`` → ``ALL`` (CPU + GPU + Neural Engine)
     ``ane`` → ``CPU_AND_NE``
     ``cpu`` → ``CPU_ONLY``
@@ -45,6 +45,20 @@ def resolve_compute_units(device: str | None = "gpu"):
     return kind, mapping[kind]
 
 
+def _spec_metadata(path: Path) -> dict[str, str]:
+    """Read user-defined metadata without compiling the ML Program."""
+    import coremltools as ct
+
+    load_spec = getattr(ct.utils, "load_spec", None) or getattr(ct.models.utils, "load_spec", None)
+    if load_spec is None:
+        return {}
+    try:
+        spec = load_spec(str(path))
+        return dict(spec.description.metadata.userDefined)
+    except Exception:
+        return {}
+
+
 def _fallback_chain(kind: str):
     import coremltools as ct
 
@@ -72,13 +86,17 @@ def _unit_name(unit) -> str:
 
 
 class CoreMLEngine:
-    """Run an exported CoreYOLO ``.mlpackage``. ``auto`` tries Neural Engine first."""
+    """Run an exported CoreYOLO ``.mlpackage``. ``auto`` follows package metadata (GPU for SiLU, ANE for ReLU)."""
 
     def __init__(self, path: str | Path, device: str = "auto") -> None:
         import coremltools as ct
 
         self.path = Path(path)
         kind, _preferred = resolve_compute_units(device)
+        if kind == "auto":
+            pref = _spec_metadata(self.path).get("preferred_compute", "").lower()
+            if pref == "gpu":
+                kind = "gpu"
         last_error: Exception | None = None
         self.model = None
         self.compute_units = None
@@ -107,7 +125,9 @@ class CoreMLEngine:
 
     def predict_letterboxed(self, canvas: Image.Image) -> np.ndarray:
         """``canvas`` must already be RGB ``imgsz x imgsz`` (letterboxed)."""
-        canvas = canvas.convert("RGB").resize((self.imgsz, self.imgsz), Image.BILINEAR)
+        canvas = canvas.convert("RGB")
+        if canvas.size != (self.imgsz, self.imgsz):
+            canvas = canvas.resize((self.imgsz, self.imgsz), Image.BILINEAR)
         if self.image_input:
             out = self.model.predict({self.input_name: canvas})
         else:

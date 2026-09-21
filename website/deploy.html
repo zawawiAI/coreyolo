@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Deploy — CoreYOLO</title>
-  <meta name="description" content="Export an inference-only CoreYOLO graph to palettized FP16 Core ML. Static DFL grids, host NMS, Neural Engine." />
-  <link rel="stylesheet" href="css/site.css?v=lylic" />
+  <meta name="description" content="Export CoreYOLO to Core ML. ReLU palettes on ANE; SiLU dense FP16 on GPU. Static DFL grids, host NMS." />
+  <link rel="stylesheet" href="css/site.css?v=oss" />
 </head>
 <body>
   <header class="nav">
@@ -34,7 +34,7 @@
       <div class="tiles">
         <article class="tile">
           <h3>Export</h3>
-          <p>Inference-only trace, fused Conv–BN, static DFL grids, FP16 ML Program, 8-bit palettize, iOS 16 / macOS 13. ReLU converts for ANE. Optional INT8.</p>
+          <p>Inference-only trace, fused Conv–BN, static DFL grids, FP16 ML Program, iOS 16 / macOS 13. ReLU: 8-bit palettes on ANE. SiLU convert: dense FP16 on GPU. Optional INT8.</p>
         </article>
         <article class="tile">
           <h3>Letterbox</h3>
@@ -53,11 +53,12 @@
       <h2>Export</h2>
       <p class="lead">One command writes the artifact the iPhone loads.</p>
       <pre><code>coreyolo export --weights weights/app.coreyolo --imgsz 640
-# default: FP16 + 8-bit palettes, ANE-legal ops for ReLU
+# ReLU: FP16 + 8-bit palettes, CPU_AND_NE
+# SiLU convert: dense FP16, CPU_AND_GPU
 # coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
 # coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8
 model.export(imgsz=640)</code></pre>
-      <p>The trace is inference-only: GELAN has no PGI aux nodes; E2E drops the one-to-many train head. DFL grids are cached as static buffers so Core ML never sees <code>meshgrid</code>, <code>arange</code>, or <code>-1</code> views. Input shape is fixed <code>(1, 3, imgsz, imgsz)</code>. Then FP16 convert and 8-bit k-means palettes. ReLU-family graphs convert with <code>CPU_AND_NE</code>. Skip palettes with <code>--no-palette</code>; use <code>--int8</code> for linear quant instead.</p>
+      <p>The trace is inference-only: GELAN has no PGI aux nodes; E2E drops the one-to-many train head. DFL grids are cached as static buffers so Core ML never sees <code>meshgrid</code>, <code>arange</code>, or <code>-1</code> views. Input shape is fixed <code>(1, 3, imgsz, imgsz)</code>. ReLU-family graphs convert with <code>CPU_AND_NE</code> then palettize. Converted SiLU stays dense FP16 on GPU. Skip palettes with <code>--no-palette</code>; use <code>--int8</code> for linear quant instead.</p>
       <p class="note">A Core ML package inherits the checkpoint’s license. Converted MultimediaTechLab <code>v9-*.pt</code> files and models you train here are code MIT, weights MIT. Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0; converting the file does not change its applicable terms. See <a href="docs.html#license">Licenses</a>.</p>
     </div>
   </section>

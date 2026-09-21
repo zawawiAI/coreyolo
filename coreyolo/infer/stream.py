@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 import time
 from pathlib import Path
 
@@ -24,10 +25,21 @@ def parse_camera_index(source: str) -> int | None:
 def _overlay_hud_bgr(frame: np.ndarray, fps: float, n: int) -> np.ndarray:
     import cv2
 
-    text = f"CoreYOLO  {fps:.1f} FPS  {n}  Q quit"
+    text = f"CoreYOLO  {fps:.0f} FPS  {n}  Q quit"
     cv2.rectangle(frame, (6, 6), (320, 32), (0, 0, 0), -1)
     cv2.putText(frame, text, (12, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
     return frame
+
+
+def _open_camera(camera: int):
+    import cv2
+
+    if sys.platform == "darwin" and hasattr(cv2, "CAP_AVFOUNDATION"):
+        cap = cv2.VideoCapture(camera, cv2.CAP_AVFOUNDATION)
+        if cap.isOpened():
+            return cap
+        cap.release()
+    return cv2.VideoCapture(camera)
 
 
 def run_webcam(
@@ -40,13 +52,10 @@ def run_webcam(
     try:
         import cv2
     except ImportError as exc:
-        raise SystemExit("Webcam tracking needs OpenCV: pip install opencv-python") from exc
+        raise SystemExit("Webcam needs OpenCV: pip install 'coreyolo[video]'") from exc
 
     print(f"opening camera {camera}…", flush=True)
-    cap = cv2.VideoCapture(camera, cv2.CAP_AVFOUNDATION)
-    if not cap.isOpened():
-        cap.release()
-        cap = cv2.VideoCapture(camera)
+    cap = _open_camera(camera)
     if not cap.isOpened():
         raise SystemExit(
             f"Could not open camera {camera}. On macOS, allow Camera access for Terminal/Cursor "
@@ -57,6 +66,7 @@ def run_webcam(
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
     frame = None
+    ok = False
     for _ in range(40):
         ok, frame = cap.read()
         if ok:
@@ -70,10 +80,17 @@ def run_webcam(
         )
 
     tracker = IOUTracker() if track else None
+    cv2.namedWindow(window, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window, 1280, 720)
+    try:
+        cv2.setWindowProperty(window, cv2.WND_PROP_TOPMOST, 1)
+    except cv2.error:
+        pass
     print(f"webcam {camera}  window={window!r}  press Q in the window to quit", flush=True)
     fps = 0.0
     drops = 0
     while True:
+        t0 = time.perf_counter()
         ok, frame = cap.read()
         if not ok:
             drops += 1
@@ -82,7 +99,6 @@ def run_webcam(
                 break
             continue
         drops = 0
-        t0 = time.perf_counter()
         det, masks = predictor.predict_bgr(frame)
         if tracker is not None:
             det = tracker.update(det)

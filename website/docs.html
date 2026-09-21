@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Docs — CoreYOLO</title>
   <meta name="description" content="Train, val, predict, and export CoreYOLO. Python SDK and CLI." />
-  <link rel="stylesheet" href="css/site.css?v=lylic" />
+  <link rel="stylesheet" href="css/site.css?v=oss" />
 </head>
 <body>
   <header class="nav">
@@ -63,7 +63,7 @@ model = Detector("n")              # GELAN n; also "s" / "m" / "l"
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
 results = model.predict("photo.jpg", classes="person")
-model.export(imgsz=640)           # FP16 + palettize; palettize=False to skip</code></pre>
+model.export(imgsz=640)           # ReLU: palettes+ANE; SiLU: dense FP16 GPU</code></pre>
       </div>
       <div data-panel="cli" hidden>
         <pre><code>coreyolo dummy-data --out datasets/dummy
@@ -94,7 +94,7 @@ coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source pho
       <pre><code>coreyolo export --weights weights/app.coreyolo --imgsz 640
 coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
 coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8</code></pre>
-      <p>Default export is an FP16 ML Program (iOS 16 / macOS 13): fused Conv–BN, inference branch only (no train-time aux heads), cached static DFL grids (no <code>meshgrid</code> / <code>arange</code> in the package), host NMS, MIL cleanup passes. ReLU, ReLU6, StarReLU, and HardSwish convert with <code>CPU_AND_NE</code> so the graph stays ANE-legal, then <strong>8-bit k-means palettize</strong>. <code>--int8</code> is linear weight quant instead of palettes. Converted SiLU YOLOv9 packages still prefer GPU — train ReLU from scratch for Neural Engine.</p>
+      <p>Default export is an FP16 ML Program (iOS 16 / macOS 13): fused Conv–BN, inference branch only (no train-time aux heads), cached static DFL grids (no <code>meshgrid</code> / <code>arange</code> in the package), host NMS, MIL cleanup passes. ReLU, ReLU6, StarReLU, and HardSwish convert with <code>CPU_AND_NE</code> so the graph stays ANE-legal, then <strong>8-bit k-means palettize</strong>. Converted SiLU YOLOv9 packages stay dense FP16 on GPU — palettes are ANE-oriented. <code>--int8</code> is linear weight quant instead of palettes. Train ReLU from scratch for Neural Engine.</p>
       <p>Python: <code>model.export(imgsz=640)</code> or <code>palettize=False</code>. Package metadata records <code>optimize</code> (<code>palettize8</code> / <code>fp16</code> / <code>int8</code>) and <code>preferred_compute</code> (<code>ane</code> or <code>gpu</code>).</p>
 
       <h2 id="labels">Labels</h2>

@@ -37,6 +37,9 @@ datasets/
 
 # Accidental third-party config dumps
 Ultralytics/
+.env
+.env.*
+!.env.example
 
 # Xcode user data
 examples/ios/**/xcuserdata/

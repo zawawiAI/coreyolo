@@ -19,10 +19,10 @@ pytestmark = [
 ]
 
 
-def _tiny_ckpt(tmp_path: Path, family: str = "dfl", task: str = "detect") -> Path:
+def _tiny_ckpt(tmp_path: Path, family: str = "dfl", task: str = "detect", act: str = "relu") -> Path:
     nc = 2
-    model = build_model(nc=nc, scale="n", act="relu", family=family, task=task)
-    path = tmp_path / f"tiny-{family}-{task}.pt"
+    model = build_model(nc=nc, scale="n", act=act, family=family, task=task)
+    path = tmp_path / f"tiny-{family}-{task}-{act}.pt"
     save_checkpoint(
         path,
         {
@@ -30,7 +30,7 @@ def _tiny_ckpt(tmp_path: Path, family: str = "dfl", task: str = "detect") -> Pat
             "nc": nc,
             "names": ["a", "b"],
             "scale": "n",
-            "act": "relu",
+            "act": act,
             "family": family,
             "task": task,
             "imgsz": 64,
@@ -70,7 +70,7 @@ def test_export_dfl_roundtrip(tmp_path: Path) -> None:
     assert arr.shape[2] == 84
     assert np.isfinite(arr).all()
 
-    ckpt = tmp_path / "tiny-dfl-detect.pt"
+    ckpt = tmp_path / "tiny-dfl-detect-relu.pt"
     model = build_model(nc=2, scale="n", act="relu", family="dfl")
     from coreyolo.utils import load_checkpoint
 
@@ -135,5 +135,20 @@ def test_export_fp16_relu_records_ane_optimize(tmp_path: Path) -> None:
     meta = dict(engine.model.user_defined_metadata)
     assert meta.get("preferred_compute") == "ane"
     assert meta.get("optimize") in {"palettize8", "fp16"}
+    pred = engine.predict_letterboxed(Image.new("RGB", (64, 64), (0, 0, 0)))
+    assert np.isfinite(np.asarray(pred)).all()
+
+
+def test_export_fp16_silu_stays_dense_gpu(tmp_path: Path) -> None:
+    from coreyolo.export.coreml import export_coreml
+    from coreyolo.export.engine import CoreMLEngine
+
+    weights = _tiny_ckpt(tmp_path, "gelan", act="silu")
+    out = tmp_path / "tiny-gelan-silu-fp16.mlpackage"
+    export_coreml(weights, out=out, imgsz=64, fp16=True, image_input=True)
+    engine = CoreMLEngine(out, device="cpu")
+    meta = dict(engine.model.user_defined_metadata)
+    assert meta.get("preferred_compute") == "gpu"
+    assert meta.get("optimize") == "fp16"
     pred = engine.predict_letterboxed(Image.new("RGB", (64, 64), (0, 0, 0)))
     assert np.isfinite(np.asarray(pred)).all()
