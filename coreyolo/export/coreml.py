@@ -81,7 +81,9 @@ def export_coreml(
     ``(1, 300, 6)`` xyxy + conf + cls.
 
     FP16 ReLU graphs convert with ``CPU_AND_NE`` so MIL keeps ANE-legal ops,
-    then 8-bit k-means palettize (off when ``fp16`` is false, or when ``--int8``).
+    then 8-bit k-means palettize. Converted SiLU graphs stay dense FP16 on
+    ``CPU_AND_GPU`` (palettes are ANE-oriented and slow GPU). Palettize is off
+    when ``fp16`` is false, or when ``--int8``.
     """
     import coremltools as ct
 
@@ -135,7 +137,9 @@ def export_coreml(
         convert_kwargs["compute_units"] = ct.ComputeUnit.ALL
         mlmodel = ct.convert(traced, **convert_kwargs)
 
-    do_palette = palettize if palettize is not None else bool(fp16 and not quantize_8bit)
+    do_palette = palettize if palettize is not None else bool(
+        fp16 and not quantize_8bit and ane_preferred_act(act)
+    )
     optimize = "fp16" if fp16 else "fp32"
     if quantize_8bit:
         from coremltools.optimize.coreml import (

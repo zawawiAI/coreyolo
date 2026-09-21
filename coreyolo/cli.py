@@ -85,7 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--palette",
         action=argparse.BooleanOptionalAction,
         default=None,
-        help="8-bit k-means palettize for ANE (default on with --fp16, off with --int8)",
+        help="8-bit k-means palettize for ANE (default on for ReLU FP16; off for SiLU GPU and --int8)",
     )
     e.add_argument("--tensor-input", action="store_true", help="float CHW input instead of ImageType")
     _add_common(e)

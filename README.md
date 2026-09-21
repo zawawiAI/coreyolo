@@ -6,12 +6,12 @@
 <p align="center">
   <a href="https://pypi.org/project/coreyolo/"><img alt="PyPI" src="https://img.shields.io/pypi/v/coreyolo"></a>
   <a href="https://pypi.org/project/coreyolo/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/coreyolo"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/zawawiAI/coreyolo"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
   <a href="https://github.com/zawawiAI/coreyolo/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/zawawiAI/coreyolo/ci.yml?branch=main&label=CI"></a>
 </p>
 
 <p align="center">
-  Train an independent detector in Python. Ship a palettized Core ML package to Apple silicon.<br />
+  Train an independent detector in Python. Ship Core ML to Apple silicon (ReLU palettes on ANE; SiLU dense FP16 on GPU).<br />
   Code is MIT. Weights carry their own license, stated per checkpoint.
 </p>
 
@@ -38,6 +38,7 @@ The public type is `Detector` (`YOLO` is a compatibility alias). App code loads 
 
 ```bash
 pip install coreyolo
+pip install "coreyolo[video]"   # webcam (`--source 0`)
 ```
 
 ```python
@@ -46,14 +47,14 @@ from coreyolo import Detector
 model = Detector("n")              # GELAN n; also "s" / "m" / "l", or family="e2e"
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
-model.export(imgsz=640)            # FP16 Core ML + 8-bit palettes, ANE for ReLU
+model.export(imgsz=640)            # ReLU → FP16 + palettes + ANE; SiLU convert → dense FP16 GPU
 ```
 
 ## Designed for Apple silicon
 
 | | |
 | --- | --- |
-| **Core ML first** | Fused Conv–BN, inference branch only, cached DFL grids (no `meshgrid` / `arange`), host NMS. FP16 ML Program with 8-bit palettes. ReLU converts for the Neural Engine. iOS 16 and macOS 13. |
+| **Core ML first** | Fused Conv–BN, inference branch only, cached DFL grids (no `meshgrid` / `arange`), host NMS. ReLU: FP16 + 8-bit palettes on the Neural Engine. Converted SiLU: dense FP16 on GPU. iOS 16 and macOS 13. |
 | **MIT** | Code is MIT. Weights are per checkpoint. GELAN files from MultimediaTechLab `v9-*.pt` are MIT (keep the Wong/Tsui copyright). Ultralytics `yolov9*.pt` stays AGPL-3.0; converting the file does not change its applicable terms. Choosing a model means choosing its license. |
 | **Your labels** | Drop in a Roboflow YOLO or YOLO-Seg export. Same `data.yaml` you already have. |
 
@@ -173,6 +174,7 @@ coreyolo train       --recipe coco-n-fast
 coreyolo train       --data data.yaml --model n --family e2e --epochs 100 --device gpu
 coreyolo val         --data data.yaml --weights best.pt --device gpu
 coreyolo predict     --weights best.mlpackage --source photo.jpg --device gpu
+coreyolo predict     --weights best.mlpackage --source 0 --device gpu   # webcam; Q quits
 coreyolo export      --weights best.pt --imgsz 640 [--int8] [--no-palette]
 coreyolo dummy-data  --out datasets/dummy --segment
 ```
