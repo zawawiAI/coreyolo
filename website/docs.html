@@ -86,7 +86,7 @@ coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source pho
       <p>Activation: <code>--act relu</code> (default, ANE). <code>silu</code> is only for converted YOLOv9 tensors — do not swap it on those checkpoints. Also <code>star</code> (StarReLU), <code>gelu</code>, <code>hardswish</code>.</p>
 
       <h2 id="graphs">GELAN, DFL, E2E, and RF-DETR</h2>
-      <p><strong>GELAN</strong> is the default detect graph: ELAN1 / RepNCSPELAN4 / SPPELAN, Distribution Focal Loss, decoded xywh, class-aware NMS on the host. Scales <code>n</code> / <code>s</code> / <code>m</code> / <code>l</code> match public <code>v9-t</code> / <code>s</code> / <code>m</code> / <code>c</code>. Core ML layout <code>(1, 4+nc, N)</code>. This graph never had YOLOv9 PGI aux nodes; export is the main branch only. Optional one-time remap from MultimediaTechLab <code>v9-*.pt</code> (MIT).</p>
+      <p><strong>GELAN</strong> is the default detect graph: ELAN1 / RepNCSPELAN4 / SPPELAN, Distribution Focal Loss, decoded xywh, class-aware NMS on the host. Scales <code>n</code> / <code>s</code> / <code>m</code> / <code>l</code> match public <code>v9-t</code> / <code>s</code> / <code>m</code> / <code>c</code>. Core ML layout <code>(1, 4+nc, N)</code>. This graph never had YOLOv9 PGI aux nodes; export is the main branch only. Optional one-time remap from <code>v9-*.pt</code> (MIT).</p>
       <p><strong>DFL</strong> is the older C2f + SPPF graph with the same DFL head.</p>
       <p><strong>E2E</strong> is C3k2 + C2PSA with a dual TAL head and NMS-free top-300 at inference. Core ML layout <code>(1, 300, 6)</code> as xyxy, conf, cls. Export drops the one-to-many train head. Train from scratch: <code>--family e2e</code> or <code>--recipe coco-n-e2e</code>.</p>
       <p><strong>RF-DETR</strong> follows LibreYOLO's Core ML contract for this family: one fixed RGB image, ImageNet normalization inside the graph, set prediction, no NMS, eval layout <code>(1, Q, 6)</code>. Scales n / s / m / l use 384 / 512 / 576 / 704. LibreYOLO defaults that export to FP32 and <code>compute_units=all</code>. CoreYOLO pins FP16 and the Neural Engine, and uses dense cross-attention so the graph does not need deformable <code>grid_sample</code>. Train with <code>--family rfdetr</code> or <code>--recipe coco-n-rfdetr</code> at <code>lr0=1e-4</code>. Weights you train are MIT. Upstream Roboflow Nano–Large files stay Apache-2.0 and are not remapped. XLarge and 2XLarge (PML 1.0) are refused.</p>
@@ -113,7 +113,7 @@ coreyolo train --recipe coco-n-fast
 coreyolo train --recipe coco-s
 coreyolo train --recipe coco-m
 coreyolo train --recipe coco-n-e2e</code></pre>
-      <p>Optional bootstrap, once, not in the app. Converted MultimediaTechLab <code>v9-*.pt</code> files are MIT (keep the Wong/Tsui copyright). Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0; converting the file does not change its applicable terms:</p>
+      <p>Optional bootstrap, once, not in the app. Converted <code>v9-*.pt</code> files are MIT (keep the Wong/Tsui copyright). Other published YOLOv9 dumps stay AGPL-3.0; converting the file does not change its applicable terms:</p>
       <pre><code>coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
 coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo
 coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
@@ -123,9 +123,9 @@ coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo</code>
       <p>CoreYOLO carries two separately licensed things: its own code, and pretrained checkpoints. They are often not the same license. Choosing a model means choosing its license.</p>
       <div class="note">
         <p><strong>Own code:</strong> MIT. Use it in a commercial or closed-source product; keep the copyright line and the license text with any copy you redistribute.</p>
-        <p><strong>GELAN COCO weights:</strong> MIT. Converted from MultimediaTechLab <code>v9-t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code>, copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep that notice with any copy. A model you train yourself is yours.</p>
+        <p><strong>GELAN COCO weights:</strong> MIT. Converted from <code>v9-t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code>, copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep that notice with any copy. A model you train yourself is yours.</p>
         <p><strong>RF-DETR you train:</strong> MIT. The graph follows LibreYOLO’s Core ML contract and does not load LibreYOLO or Roboflow checkpoints. Upstream Nano–Large files stay Apache-2.0. XLarge and 2XLarge (Platform Model License 1.0) are refused.</p>
-        <p><strong>Ultralytics <code>yolov9*.pt</code>:</strong> Code MIT, weights AGPL-3.0. Converting the file does not change its applicable terms. SaaS use of those tensors typically requires AGPL-3.0 source; a commercial or closed-source internal enterprise product usually needs a commercial license from the copyright holders.</p>
+        <p><strong>Other published YOLOv9 dumps:</strong> Code MIT, weights AGPL-3.0. Converting the file does not change its applicable terms. SaaS use of those tensors typically requires AGPL-3.0 source; a commercial or closed-source internal enterprise product usually needs a commercial license from the copyright holders.</p>
         <p>This is a description of the licenses involved, not legal advice. Full write-up: <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>, <a href="https://github.com/zawawiAI/coreyolo/blob/main/weights/LICENSE_NOTICE.txt">weights/LICENSE_NOTICE.txt</a>.</p>
       </div>
     </article>

@@ -134,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     w.add_argument(
         "--weights",
         required=True,
-        help="MIT: v9-t.pt (n) / s / m / v9-c.pt (l) from MultimediaTechLab. AGPL: yolov9t/s/m/c.pt.",
+        help="MIT: v9-t.pt (n) / s / m / v9-c.pt (l). Other published yolov9*.pt files stay AGPL-3.0.",
     )
     w.add_argument("--out", default=None, help="output .coreyolo path; inferred from scale if omitted")
     w.add_argument("--model", default=None, choices=["n", "s", "m", "l", "x"], help="scale; inferred from stem if omitted")

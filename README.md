@@ -55,7 +55,7 @@ model.export(imgsz=640)            # ReLU → FP16 + palettes + ANE; SiLU conver
 | | |
 | --- | --- |
 | **Core ML first** | Fused Conv–BN, inference branch only, cached DFL grids (no `meshgrid` / `arange`), host NMS. ReLU: FP16 + 8-bit palettes on the Neural Engine. Converted SiLU: dense FP16 on GPU. iOS 16 and macOS 13. |
-| **MIT** | Code is MIT. Weights are per checkpoint. GELAN files from MultimediaTechLab `v9-*.pt` are MIT (keep the Wong/Tsui copyright). Ultralytics `yolov9*.pt` stays AGPL-3.0; converting the file does not change its applicable terms. Choosing a model means choosing its license. |
+| **MIT** | Code is MIT. Weights are per checkpoint. GELAN files from `v9-*.pt` are MIT (keep the Wong/Tsui copyright). Other published YOLOv9 dumps stay AGPL-3.0; converting the file does not change its applicable terms. Choosing a model means choosing its license. |
 | **Your labels** | Drop in a Roboflow YOLO or YOLO-Seg export. Same `data.yaml` you already have. |
 
 ReLU prefers ANE (`--device ane`). Converted SiLU graphs prefer GPU.
@@ -64,7 +64,7 @@ ReLU prefers ANE (`--device ane`). Converted SiLU graphs prefer GPU.
 
 | Graph | What it is | Ship path |
 | --- | --- | --- |
-| **GELAN** (default) | YOLOv9 GELAN. Scales n / s / m / l match public `v9-t` / `s` / `m` / `c`. Export is the main branch only (no PGI aux). | Train ReLU for ANE, or convert MultimediaTechLab `v9-*.pt` (SiLU, GPU, MIT). |
+| **GELAN** (default) | YOLOv9 GELAN. Scales n / s / m / l match public `v9-t` / `s` / `m` / `c`. Export is the main branch only (no PGI aux). | Train ReLU for ANE, or convert `v9-*.pt` (SiLU, GPU, MIT). |
 | **DFL** | C2f + Distribution Focal Loss. Host NMS. Detect and instance segmentation. | `--family dfl` |
 | **E2E** | Original C3k2 + C2PSA. NMS-free top-300 at inference. | Train from scratch (`--family e2e` or `--recipe coco-n-e2e`). |
 | **RF-DETR** | Set prediction on a windowed ViT. Same Core ML contract as LibreYOLO for this family: fixed RGB image, ImageNet norm inside the graph, no NMS, n / s / m / l at 384 / 512 / 576 / 704. | Train from scratch (`--family rfdetr` or `--recipe coco-n-rfdetr`). FP16 on the Neural Engine. |
@@ -87,7 +87,7 @@ coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
 coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo
 ```
 
-Source: [MultimediaTechLab/YOLO v1.0-alpha](https://github.com/MultimediaTechLab/YOLO/releases/tag/v1.0-alpha) (copyright Kin-Yiu Wong and Hao-Tang Tsui). Same MIT files LibreYOLO converts. Ultralytics `yolov9t.pt` is a different dump (AGPL-3.0). Do not pass those pickles into `Detector()`.
+Source: YOLOv9 v1.0-alpha `v9-*.pt` (copyright Kin-Yiu Wong and Hao-Tang Tsui). Same MIT files LibreYOLO converts. Other published YOLOv9 dumps stay AGPL-3.0. Do not pass those pickles into `Detector()`.
 
 ## Zoo
 
@@ -188,6 +188,6 @@ coreyolo dummy-data  --out datasets/dummy --segment
 
 CoreYOLO's code is [MIT](LICENSE). It does not require you to open source your application, and it does not change if you sell what you build.
 
-Pretrained weights are separate: each one carries the license of whoever trained it, stated per checkpoint. GELAN COCO files converted from MultimediaTechLab `v9-*.pt` are MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Ultralytics `yolov9*.pt` converts stay AGPL-3.0. RF-DETR weights you train here are MIT. Upstream Roboflow Nano–Large checkpoints stay Apache-2.0 and are not remapped; XLarge and 2XLarge (Platform Model License 1.0) are refused. A model you train yourself is yours. Converting a file does not change its applicable terms.
+Pretrained weights are separate: each one carries the license of whoever trained it, stated per checkpoint. GELAN COCO files converted from `v9-*.pt` are MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Other published YOLOv9 dumps stay AGPL-3.0. RF-DETR weights you train here are MIT. Upstream Roboflow Nano–Large checkpoints stay Apache-2.0 and are not remapped; XLarge and 2XLarge (Platform Model License 1.0) are refused. A model you train yourself is yours. Converting a file does not change its applicable terms.
 
 Choosing a model means choosing its license. See [docs/licenses.md](docs/licenses.md), [weights/LICENSE_NOTICE.txt](weights/LICENSE_NOTICE.txt), and [NOTICE](NOTICE). This is a description of the licenses involved, not legal advice. YOLO is a trademark of its owners.

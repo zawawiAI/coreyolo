@@ -2,11 +2,11 @@
 
 Two public GELAN sources exist:
 
-* MultimediaTechLab/YOLO ``v9-t.pt`` / ``v9-s.pt`` / ``v9-m.pt`` / ``v9-c.pt``
+* ``v9-t.pt`` / ``v9-s.pt`` / ``v9-m.pt`` / ``v9-c.pt``
   (MIT, copyright Kin-Yiu Wong and Hao-Tang Tsui). Remap names, keep MIT,
   keep the copyright notice. Converting the file does not change its
   applicable terms.
-* Ultralytics ``yolov9t.pt`` / ``s`` / ``m`` / ``c`` (AGPL-3.0). Remap names
+* Other published ``yolov9*.pt`` dumps (AGPL-3.0). Remap names
   only. Those tensors are not covered by CoreYOLO's MIT License.
 
 YOLO26n (C3k2, no DFL, end-to-end head) and YOLO11n (C3k2 + C2PSA) cannot
@@ -30,9 +30,9 @@ from coreyolo.utils import (
     save_checkpoint,
 )
 
-# Printed when converting an Ultralytics / AGPL pickle.
+# Printed when converting an AGPL YOLOv9 pickle.
 CONVERT_LICENSE_NOTICE = """\
-license: these converted tensors inherit AGPL-3.0 from Ultralytics yolov9*.pt.
+license: these converted tensors inherit AGPL-3.0 from their YOLOv9 source.
   They are NOT covered by the MIT License that applies to CoreYOLO code.
   Converting the file does not change its applicable terms (does not relicense).
   SaaS / network use typically requires AGPL-3.0 source for the application;
@@ -40,12 +40,12 @@ license: these converted tensors inherit AGPL-3.0 from Ultralytics yolov9*.pt.
   See weights/LICENSE_NOTICE.txt and docs/licenses.md.
 """
 
-# Printed when converting MultimediaTechLab/YOLO MIT weights.
+# Printed when converting MIT YOLOv9 v9-*.pt weights.
 MTL_CONVERT_LICENSE_NOTICE = """\
-license: converted tensors inherit MIT from MultimediaTechLab/YOLO,
+license: converted tensors inherit MIT from the YOLOv9 v9-*.pt release,
   copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep the license text and that
   copyright notice with any copy. Converting the file does not change its
-  applicable terms. Ultralytics yolov9*.pt is a different dump (AGPL-3.0).
+  applicable terms. Other published YOLOv9 dumps stay AGPL-3.0.
   See weights/LICENSE_NOTICE.txt and docs/licenses.md.
 """
 
@@ -93,7 +93,7 @@ def detect_pt_family(keys: list[str]) -> str:
 
 
 def is_ultralytics_checkpoint(ckpt: Any) -> bool:
-    """True for an Ultralytics pickle (AGPL-3.0 tensors)."""
+    """True for an AGPL YOLOv9 pickle."""
     if not isinstance(ckpt, dict):
         return False
     license_id = str(ckpt.get("license") or "")
@@ -203,7 +203,7 @@ _MTL_MAPPERS = {
 
 
 def infer_mtl_config(src: dict[str, torch.Tensor]) -> str:
-    """Infer MultimediaTechLab v9-t/s/m/c from stem / first-block width."""
+    """Infer v9-t/s/m/c from stem / first-block width."""
     stem = src.get("0.conv.weight")
     if stem is None:
         return "t"
@@ -221,12 +221,12 @@ def infer_mtl_config(src: dict[str, torch.Tensor]) -> str:
 
 
 def infer_mtl_gelan_scale(src: dict[str, torch.Tensor]) -> str:
-    """Map MultimediaTechLab v9-t/s/m/c onto CoreYOLO GELAN n/s/m/l."""
+    """Map v9-t/s/m/c onto CoreYOLO GELAN n/s/m/l."""
     return {"t": "n", "s": "s", "m": "m", "c": "l"}[infer_mtl_config(src)]
 
 
 def remap_mtl_state(src: dict[str, torch.Tensor], config: str | None = None) -> dict[str, torch.Tensor]:
-    """Rename MultimediaTechLab numbered keys onto CoreYOLO GELAN names."""
+    """Rename numbered v9 keys onto CoreYOLO GELAN names."""
     config = config or infer_mtl_config(src)
     out: dict[str, torch.Tensor] = {}
     for key, tensor in src.items():
@@ -320,8 +320,8 @@ def convert_yolo_pt(
 ) -> Path:
     """Load a compact YOLOv9 ``.pt`` and write a CoreYOLO checkpoint.
 
-    MultimediaTechLab ``v9-*.pt`` maps onto ``family=gelan`` and stays MIT.
-    Ultralytics ``yolov9*.pt`` maps onto the same graph and stays AGPL-3.0.
+    ``v9-*.pt`` maps onto ``family=gelan`` and stays MIT.
+    Other published ``yolov9*.pt`` dumps map onto the same graph and stay AGPL-3.0.
     YOLO26/YOLO11 raise ``ValueError``.
     """
     weights = Path(weights)
@@ -359,15 +359,15 @@ def convert_yolo_pt(
     else:
         raise ValueError(
             f"{weights.name} looks like {family or 'an unknown'} checkpoint, not compact YOLOv9. "
-            "MIT path: MultimediaTechLab v9-t.pt (nano; CoreYOLO scale n), v9-s.pt, v9-m.pt, v9-c.pt (scale l). "
-            "AGPL path: Ultralytics yolov9t.pt / s / m / yolov9c.pt. YOLO26n uses C3k2, drops DFL, and adds an "
+            "MIT path: v9-t.pt (nano; CoreYOLO scale n), v9-s.pt, v9-m.pt, v9-c.pt (scale l). "
+            "AGPL path: other published yolov9t.pt / s / m / yolov9c.pt dumps. YOLO26n uses C3k2, drops DFL, and adds an "
             "NMS-free one-to-one head — those weights cannot be copied. YOLO11n is also C3k2 + C2PSA.\n"
             "  coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo"
         )
     if ultralytics and license_id == MIT_WEIGHT_LICENSE:
         raise ValueError(
-            f"{weights.name} is an Ultralytics pickle (AGPL-3.0). Convert will stamp AGPL-3.0; "
-            "converting the file does not change its applicable terms. Use MultimediaTechLab "
+            f"{weights.name} is an AGPL-3.0 YOLOv9 pickle. Convert will stamp AGPL-3.0; "
+            "converting the file does not change its applicable terms. Use "
             "v9-*.pt for the MIT path."
         )
     if scale is None:

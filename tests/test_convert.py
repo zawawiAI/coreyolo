@@ -136,7 +136,7 @@ def test_convert_license_notice_covers_agpl_saas_and_commercial() -> None:
 def test_mtl_convert_notice_keeps_mit_attribution() -> None:
     text = MTL_CONVERT_LICENSE_NOTICE.lower()
     assert "mit" in text
-    assert "multimediatechlab" in text
+    assert "v9-*.pt" in text
     assert "kin-yiu" in text
     assert "agpl-3.0" in text
     assert "docs/licenses.md" in MTL_CONVERT_LICENSE_NOTICE

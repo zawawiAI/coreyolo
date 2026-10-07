@@ -20,15 +20,15 @@ applicable terms. The numbers keep the license of whoever trained them.
 Upstream weights CoreYOLO can remap
 ------------------------------------------------------------------------
 
-YOLOv9 GELAN (MultimediaTechLab/YOLO) — MIT
- Source: https://github.com/MultimediaTechLab/YOLO
+YOLOv9 GELAN — MIT
  Release: v1.0-alpha files v9-t.pt, v9-s.pt, v9-m.pt, v9-c.pt
  Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui
- The authors' MIT re-release, not WongKinYiu/yolov9 (GPL-3.0).
+ The authors' MIT re-release, not the GPL-3.0 repository that carries
+ the same model.
  Converted CoreYOLO zoo rows (coreyolo-n/s/m/l-coco) keep MIT and
  this copyright notice. Same source LibreYOLO uses for LibreYOLO9{t,s,m,c}.
 
-YOLOv9 (Ultralytics yolov9t/s/m/c.pt) — AGPL-3.0
+Other published YOLOv9 dumps — AGPL-3.0
  Those files are a different dump. Converted checkpoints inherit
  AGPL-3.0. They are not covered by CoreYOLO's MIT License.
 

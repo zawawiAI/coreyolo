@@ -9,7 +9,7 @@ on:
       notes:
         description: Release notes
         required: false
-        default: Converted n/s/m/l-coco from MultimediaTechLab v9-*.pt stay MIT (keep Wong/Tsui copyright). Ultralytics yolov9*.pt converts stay AGPL-3.0. Train-from-scratch rows are MIT. See weights/manifest.json.
+        default: Converted n/s/m/l-coco from v9-*.pt stay MIT (keep Wong/Tsui copyright). Other published YOLOv9 dumps stay AGPL-3.0. Train-from-scratch rows are MIT. See weights/manifest.json.
 
 permissions:
   contents: write

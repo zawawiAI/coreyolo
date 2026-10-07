@@ -30,7 +30,7 @@ its applicable terms. See weights/LICENSE_NOTICE.txt and docs/licenses.md.
 """
 
 MTL_WEIGHTS_NOTICE = """\
-license: these tensors inherit MIT from MultimediaTechLab/YOLO, copyright Kin-Yiu Wong
+license: these tensors inherit MIT from the YOLOv9 v9-*.pt release, copyright Kin-Yiu Wong
 and Hao-Tang Tsui. Keep the license text and that copyright notice with any copy.
 Converting the file does not change its applicable terms.
 """
@@ -158,7 +158,7 @@ def is_coreyolo_checkpoint(ckpt: Any) -> bool:
 
 
 def is_sequential_yolo_checkpoint(ckpt: Any) -> bool:
-    """True when tensors use upstream YOLOv9 names (Ultralytics or MultimediaTechLab)."""
+    """True when tensors use upstream YOLOv9 sequential names."""
     if is_coreyolo_checkpoint(ckpt):
         return False
     keys = _checkpoint_state_keys(ckpt)
@@ -295,7 +295,7 @@ def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") 
             "Do not load it in app code. Convert once (remap names only), then load the CoreYOLO file:\n"
             "  coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo\n"
             "  Detector('weights/coreyolo-n-coco.coreyolo')\n"
-            "MultimediaTechLab v9-*.pt stays MIT. Ultralytics yolov9*.pt stays AGPL-3.0. "
+            "v9-*.pt stays MIT. Other published YOLOv9 dumps stay AGPL-3.0. "
             "Converting the file does not change its applicable terms. See docs/licenses.md."
         )
     if isinstance(ckpt, dict) and not is_coreyolo_checkpoint(ckpt) and "model" in ckpt:

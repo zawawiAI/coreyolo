@@ -4,10 +4,9 @@ Binaries are **not** stored in git (`*.coreyolo` and `*.mlpackage/` are ignored)
 
 ## Converted COCO (SiLU, MIT)
 
-Code MIT. Remap [MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO) `v1.0-alpha` files. Keep the MIT copyright notice (Kin-Yiu Wong and Hao-Tang Tsui). Converting the file does not change its applicable terms.
+Code MIT. Remap YOLOv9 `v1.0-alpha` files `v9-t.pt` / `s` / `m` / `c`. Keep the MIT copyright notice (Kin-Yiu Wong and Hao-Tang Tsui). Converting the file does not change its applicable terms.
 
 ```bash
-# https://github.com/MultimediaTechLab/YOLO/releases/tag/v1.0-alpha
 coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
 coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo
 coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
@@ -15,7 +14,7 @@ coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo
 coreyolo export --weights weights/coreyolo-n-coco.coreyolo --imgsz 640 --out weights/coreyolo-n-coco.mlpackage
 ```
 
-The file you ship is CoreYOLO format (`format: coreyolo`), not a numbered `0.conv.*` pickle. Converted weights keep **SiLU** (GPU). Ultralytics `yolov9t.pt` is a **different** file (AGPL-3.0) — convert will stamp AGPL and must not be rehosted as MIT. For Neural Engine, train ReLU (`--recipe coco-n`). See [docs/licenses.md](../docs/licenses.md).
+The file you ship is CoreYOLO format (`format: coreyolo`), not a numbered `0.conv.*` pickle. Converted weights keep **SiLU** (GPU). Other published YOLOv9 dumps are AGPL-3.0 — convert will stamp AGPL and must not be rehosted as MIT. For Neural Engine, train ReLU (`--recipe coco-n`). See [docs/licenses.md](../docs/licenses.md).
 
 ## Record mAP
 
