@@ -46,7 +46,7 @@ GELAN (the default) uses a fixed channel table; scale `n` matches public `yolov9
 
 `--family gelan` (aliases `9` / `v9`) is the compact GELAN detector: ELAN1 / RepNCSPELAN4, AConv (or ADown on `l`), SPPELAN, PAN-FPN, and a DFL head (`reg_max = 16`). Native train still defaults to ReLU; converted `v9-t.pt` stays SiLU.
 
-Because the tensors match compact YOLOv9, a **one-time** remap can copy COCO-pretrained MultimediaTechLab `v9-t.pt` onto CoreYOLO GELAN-n (MIT). The output is a CoreYOLO checkpoint (`format: coreyolo`, `stem.*` names, SiLU). Application code never loads the raw pickle. YOLO11n and YOLO26n **cannot** be copied: different blocks and different heads.
+Because the tensors match compact YOLOv9, a **one-time** remap can copy COCO-pretrained `v9-t.pt` onto CoreYOLO GELAN-n (MIT). The output is a CoreYOLO checkpoint (`format: coreyolo`, `stem.*` names, SiLU). Application code never loads the raw pickle. YOLO11n and YOLO26n **cannot** be copied: different blocks and different heads.
 
 ### 2.2 DFL
 
@@ -150,7 +150,7 @@ DFL GPU Core ML ran on this Mac; official YOLO26 GPU-only Core ML aborted. ANE r
 
 CoreYOLO’s train, export, and inference code is MIT. You may embed it in a proprietary iOS or macOS binary, subject to the MIT copyright and permission notice.
 
-Pretrained weights are separate. Each one carries the license of whoever trained it. Choosing a model means choosing its license. MultimediaTechLab/YOLO `v9-t.pt` / `s` / `m` / `c` are **MIT** (copyright Kin-Yiu Wong and Hao-Tang Tsui) — the authors' MIT re-release, not WongKinYiu/yolov9 (GPL-3.0). Ultralytics `yolov9t.pt` is typically **AGPL-3.0**. Converting the file does not change its applicable terms. AGPL-3.0 is copyleft, including over a network: if you modify those AGPL tensors or offer them as a SaaS so users interact with them over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses **Ultralytics** YOLOv9 weights without publishing that source usually requires a **commercial license from the copyright holders**.
+Pretrained weights are separate. Each one carries the license of whoever trained it. Choosing a model means choosing its license. `v9-t.pt` / `s` / `m` / `c` are **MIT** (copyright Kin-Yiu Wong and Hao-Tang Tsui) — the authors' MIT re-release, not the GPL-3.0 repository that carries the same model. Other published YOLOv9 dumps are typically **AGPL-3.0**. Converting the file does not change its applicable terms. AGPL-3.0 is copyleft, including over a network: if you modify those AGPL tensors or offer them as a SaaS so users interact with them over a network, you typically must release the corresponding source of your whole application under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses those AGPL YOLOv9 weights without publishing that source usually requires a **commercial license from the copyright holders**.
 
 CoreYOLO does not vendor third-party YOLO trainer source. Optional convert remaps tensor names; the checkpoint format is CoreYOLO, but the **license follows the source file**. A model you train yourself on data you have the right to use is yours. YOLO26/YOLO11 weights are not copied. See `docs/licenses.md` and `weights/LICENSE_NOTICE.txt`. This is a description of the licenses involved, not legal advice.
 
@@ -158,7 +158,7 @@ CoreYOLO does not vendor third-party YOLO trainer source. Optional convert remap
 
 | | CoreYOLO | Typical YOLO toolkit |
 |---|---|---|
-| License | Code MIT; GELAN convert MIT from MultimediaTechLab; train-from-scratch MIT. Ultralytics dumps stay AGPL-3.0 | AGPL-3.0 on typical Ultralytics weights; commercial license for closed products |
+| License | Code MIT; GELAN convert from `v9-*.pt` is MIT; train-from-scratch MIT. Other published YOLOv9 dumps stay AGPL-3.0 | AGPL-3.0 on typical published weights; commercial license for closed products |
 | Deploy priority | Core ML / ANE / iPhone | Many backends |
 | Default activation | ReLU (ANE + native train) | SiLU |
 | Graphs | GELAN (YOLOv9, host NMS), E2E (C3k2, trained here) | Official v9 / 11 / 26 weights |

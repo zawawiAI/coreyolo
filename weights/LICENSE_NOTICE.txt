@@ -14,11 +14,11 @@ the restriction. Choosing a model means choosing its license.
 Per-source summary:
 
  GELAN COCO (coreyolo-{n,s,m,l}-coco) MIT
- upstream: MultimediaTechLab/YOLO v1.0-alpha
+ upstream: YOLOv9 v1.0-alpha
  files: v9-t.pt → n, v9-s.pt → s, v9-m.pt → m, v9-c.pt → l
  Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui
- The authors' MIT re-release, not WongKinYiu/yolov9 (GPL-3.0) and
- not Ultralytics yolov9{t,s,m,c}.pt (AGPL-3.0).
+ The authors' MIT re-release, not the GPL-3.0 repository that carries
+ the same model. Other published YOLOv9 dumps stay AGPL-3.0.
  Convert with: coreyolo convert --weights v9-t.pt
  Keep the MIT copyright and permission notice with any copy.
 
@@ -45,7 +45,7 @@ Per-source summary:
  upstream: roboflow/rf-detr (rfdetr_plus)
  CoreYOLO does not load, convert, or publish these checkpoints.
 
- Ultralytics yolov9{t,s,m,c}.pt AGPL-3.0
+ Other published YOLOv9 dumps AGPL-3.0
  Those files inherit AGPL-3.0 from their source. Convert still
  remaps names, but the checkpoint is stamped AGPL-3.0 and is NOT
  covered by the MIT License that applies to CoreYOLO code.

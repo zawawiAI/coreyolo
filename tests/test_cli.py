@@ -72,7 +72,7 @@ def test_manifest_marks_converted_weights_mit_from_mtl() -> None:
     for entry in converted:
         assert entry.get("weights_license") == "MIT"
         assert "v9-" in str(entry.get("how"))
-        assert "MultimediaTechLab" in str(entry.get("weights_origin"))
+        assert "v9-" in str(entry.get("weights_origin"))
     for entry in trained:
         assert entry.get("weights_license") == "MIT"
     assert_zoo_license_labels("weights/manifest.json")
@@ -97,7 +97,7 @@ def test_assert_zoo_license_labels_allows_mtl_mit_convert(tmp_path: Path) -> Non
     dest = tmp_path / "manifest.json"
     dest.write_text(
         '{"models":[{"id":"ok","how":"coreyolo convert --weights v9-t.pt",'
-        '"weights_origin":"MultimediaTechLab/YOLO v1.0-alpha v9-t.pt","weights_license":"MIT"}]}'
+        '"weights_origin":"YOLOv9 v1.0-alpha v9-t.pt","weights_license":"MIT"}]}'
     )
     assert_zoo_license_labels(dest)
 
@@ -111,9 +111,8 @@ def test_licenses_doc_covers_yolov9_agpl() -> None:
     assert "does not change its applicable terms" in text
     assert "choosing a model means choosing its license" in text
     assert "not legal advice" in text
-    assert "multimediatechlab" in text
-    assert "kin-yiu" in text
     assert "v9-t.pt" in text
+    assert "kin-yiu" in text
 
 
 def test_license_files_follow_per_checkpoint_style() -> None:
@@ -131,7 +130,7 @@ def test_license_files_follow_per_checkpoint_style() -> None:
     assert "does not vendor" in notice
     assert "kin-yiu wong and hao-tang tsui" in notice
     assert "coreyolo-{n,s,m,l}-coco) mit" in weights
-    assert "ultralytics" in weights and "agpl-3.0" in weights
+    assert "agpl-3.0" in weights
     assert "converting a checkpoint does not change its applicable terms" in weights
 
 

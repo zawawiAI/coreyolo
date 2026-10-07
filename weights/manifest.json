@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "license": "MIT",
-  "note": "Package code is MIT. Converted MultimediaTechLab v9-*.pt stay MIT (keep Wong/Tsui copyright). Ultralytics yolov9*.pt converts stay AGPL-3.0. RF-DETR trained here is MIT. Upstream Roboflow Nano–Large weights are Apache-2.0 and are not remapped. XLarge/2XLarge (PML-1.0) are refused. See docs/licenses.md. Checkpoints are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
+  "note": "Package code is MIT. Converted v9-*.pt stay MIT (keep Wong/Tsui copyright). Other published YOLOv9 dumps stay AGPL-3.0. RF-DETR trained here is MIT. Upstream Roboflow Nano–Large weights are Apache-2.0 and are not remapped. XLarge/2XLarge (PML-1.0) are refused. See docs/licenses.md. Checkpoints are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
   "models": [
     {
       "id": "coreyolo-n-coco",
@@ -12,7 +12,7 @@
       "imgsz": 640,
       "nc": 80,
       "how": "coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo",
-      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-t.pt",
+      "weights_origin": "YOLOv9 v1.0-alpha v9-t.pt",
       "weights_license": "MIT",
       "files": {
         "checkpoint": "coreyolo-n-coco.coreyolo",
@@ -33,7 +33,7 @@
       "imgsz": 640,
       "nc": 80,
       "how": "coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo",
-      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-s.pt",
+      "weights_origin": "YOLOv9 v1.0-alpha v9-s.pt",
       "weights_license": "MIT",
       "files": {
         "checkpoint": "coreyolo-s-coco.coreyolo",
@@ -54,7 +54,7 @@
       "imgsz": 640,
       "nc": 80,
       "how": "coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo",
-      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-m.pt",
+      "weights_origin": "YOLOv9 v1.0-alpha v9-m.pt",
       "weights_license": "MIT",
       "files": {
         "checkpoint": "coreyolo-m-coco.coreyolo",
@@ -75,7 +75,7 @@
       "imgsz": 640,
       "nc": 80,
       "how": "coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo",
-      "weights_origin": "MultimediaTechLab/YOLO v1.0-alpha v9-c.pt",
+      "weights_origin": "YOLOv9 v1.0-alpha v9-c.pt",
       "weights_license": "MIT",
       "files": {
         "checkpoint": "coreyolo-l-coco.coreyolo",

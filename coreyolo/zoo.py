@@ -85,7 +85,7 @@ def listed_release_files(manifest: str | Path | None = None, root: str | Path | 
 
 
 def _convert_weight_source(how: str, origin: str) -> str | None:
-    """Classify a zoo row as MultimediaTechLab MIT, Ultralytics AGPL, or unknown convert."""
+    """Classify a zoo row as MIT v9 convert, AGPL YOLOv9 convert, or unknown convert."""
     blob = f"{how} {origin}".lower()
     if any(token in blob for token in ("v9-t.pt", "v9-s.pt", "v9-m.pt", "v9-c.pt", "multimediatechlab")):
         return "mtl"
@@ -114,7 +114,7 @@ def _rfdetr_weight_source(how: str, origin: str) -> str | None:
 
 
 def assert_zoo_license_labels(path: str | Path | None = None) -> None:
-    """Refuse to publish Ultralytics tensors as MIT, MTL tensors as AGPL, or PML RF-DETR at all."""
+    """Refuse to publish AGPL YOLOv9 tensors as MIT, MIT v9 tensors as AGPL, or PML RF-DETR at all."""
     catalog = load_manifest(path)
     errors: list[str] = []
     for entry in catalog.get("models", []):
@@ -124,11 +124,11 @@ def assert_zoo_license_labels(path: str | Path | None = None) -> None:
         license_id = str(entry.get("weights_license") or "")
         source = _convert_weight_source(how, origin)
         if source in {"ultralytics", "unknown"} and not license_id.upper().startswith("AGPL"):
-            errors.append(f"{model_id}: Ultralytics/unknown convert must stay AGPL-3.0, not {license_id!r}")
+            errors.append(f"{model_id}: AGPL YOLOv9 convert must stay AGPL-3.0, not {license_id!r}")
         if source in {"ultralytics", "unknown"} and license_id.upper() == "MIT":
-            errors.append(f"{model_id}: do not rehost Ultralytics tensors as MIT")
+            errors.append(f"{model_id}: do not rehost AGPL YOLOv9 tensors as MIT")
         if source == "mtl" and license_id.upper() != "MIT":
-            errors.append(f"{model_id}: MultimediaTechLab convert should be MIT, got {license_id!r}")
+            errors.append(f"{model_id}: v9-*.pt convert should be MIT, got {license_id!r}")
         if how.startswith("coreyolo train") and license_id.upper() != "MIT":
             errors.append(f"{model_id}: trained-from-scratch rows should be MIT, got {license_id!r}")
         rf = _rfdetr_weight_source(how, origin)

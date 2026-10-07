@@ -20,7 +20,7 @@ This repository does **not** vendor third-party detector source. The public Pyth
 
 CoreYOLO reimplements a small Core ML-first stack of published detector ideas (GELAN, CSP backbone, PAN-FPN, decoupled head, Distribution Focal Loss). Similarity of architecture is not a license to copy someone else’s **source** or **pretrained weight files**. MIT does not overwrite an upstream checkpoint, and CoreYOLO does not relicense anyone's work.
 
-The GELAN convert path follows the authors' **MIT re-release** of YOLOv9 at [MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO) (copyright Kin-Yiu Wong and Hao-Tang Tsui), not the GPL-3.0 repository `WongKinYiu/yolov9` that carries the same model, and not Ultralytics `yolov9*.pt` (AGPL-3.0).
+The GELAN convert path follows the authors' **MIT re-release** of YOLOv9 (copyright Kin-Yiu Wong and Hao-Tang Tsui), not the GPL-3.0 repository that carries the same model. Other published YOLOv9 dumps stay AGPL-3.0.
 
 “YOLO”, “YOLOv9”, “YOLO11”, and “YOLO26” are trademarks of their respective owners. They appear only as nominative references.
 
@@ -32,14 +32,14 @@ Licenses differ between sources, and converting the file does not change its app
 
 | Checkpoint | Upstream | Weights |
 |---|---|---|
-| `coreyolo-n-coco` from `v9-t.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
-| `coreyolo-s-coco` from `v9-s.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
-| `coreyolo-m-coco` from `v9-m.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
-| `coreyolo-l-coco` from `v9-c.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
+| `coreyolo-n-coco` from `v9-t.pt` | YOLOv9 v1.0-alpha | MIT |
+| `coreyolo-s-coco` from `v9-s.pt` | YOLOv9 v1.0-alpha | MIT |
+| `coreyolo-m-coco` from `v9-m.pt` | YOLOv9 v1.0-alpha | MIT |
+| `coreyolo-l-coco` from `v9-c.pt` | YOLOv9 v1.0-alpha | MIT |
 | `coreyolo-n-coco-relu`, `coreyolo-n-coco-seg`, `coreyolo-e2e-n-coco`, `coreyolo-rfdetr-n` | trained here | MIT |
 | Roboflow RF-DETR Nano / Small / Medium / Large | roboflow/rf-detr | Apache-2.0 (not remapped) |
 | Roboflow RF-DETR XLarge / 2XLarge | roboflow/rf-detr | PML-1.0 (refused) |
-| Converted Ultralytics `yolov9t.pt` / `s` / `m` / `c` | Ultralytics | AGPL-3.0 |
+| Other published YOLOv9 dumps | separate checkpoint | AGPL-3.0 |
 
 ```bash
 coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
@@ -54,13 +54,13 @@ coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo
 
 Then check the GitHub Release of the exact file you are about to download. It is authoritative, and it can change without a docs page changing with it.
 
-## GELAN COCO (MultimediaTechLab) — interpretation
+## GELAN COCO — interpretation
 
-Original work: YOLOv9, MultimediaTechLab.
+Original work: YOLOv9.
 
 Upstream license: MIT.
 
-Upstream source: [github.com/MultimediaTechLab/YOLO](https://github.com/MultimediaTechLab/YOLO).
+Upstream files: `v9-t.pt`, `v9-s.pt`, `v9-m.pt`, `v9-c.pt`.
 
 CoreYOLO code: MIT.
 
@@ -68,7 +68,7 @@ Weights: MIT. Convert remaps names onto `format: coreyolo`.
 
 Interpretation: MIT is a permissive license, so these weights can be used in commercial and closed-source products. The one standing obligation is to keep the license text and the copyright notice, Kin-Yiu Wong and Hao-Tang Tsui, with any copy you redistribute. It places no condition on your own application code, and a model you train yourself on your own data is yours. The port follows the authors' MIT re-release of YOLOv9, not the GPL-3.0 repository that carries the same model, so the permissive terms come from the source CoreYOLO actually converts.
 
-## Ultralytics `yolov9*.pt` — interpretation
+## Other published YOLOv9 dumps — interpretation
 
 Those files are a different dump, typically AGPL-3.0. Convert still remaps names; the checkpoint is stamped `weights_license: AGPL-3.0`. They are not covered by CoreYOLO's MIT License. Do not rehost them as MIT.
 

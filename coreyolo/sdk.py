@@ -392,8 +392,8 @@ class Detector:
     def convert(cls, weights: str | Path, out: str | Path | None = None, scale: str | None = None) -> "Detector":
         """One-time bootstrap: YOLOv9 ``.pt`` → CoreYOLO ``.coreyolo``.
 
-        Remaps tensor names only. MultimediaTechLab ``v9-*.pt`` stays MIT
-        (keep the Wong/Tsui copyright). Ultralytics ``yolov9*.pt`` stays AGPL-3.0.
+        Remaps tensor names only. ``v9-*.pt`` stays MIT
+        (keep the Wong/Tsui copyright). Other published YOLOv9 dumps stay AGPL-3.0.
         Do not call this from app inference. Convert once, then
         ``Detector(coreyolo_path)``.
         """

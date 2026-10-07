@@ -234,7 +234,7 @@ def train(cfg: TrainConfig) -> Path:
                 )
             else:
                 print(
-                    "warning: --resume is converted MultimediaTechLab tensors (MIT). "
+                    "warning: --resume is converted v9-*.pt tensors (MIT). "
                     "Keep the license text and the copyright notice, Kin-Yiu Wong and Hao-Tang Tsui. "
                     "See weights/LICENSE_NOTICE.txt and docs/licenses.md.",
                     file=sys.stderr,
