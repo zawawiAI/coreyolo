@@ -28,7 +28,8 @@ Use a package from **weights you trained** or from MultimediaTechLab `v9-*.pt` c
 |--------|----------------|------|
 | DFL | `(1, 4+nc, N)` xywh + scores | class-aware NMS, then un-letterbox |
 | E2E | `(1, 300, 6)` xyxy, conf, cls | conf filter, then un-letterbox |
+| RF-DETR | `(1, Q, 6)` xyxy, conf, cls | same conf filter (ImageNet norm is inside the graph). Use `.cpuAndNeuralEngine` |
 
 Pad color is `(114, 114, 114)`. Do not use Vision `VNRecognizedObjectObservation` — this graph is raw tensors, not a Vision detector with baked-in NMS.
 
-`computeUnits` defaults to `.cpuAndNeuralEngine` (ReLU graphs). Pass `.cpuAndGPU` in `Detector.swift` for converted SiLU packages.
+`computeUnits` defaults to `.cpuAndNeuralEngine` (ReLU graphs and FP16 RF-DETR). Pass `.cpuAndGPU` in `Detector.swift` for converted SiLU packages.

@@ -27,6 +27,24 @@ Per-source summary:
  Native recipes (coco-n, coco-s, coco-m, coco-l, coco-n-e2e,
  segment) are original weights. ReLU, Neural Engine.
 
+ RF-DETR trained here (coreyolo-rfdetr-n) MIT
+ upstream: CoreYOLO train (`--family rfdetr` or `--recipe coco-n-rfdetr`)
+ Independent Core ML graph: windowed attention, dense cross-attention,
+ set prediction, ImageNet norm inside the model, FP16 on the Neural Engine.
+ Same image contract as LibreYOLO Core ML for this family (fixed RGB, no NMS).
+ A model you train yourself is yours.
+
+ RF-DETR Nano–Large (Roboflow rf-detr-{nano,small,medium,large}) Apache-2.0
+ upstream: roboflow/rf-detr
+ (backbone: facebookresearch/dinov2, Apache-2.0)
+ CoreYOLO does not remap these files. They stay Apache-2.0 on
+ Roboflow's graph. Keep the Apache-2.0 license, attribution, and
+ patent notice with any copy. Do not rehost them as MIT.
+
+ RF-DETR XLarge / 2XLarge PML-1.0
+ upstream: roboflow/rf-detr (rfdetr_plus)
+ CoreYOLO does not load, convert, or publish these checkpoints.
+
  Ultralytics yolov9{t,s,m,c}.pt AGPL-3.0
  Those files inherit AGPL-3.0 from their source. Convert still
  remaps names, but the checkpoint is stamped AGPL-3.0 and is NOT

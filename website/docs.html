@@ -36,7 +36,7 @@
       <a href="#sdk">Python SDK</a>
       <a href="#cli">CLI</a>
       <h4>Train</h4>
-      <a href="#graphs">GELAN, DFL, E2E</a>
+      <a href="#graphs">GELAN, DFL, E2E, RF-DETR</a>
       <a href="#labels">Labels</a>
       <a href="#segment">Segmentation</a>
       <a href="#coco">COCO</a>
@@ -82,19 +82,20 @@ coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source pho
       <h2 id="cli">CLI</h2>
       <pre><code>coreyolo train | val | predict | export | convert | coco | dummy-data</code></pre>
       <p>Device: <code>--device gpu</code> (default) is PyTorch MPS / Core ML CPU_AND_GPU. <code>auto</code> tries Neural Engine first on a <code>.mlpackage</code>. Also <code>ane</code>, <code>all</code>, <code>cpu</code>.</p>
-      <p>Graph: <code>--family gelan</code> (default, YOLOv9 GELAN; n / s / m / l = v9-t / s / m / c), <code>--family dfl</code> (C2f + host NMS), or <code>--family e2e</code> (C3k2 + C2PSA, NMS-free). Old <code>9</code> / <code>8</code> / <code>26</code> flags still load.</p>
+      <p>Graph: <code>--family gelan</code> (default, YOLOv9 GELAN; n / s / m / l = v9-t / s / m / c), <code>--family dfl</code> (C2f + host NMS), <code>--family e2e</code> (C3k2 + C2PSA, NMS-free), or <code>--family rfdetr</code> (set prediction, n/s/m/l, FP16 on the Neural Engine). Old <code>9</code> / <code>8</code> / <code>26</code> flags still load.</p>
       <p>Activation: <code>--act relu</code> (default, ANE). <code>silu</code> is only for converted YOLOv9 tensors — do not swap it on those checkpoints. Also <code>star</code> (StarReLU), <code>gelu</code>, <code>hardswish</code>.</p>
 
-      <h2 id="graphs">GELAN, DFL, and E2E</h2>
+      <h2 id="graphs">GELAN, DFL, E2E, and RF-DETR</h2>
       <p><strong>GELAN</strong> is the default detect graph: ELAN1 / RepNCSPELAN4 / SPPELAN, Distribution Focal Loss, decoded xywh, class-aware NMS on the host. Scales <code>n</code> / <code>s</code> / <code>m</code> / <code>l</code> match public <code>v9-t</code> / <code>s</code> / <code>m</code> / <code>c</code>. Core ML layout <code>(1, 4+nc, N)</code>. This graph never had YOLOv9 PGI aux nodes; export is the main branch only. Optional one-time remap from MultimediaTechLab <code>v9-*.pt</code> (MIT).</p>
       <p><strong>DFL</strong> is the older C2f + SPPF graph with the same DFL head.</p>
       <p><strong>E2E</strong> is C3k2 + C2PSA with a dual TAL head and NMS-free top-300 at inference. Core ML layout <code>(1, 300, 6)</code> as xyxy, conf, cls. Export drops the one-to-many train head. Train from scratch: <code>--family e2e</code> or <code>--recipe coco-n-e2e</code>.</p>
+      <p><strong>RF-DETR</strong> follows LibreYOLO's Core ML contract for this family: one fixed RGB image, ImageNet normalization inside the graph, set prediction, no NMS, eval layout <code>(1, Q, 6)</code>. Scales n / s / m / l use 384 / 512 / 576 / 704. LibreYOLO defaults that export to FP32 and <code>compute_units=all</code>. CoreYOLO pins FP16 and the Neural Engine, and uses dense cross-attention so the graph does not need deformable <code>grid_sample</code>. Train with <code>--family rfdetr</code> or <code>--recipe coco-n-rfdetr</code> at <code>lr0=1e-4</code>. Weights you train are MIT. Upstream Roboflow Nano–Large files stay Apache-2.0 and are not remapped. XLarge and 2XLarge (PML 1.0) are refused.</p>
 
       <h2 id="export">Export</h2>
       <pre><code>coreyolo export --weights weights/app.coreyolo --imgsz 640
 coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
 coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8</code></pre>
-      <p>Default export is an FP16 ML Program (iOS 16 / macOS 13): fused Conv–BN, inference branch only (no train-time aux heads), cached static DFL grids (no <code>meshgrid</code> / <code>arange</code> in the package), host NMS, MIL cleanup passes. ReLU, ReLU6, StarReLU, and HardSwish convert with <code>CPU_AND_NE</code> so the graph stays ANE-legal, then <strong>8-bit k-means palettize</strong>. Converted SiLU YOLOv9 packages stay dense FP16 on GPU — palettes are ANE-oriented. <code>--int8</code> is linear weight quant instead of palettes. Train ReLU from scratch for Neural Engine.</p>
+      <p>Default export is an FP16 ML Program (iOS 16 / macOS 13): fused Conv–BN, inference branch only (no train-time aux heads), cached static DFL grids (no <code>meshgrid</code> / <code>arange</code> in the package), host NMS, MIL cleanup passes. ReLU, ReLU6, StarReLU, and HardSwish convert with <code>CPU_AND_NE</code> so the graph stays ANE-legal, then <strong>8-bit k-means palettize</strong>. Converted SiLU YOLOv9 packages stay dense FP16 on GPU. Palettes are ANE-oriented, so RF-DETR skips them and ships FP16 on the Neural Engine. <code>--int8</code> is linear weight quant instead of palettes. Train ReLU from scratch for Neural Engine.</p>
       <p>Python: <code>model.export(imgsz=640)</code> or <code>palettize=False</code>. Package metadata records <code>optimize</code> (<code>palettize8</code> / <code>fp16</code> / <code>int8</code>) and <code>preferred_compute</code> (<code>ane</code> or <code>gpu</code>).</p>
 
       <h2 id="labels">Labels</h2>
@@ -123,6 +124,7 @@ coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo</code>
       <div class="note">
         <p><strong>Own code:</strong> MIT. Use it in a commercial or closed-source product; keep the copyright line and the license text with any copy you redistribute.</p>
         <p><strong>GELAN COCO weights:</strong> MIT. Converted from MultimediaTechLab <code>v9-t.pt</code> / <code>s</code> / <code>m</code> / <code>c</code>, copyright Kin-Yiu Wong and Hao-Tang Tsui. Keep that notice with any copy. A model you train yourself is yours.</p>
+        <p><strong>RF-DETR you train:</strong> MIT. The graph follows LibreYOLO’s Core ML contract and does not load LibreYOLO or Roboflow checkpoints. Upstream Nano–Large files stay Apache-2.0. XLarge and 2XLarge (Platform Model License 1.0) are refused.</p>
         <p><strong>Ultralytics <code>yolov9*.pt</code>:</strong> Code MIT, weights AGPL-3.0. Converting the file does not change its applicable terms. SaaS use of those tensors typically requires AGPL-3.0 source; a commercial or closed-source internal enterprise product usually needs a commercial license from the copyright holders.</p>
         <p>This is a description of the licenses involved, not legal advice. Full write-up: <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>, <a href="https://github.com/zawawiAI/coreyolo/blob/main/weights/LICENSE_NOTICE.txt">weights/LICENSE_NOTICE.txt</a>.</p>
       </div>

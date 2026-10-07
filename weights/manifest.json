@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "license": "MIT",
-  "note": "Package code is MIT. Converted MultimediaTechLab v9-*.pt stay MIT (keep Wong/Tsui copyright). Ultralytics yolov9*.pt converts stay AGPL-3.0. See docs/licenses.md. Checkpoints are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
+  "note": "Package code is MIT. Converted MultimediaTechLab v9-*.pt stay MIT (keep Wong/Tsui copyright). Ultralytics yolov9*.pt converts stay AGPL-3.0. RF-DETR trained here is MIT. Upstream Roboflow Nano–Large weights are Apache-2.0 and are not remapped. XLarge/2XLarge (PML-1.0) are refused. See docs/licenses.md. Checkpoints are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
   "models": [
     {
       "id": "coreyolo-n-coco",
@@ -143,6 +143,27 @@
       "files": {
         "checkpoint": "coreyolo-e2e-n-coco.coreyolo",
         "coreml": "coreyolo-e2e-n-coco.mlpackage"
+      },
+      "metrics": {
+        "dataset": "COCO 2017 val",
+        "mAP50": null,
+        "mAP50-95": null
+      }
+    },
+    {
+      "id": "coreyolo-rfdetr-n",
+      "family": "rfdetr",
+      "scale": "n",
+      "task": "detect",
+      "act": "gelu",
+      "imgsz": 384,
+      "nc": 80,
+      "how": "coreyolo train --recipe coco-n-rfdetr",
+      "weights_origin": "coreyolo-train",
+      "weights_license": "MIT",
+      "files": {
+        "checkpoint": "coreyolo-rfdetr-n.coreyolo",
+        "coreml": "coreyolo-rfdetr-n.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",

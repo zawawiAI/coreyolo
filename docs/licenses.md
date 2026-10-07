@@ -36,7 +36,9 @@ Licenses differ between sources, and converting the file does not change its app
 | `coreyolo-s-coco` from `v9-s.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
 | `coreyolo-m-coco` from `v9-m.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
 | `coreyolo-l-coco` from `v9-c.pt` | MultimediaTechLab/YOLO v1.0-alpha | MIT |
-| `coreyolo-n-coco-relu`, `coreyolo-n-coco-seg`, `coreyolo-e2e-n-coco` | trained here | MIT |
+| `coreyolo-n-coco-relu`, `coreyolo-n-coco-seg`, `coreyolo-e2e-n-coco`, `coreyolo-rfdetr-n` | trained here | MIT |
+| Roboflow RF-DETR Nano / Small / Medium / Large | roboflow/rf-detr | Apache-2.0 (not remapped) |
+| Roboflow RF-DETR XLarge / 2XLarge | roboflow/rf-detr | PML-1.0 (refused) |
 | Converted Ultralytics `yolov9t.pt` / `s` / `m` / `c` | Ultralytics | AGPL-3.0 |
 
 ```bash
@@ -83,6 +85,34 @@ Where a license carries its restriction into derivative works, fine-tuning does 
 Decide the license question when you pick the model rather than when you ship, and read the terms on the file you actually downloaded.
 
 YOLO11 and YOLO26 **weights** cannot be converted (different graph). Train CoreYOLO E2E yourself if you want that family without taking those checkpoints.
+
+## RF-DETR (Roboflow) — interpretation
+
+Original work: RF-DETR, Roboflow.
+
+Upstream license: Apache-2.0 for Nano, Small, Medium, and Large. Platform Model License 1.0 for XLarge and 2XLarge.
+
+Upstream source: [github.com/roboflow/rf-detr](https://github.com/roboflow/rf-detr). The backbone lineage is DINOv2 (Apache-2.0, Meta).
+
+CoreYOLO code: MIT. `family=rfdetr` follows LibreYOLO's Core ML contract for this family (fixed RGB image, ImageNet norm inside the graph, set prediction, no NMS) and pins FP16 to the Neural Engine. The graph is still CoreYOLO's own (windowed self-attention, dense query cross-attention). Similarity of that idea is not a license to copy LibreYOLO's or Roboflow's source or weight files. This repository does not vendor either project and does not remap `rf-detr-*.pth`.
+
+Weights you train with `--family rfdetr` or `--recipe coco-n-rfdetr`: MIT. The code is permissive, so a model you train yourself on data you have the right to use is yours.
+
+Upstream Nano–Large checkpoints: Apache-2.0, on Roboflow's graph. Apache-2.0 is a permissive license, so those weights can be used in commercial and closed-source products. It asks you to keep its license text, attribution notices, and patent notice with any copy of the weights you redistribute. It places no obligation on your own application code. CoreYOLO does not relicense them as MIT. A fine-tune of those tensors keeps Apache-2.0.
+
+Upstream XLarge and 2XLarge: Platform Model License 1.0. CoreYOLO refuses those files. Do not stamp them MIT or Apache-2.0, and do not put them in the zoo.
+
+```
+@inproceedings{robinson2026rfdetr,
+  title     = {RF-DETR: Real-Time Detection Transformer},
+  author    = {Robinson, Isaac and Robicheaux, Peter and Popov, Matvei and Ramanan, Deva and Peri, Neehar},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2026},
+  url       = {https://arxiv.org/abs/2511.09554}
+}
+```
+
+"RF-DETR" is a name of its owner. It appears here only as a nominative reference.
 
 ## Not legal advice
 

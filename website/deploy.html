@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Deploy — CoreYOLO</title>
-  <meta name="description" content="Export CoreYOLO to Core ML. ReLU palettes on ANE; SiLU dense FP16 on GPU. Static DFL grids, host NMS." />
+  <meta name="description" content="Export CoreYOLO to Core ML. ReLU palettes on ANE; SiLU dense FP16 on GPU; RF-DETR FP16 on the Neural Engine." />
   <link rel="stylesheet" href="css/site.css?v=oss" />
 </head>
 <body>
@@ -34,7 +34,7 @@
       <div class="tiles">
         <article class="tile">
           <h3>Export</h3>
-          <p>Inference-only trace, fused Conv–BN, static DFL grids, FP16 ML Program, iOS 16 / macOS 13. ReLU: 8-bit palettes on ANE. SiLU convert: dense FP16 on GPU. Optional INT8.</p>
+          <p>Inference-only trace, fused Conv–BN, static DFL grids, FP16 ML Program, iOS 16 / macOS 13. ReLU: 8-bit palettes on ANE. SiLU convert: dense FP16 on GPU. RF-DETR: FP16 on the Neural Engine, palettes off. Optional INT8.</p>
         </article>
         <article class="tile">
           <h3>Letterbox</h3>
@@ -42,7 +42,7 @@
         </article>
         <article class="tile">
           <h3>Host decode</h3>
-          <p>DFL: class-aware NMS in Swift. E2E: top-300, no NMS. Segmentation: three tensors, assemble after NMS.</p>
+          <p>DFL: class-aware NMS in Swift. E2E: top-300, no NMS. RF-DETR: <code>(1, Q, 6)</code>, no NMS. Segmentation: three tensors, assemble after NMS.</p>
         </article>
       </div>
     </div>
@@ -55,10 +55,11 @@
       <pre><code>coreyolo export --weights weights/app.coreyolo --imgsz 640
 # ReLU: FP16 + 8-bit palettes, CPU_AND_NE
 # SiLU convert: dense FP16, CPU_AND_GPU
+# RF-DETR: FP16, CPU_AND_NE, palettes off, ImageNet norm inside the graph
 # coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
 # coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8
 model.export(imgsz=640)</code></pre>
-      <p>The trace is inference-only: GELAN has no PGI aux nodes; E2E drops the one-to-many train head. DFL grids are cached as static buffers so Core ML never sees <code>meshgrid</code>, <code>arange</code>, or <code>-1</code> views. Input shape is fixed <code>(1, 3, imgsz, imgsz)</code>. ReLU-family graphs convert with <code>CPU_AND_NE</code> then palettize. Converted SiLU stays dense FP16 on GPU. Skip palettes with <code>--no-palette</code>; use <code>--int8</code> for linear quant instead.</p>
+      <p>The trace is inference-only: GELAN has no PGI aux nodes; E2E drops the one-to-many train head. DFL grids are cached as static buffers so Core ML never sees <code>meshgrid</code>, <code>arange</code>, or <code>-1</code> views. Input shape is fixed <code>(1, 3, imgsz, imgsz)</code>. ReLU-family graphs convert with <code>CPU_AND_NE</code> then palettize. Converted SiLU stays dense FP16 on GPU. RF-DETR follows LibreYOLO’s Core ML contract for this family — one fixed RGB image, ImageNet normalization inside the graph, set prediction, no NMS — and CoreYOLO pins that package to FP16 on the Neural Engine. Palettes stay off. Skip palettes with <code>--no-palette</code>; use <code>--int8</code> for linear quant instead.</p>
       <p class="note">A Core ML package inherits the checkpoint’s license. Converted MultimediaTechLab <code>v9-*.pt</code> files and models you train here are code MIT, weights MIT. Ultralytics <code>yolov9*.pt</code> stays AGPL-3.0; converting the file does not change its applicable terms. See <a href="docs.html#license">Licenses</a>.</p>
     </div>
   </section>
@@ -89,7 +90,7 @@ model.export(imgsz=640)</code></pre>
       <h2>Swift</h2>
       <p class="lead">Use <code>MLModel</code> directly. This graph is raw tensors, not Vision <code>VNRecognizedObjectObservation</code>.</p>
       <pre><code>let config = MLModelConfiguration()
-config.computeUnits = .cpuAndNeuralEngine   // ReLU; .cpuAndGPU for converted SiLU
+config.computeUnits = .cpuAndNeuralEngine   // ReLU and FP16 RF-DETR; .cpuAndGPU for converted SiLU
 let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
       <p>A camera sample lives in <code>examples/ios</code>: letterbox, host NMS, iOS 16+. It defaults to Neural Engine. Drag <code>CoreYOLO.mlpackage</code> into the Xcode target, set a signing team, run on a device.</p>
       <p><a href="https://github.com/zawawiAI/coreyolo/tree/main/examples/ios">Open the iOS sample ›</a></p>
@@ -123,7 +124,7 @@ let model = try MLModel(contentsOf: url, configuration: config)</code></pre>
             <tr>
               <td><code>ane</code></td>
               <td>CPU_AND_NE</td>
-              <td>ReLU / StarReLU fused graphs. iOS sample default.</td>
+              <td>ReLU / StarReLU fused graphs, and FP16 RF-DETR. iOS sample default.</td>
             </tr>
             <tr>
               <td><code>all</code></td>

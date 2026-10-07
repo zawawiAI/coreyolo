@@ -1,4 +1,12 @@
-from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, is_gelan_family, normalize_family
+from coreyolo.nn.model import (
+    CoreYOLO,
+    build_model,
+    is_e2e_family,
+    is_gelan_family,
+    is_rfdetr_family,
+    normalize_family,
+)
+from coreyolo.nn.rfdetr import RFDETR
 from coreyolo.nn.modules import (
     C2f,
     C2PSA,
@@ -23,6 +31,8 @@ __all__ = [
     "normalize_act",
     "is_e2e_family",
     "is_gelan_family",
+    "is_rfdetr_family",
+    "RFDETR",
     "Conv",
     "C2f",
     "C3k2",
