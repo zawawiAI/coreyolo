@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, normalize_family
+from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, is_rfdetr_family, normalize_family
 from coreyolo.utils import __version__, MIT_WEIGHT_LICENSE, checkpoint_weight_license, load_checkpoint, origin_metadata
 
 # Activations the Neural Engine maps well as fused conv + piecewise nonlinear.
@@ -57,7 +57,8 @@ def _load_for_export(weights: str | Path) -> tuple[CoreYOLO, dict]:
         "names": names,
         "imgsz": ckpt.get("imgsz", 640),
         "family": family,
-        "end2end": bool(ckpt.get("end2end", is_e2e_family(family))),
+        "end2end": bool(ckpt.get("end2end", is_e2e_family(family) or is_rfdetr_family(family))),
+        "queries": int(ckpt.get("queries") or getattr(model, "num_queries", 0) or 0),
         "task": task,
         "nm": nm,
         "weights_license": checkpoint_weight_license(ckpt),
@@ -122,6 +123,7 @@ def export_coreml(
     else:
         output_types = [ct.TensorType(name="detections")]
     act = str(meta.get("act", "relu"))
+    rfdetr = is_rfdetr_family(meta.get("family"))
     convert_kwargs: dict = {
         "inputs": inputs,
         "outputs": output_types,
@@ -129,7 +131,15 @@ def export_coreml(
         "minimum_deployment_target": ct.target.macOS13,
         "compute_precision": precision,
         "pass_pipeline": ct.PassPipeline.DEFAULT,
-        "compute_units": _convert_compute_units(act, fp16),
+        "compute_units": (
+            (
+                getattr(ct.ComputeUnit, "CPU_AND_NE", ct.ComputeUnit.ALL)
+                if fp16
+                else getattr(ct.ComputeUnit, "CPU_AND_GPU", ct.ComputeUnit.ALL)
+            )
+            if rfdetr
+            else _convert_compute_units(act, fp16)
+        ),
     }
     try:
         mlmodel = ct.convert(traced, **convert_kwargs)
@@ -138,8 +148,11 @@ def export_coreml(
         mlmodel = ct.convert(traced, **convert_kwargs)
 
     do_palette = palettize if palettize is not None else bool(
-        fp16 and not quantize_8bit and ane_preferred_act(act)
+        fp16 and not quantize_8bit and ane_preferred_act(act) and not rfdetr
     )
+    if rfdetr and palettize:
+        print("rfdetr: skipping palettes; FP16 set prediction stays on the Neural Engine", flush=True)
+        do_palette = False
     optimize = "fp16" if fp16 else "fp32"
     if quantize_8bit:
         from coremltools.optimize.coreml import (
@@ -158,13 +171,19 @@ def export_coreml(
         except Exception as exc:
             print(f"palettize skipped ({exc}); keeping {optimize}", flush=True)
 
+    queries = int(meta.get("queries") or 0)
     mlmodel.short_description = (
         "CoreYOLO instance segmenter (boxes + mask coefficients + proto)"
         if segment
         else (
-            "CoreYOLO E2E NMS-free detector (xyxy, conf, cls; top-300)"
-            if meta.get("end2end")
-            else "CoreYOLO object detector (decoded xywh + class scores, NMS on host)"
+            f"CoreYOLO RF-DETR set predictor (xyxy, conf, cls; {queries or 'Q'} queries, no NMS). "
+            "ImageNet normalization is inside the graph. FP16 on the Neural Engine."
+            if rfdetr
+            else (
+                "CoreYOLO E2E NMS-free detector (xyxy, conf, cls; top-300)"
+                if meta.get("end2end")
+                else "CoreYOLO object detector (decoded xywh + class scores, NMS on host)"
+            )
         )
     )
     mlmodel.author = "CoreYOLO"
@@ -177,13 +196,21 @@ def export_coreml(
     mlmodel.user_defined_metadata["family"] = str(meta.get("family", "gelan"))
     mlmodel.user_defined_metadata["task"] = str(meta.get("task", "detect"))
     mlmodel.user_defined_metadata["optimize"] = optimize
-    mlmodel.user_defined_metadata["preferred_compute"] = "ane" if ane_preferred_act(act) else "gpu"
+    mlmodel.user_defined_metadata["preferred_compute"] = (
+        ("ane" if fp16 else "gpu") if rfdetr else ("ane" if ane_preferred_act(act) else "gpu")
+    )
+    if rfdetr:
+        mlmodel.user_defined_metadata["input_norm"] = "imagenet"
+        mlmodel.user_defined_metadata["queries"] = str(queries)
     if segment:
         mlmodel.user_defined_metadata["nm"] = str(meta.get("nm", 32))
         mlmodel.user_defined_metadata["layout"] = "detections + mask_coeff + proto"
         mlmodel.user_defined_metadata["nms"] = "end2end" if meta.get("end2end") else "host"
-    elif meta.get("end2end"):
-        mlmodel.user_defined_metadata["layout"] = "B,300,6  xyxy + conf + cls"
+    elif rfdetr or meta.get("end2end"):
+        if rfdetr:
+            mlmodel.user_defined_metadata["layout"] = f"B,{queries},6  xyxy + conf + cls"
+        else:
+            mlmodel.user_defined_metadata["layout"] = "B,300,6  xyxy + conf + cls"
         mlmodel.user_defined_metadata["nms"] = "end2end"
     else:
         mlmodel.user_defined_metadata["layout"] = "B,4+nc,N  xywh_pixels + class_scores"
@@ -192,6 +219,11 @@ def export_coreml(
     if hasattr(mlmodel, "license"):
         mlmodel.license = license_id
     mlmodel.user_defined_metadata["weights_license"] = license_id
+    if license_id.upper().startswith("APACHE"):
+        mlmodel.short_description = (
+            "Contains third-party RF-DETR tensors (Apache-2.0). Keep the license, attribution, and patent notice. "
+            + str(mlmodel.short_description)
+        )
     if license_id.upper().startswith("AGPL"):
         mlmodel.short_description = (
             "Contains third-party YOLOv9 tensors (AGPL-3.0). Converting the file does not change its applicable terms. "

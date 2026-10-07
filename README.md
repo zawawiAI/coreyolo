@@ -60,13 +60,14 @@ model.export(imgsz=640)            # ReLU → FP16 + palettes + ANE; SiLU conver
 
 ReLU prefers ANE (`--device ane`). Converted SiLU graphs prefer GPU.
 
-## Three graphs. One trainer.
+## Four graphs. One trainer.
 
 | Graph | What it is | Ship path |
 | --- | --- | --- |
 | **GELAN** (default) | YOLOv9 GELAN. Scales n / s / m / l match public `v9-t` / `s` / `m` / `c`. Export is the main branch only (no PGI aux). | Train ReLU for ANE, or convert MultimediaTechLab `v9-*.pt` (SiLU, GPU, MIT). |
 | **DFL** | C2f + Distribution Focal Loss. Host NMS. Detect and instance segmentation. | `--family dfl` |
 | **E2E** | Original C3k2 + C2PSA. NMS-free top-300 at inference. | Train from scratch (`--family e2e` or `--recipe coco-n-e2e`). |
+| **RF-DETR** | Set prediction on a windowed ViT. Same Core ML contract as LibreYOLO for this family: fixed RGB image, ImageNet norm inside the graph, no NMS, n / s / m / l at 384 / 512 / 576 / 704. | Train from scratch (`--family rfdetr` or `--recipe coco-n-rfdetr`). FP16 on the Neural Engine. |
 
 ## n, s, m, and l
 
@@ -101,6 +102,7 @@ Binaries live on GitHub Releases, not in git. mAP stays blank until you record C
 | `coreyolo-n-coco-seg` | gelan | ReLU | ANE | `train --task segment` | MIT |
 | `coreyolo-n-coco-relu` | gelan | ReLU | ANE | `train --recipe coco-n` | MIT |
 | `coreyolo-e2e-n-coco` | e2e | ReLU | ANE | `train --recipe coco-n-e2e` | MIT |
+| `coreyolo-rfdetr-n` | rfdetr | GELU | ANE | `train --recipe coco-n-rfdetr` | MIT |
 
 ## Python SDK
 
@@ -157,6 +159,7 @@ coreyolo coco --out datasets/coco --download
 coreyolo train --recipe coco-n-fast    # 100 epochs
 coreyolo train --recipe coco-n         # 300 epochs, ReLU (ANE)
 coreyolo train --recipe coco-n-e2e
+coreyolo train --recipe coco-n-rfdetr   # 384, GELU, FP16 Neural Engine
 ```
 
 | Recipe | Scale | Notes |
@@ -164,6 +167,7 @@ coreyolo train --recipe coco-n-e2e
 | `coco-n-fast` | n | First COCO run |
 | `coco-n` / `coco-s` / `coco-m` / `coco-l` | GELAN ReLU | Neural Engine path |
 | `coco-n-e2e` | n E2E | NMS-free |
+| `coco-n-rfdetr` | n RF-DETR | 384 px, set prediction, lr 1e-4 |
 
 ## CLI
 
@@ -172,6 +176,7 @@ coreyolo coco        --out datasets/coco --download [--max-images 512]
 coreyolo convert     --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
 coreyolo train       --recipe coco-n-fast
 coreyolo train       --data data.yaml --model n --family e2e --epochs 100 --device gpu
+coreyolo train       --data data.yaml --model n --family rfdetr --imgsz 384 --lr0 1e-4
 coreyolo val         --data data.yaml --weights best.pt --device gpu
 coreyolo predict     --weights best.mlpackage --source photo.jpg --device gpu
 coreyolo predict     --weights best.mlpackage --source 0 --device gpu   # webcam; Q quits
@@ -183,6 +188,6 @@ coreyolo dummy-data  --out datasets/dummy --segment
 
 CoreYOLO's code is [MIT](LICENSE). It does not require you to open source your application, and it does not change if you sell what you build.
 
-Pretrained weights are separate: each one carries the license of whoever trained it, stated per checkpoint. GELAN COCO files converted from MultimediaTechLab `v9-*.pt` are MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Ultralytics `yolov9*.pt` converts stay AGPL-3.0. A model you train yourself is yours. Converting a file does not change its applicable terms.
+Pretrained weights are separate: each one carries the license of whoever trained it, stated per checkpoint. GELAN COCO files converted from MultimediaTechLab `v9-*.pt` are MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Ultralytics `yolov9*.pt` converts stay AGPL-3.0. RF-DETR weights you train here are MIT. Upstream Roboflow Nano–Large checkpoints stay Apache-2.0 and are not remapped; XLarge and 2XLarge (Platform Model License 1.0) are refused. A model you train yourself is yours. Converting a file does not change its applicable terms.
 
 Choosing a model means choosing its license. See [docs/licenses.md](docs/licenses.md), [weights/LICENSE_NOTICE.txt](weights/LICENSE_NOTICE.txt), and [NOTICE](NOTICE). This is a description of the licenses involved, not legal advice. YOLO is a trademark of its owners.

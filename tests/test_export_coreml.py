@@ -139,6 +139,28 @@ def test_export_fp16_relu_records_ane_optimize(tmp_path: Path) -> None:
     assert np.isfinite(np.asarray(pred)).all()
 
 
+def test_export_rfdetr_fp16_ane_no_nms(tmp_path: Path) -> None:
+    from coreyolo.export.coreml import export_coreml
+    from coreyolo.export.engine import CoreMLEngine
+
+    weights = _tiny_ckpt(tmp_path, "rfdetr", act="gelu")
+    out = tmp_path / "tiny-rfdetr.mlpackage"
+    export_coreml(weights, out=out, imgsz=64, fp16=True, image_input=True, palettize=True)
+    engine = CoreMLEngine(out, device="cpu")
+    meta = dict(engine.model.user_defined_metadata)
+    assert engine.end2end is True
+    assert meta.get("family") == "rfdetr"
+    assert meta.get("preferred_compute") == "ane"
+    assert meta.get("optimize") == "fp16"
+    assert meta.get("input_norm") == "imagenet"
+    assert meta.get("nms") == "end2end"
+    assert meta.get("queries") == "100"
+    canvas = Image.new("RGB", (64, 64), (114, 114, 114))
+    pred = np.asarray(engine.predict_letterboxed(canvas))
+    assert pred.shape == (1, 100, 6)
+    assert np.isfinite(pred).all()
+
+
 def test_export_fp16_silu_stays_dense_gpu(tmp_path: Path) -> None:
     from coreyolo.export.coreml import export_coreml
     from coreyolo.export.engine import CoreMLEngine

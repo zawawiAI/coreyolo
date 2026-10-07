@@ -101,8 +101,20 @@ def _convert_weight_source(how: str, origin: str) -> str | None:
     return None
 
 
+def _rfdetr_weight_source(how: str, origin: str) -> str | None:
+    """``pml`` or ``apache`` for an upstream RF-DETR zoo row. Scratch trains stay out."""
+    if how.startswith("coreyolo train"):
+        return None
+    blob = f"{how} {origin}".lower()
+    if any(tok in blob for tok in ("pml", "xlarge", "2xlarge", "2x-large", "platform model")):
+        return "pml"
+    if any(tok in blob for tok in ("roboflow", "rf-detr", "rfdetr", "dinov2")):
+        return "apache"
+    return None
+
+
 def assert_zoo_license_labels(path: str | Path | None = None) -> None:
-    """Refuse to publish Ultralytics tensors as MIT, or MTL tensors as AGPL."""
+    """Refuse to publish Ultralytics tensors as MIT, MTL tensors as AGPL, or PML RF-DETR at all."""
     catalog = load_manifest(path)
     errors: list[str] = []
     for entry in catalog.get("models", []):
@@ -119,5 +131,16 @@ def assert_zoo_license_labels(path: str | Path | None = None) -> None:
             errors.append(f"{model_id}: MultimediaTechLab convert should be MIT, got {license_id!r}")
         if how.startswith("coreyolo train") and license_id.upper() != "MIT":
             errors.append(f"{model_id}: trained-from-scratch rows should be MIT, got {license_id!r}")
+        rf = _rfdetr_weight_source(how, origin)
+        if rf == "pml":
+            errors.append(f"{model_id}: RF-DETR XLarge/2XLarge (PML-1.0) must not be published")
+        if rf == "apache" and license_id != "Apache-2.0":
+            errors.append(
+                f"{model_id}: Roboflow RF-DETR Nano–Large weights stay Apache-2.0, not {license_id!r}"
+            )
+        if rf == "apache" and license_id.upper() == "MIT":
+            errors.append(f"{model_id}: do not rehost Roboflow RF-DETR tensors as MIT")
+        if license_id.upper().startswith("PML"):
+            errors.append(f"{model_id}: PML-1.0 weights are not a CoreYOLO zoo license")
     if errors:
         raise ValueError("zoo license labels are wrong:\n  " + "\n  ".join(errors))

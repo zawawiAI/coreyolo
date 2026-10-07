@@ -29,7 +29,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     t = sub.add_parser("train", help="Train on a Roboflow YOLO dataset or a COCO recipe")
     t.add_argument("--data", default=None, help="path to data.yaml (optional if --recipe sets it)")
-    t.add_argument("--recipe", default=None, help="coco-n | coco-n-fast | coco-n-e2e | coco-s | coco-m | coco-l | path to yaml")
+    t.add_argument(
+        "--recipe",
+        default=None,
+        help="coco-n | coco-n-fast | coco-n-e2e | coco-n-rfdetr | coco-s | coco-m | coco-l | path to yaml",
+    )
     t.add_argument("--model", default=None, choices=["n", "s", "m", "l", "x"])
     t.add_argument("--epochs", type=int, default=None)
     t.add_argument("--batch", type=int, default=None)
@@ -47,8 +51,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--family",
         default=None,
         type=lambda s: str(s).strip().lower(),
-        choices=["gelan", "dfl", "e2e", "9", "8", "26", "v9", "v8", "v26", "c2f", "c3k2", "yolov9"],
-        help="gelan = YOLOv9 GELAN (default, n = yolov9t); dfl = C2f+DFL; e2e = C3k2+C2PSA NMS-free.",
+        choices=[
+            "gelan",
+            "dfl",
+            "e2e",
+            "rfdetr",
+            "rf-detr",
+            "rf_detr",
+            "9",
+            "8",
+            "26",
+            "v9",
+            "v8",
+            "v26",
+            "c2f",
+            "c3k2",
+            "yolov9",
+        ],
+        help="gelan (default) | dfl | e2e | rfdetr (set prediction, n/s/m/l, FP16 Neural Engine).",
     )
     t.add_argument("--task", default=None, choices=["detect", "segment"], help="detect (default) or instance segment")
     t.add_argument("--mosaic", type=float, default=None)

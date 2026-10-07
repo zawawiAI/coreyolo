@@ -13,7 +13,7 @@ from coreyolo.data.augment import letterbox
 from coreyolo.infer.draw import annotate, save_annotated
 from coreyolo.infer.masks import instance_masks
 from coreyolo.infer.nms import non_max_suppression, scale_boxes
-from coreyolo.nn.model import build_model, is_e2e_family, normalize_family
+from coreyolo.nn.model import build_model, is_e2e_family, is_rfdetr_family, normalize_family
 from coreyolo.utils import IMAGE_EXTS, load_checkpoint, place_module, select_device
 
 
@@ -121,7 +121,7 @@ class Predictor:
                 act = ckpt.get("act", "relu")
                 family = normalize_family(ckpt.get("family", "gelan"))
                 self.imgsz = int(ckpt.get("imgsz", imgsz))
-                self.end2end = bool(ckpt.get("end2end", is_e2e_family(family)))
+                self.end2end = bool(ckpt.get("end2end", is_e2e_family(family) or is_rfdetr_family(family)))
                 self.task = str(ckpt.get("task", "detect"))
                 if not self.names:
                     self.names = ckpt.get("names") or [f"class_{i}" for i in range(nc)]

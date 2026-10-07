@@ -23,7 +23,8 @@ import numpy as np
 from PIL import Image
 
 from coreyolo.infer.predictor import Predictor, resolve_class_filter
-from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, normalize_family
+from coreyolo.nn.model import CoreYOLO, build_model, is_e2e_family, is_rfdetr_family, normalize_family
+from coreyolo.nn.rfdetr import RFDETR, rfdetr_native_imgsz
 from coreyolo.nn.modules import normalize_act
 from coreyolo.results import Result
 from coreyolo.utils import (
@@ -86,7 +87,12 @@ class Detector:
             self.act = normalize_act(act)
             self.nc = int(nc)
             self.names = names or [f"class_{i}" for i in range(self.nc)]
-            self.end2end = is_e2e_family(self.family)
+            self.end2end = is_e2e_family(self.family) or is_rfdetr_family(self.family)
+            if is_rfdetr_family(self.family):
+                if self.act == "relu":
+                    self.act = "gelu"
+                if self.imgsz == 640:
+                    self.imgsz = rfdetr_native_imgsz(self.scale)
         elif path.exists() or path.suffix in {".pt", ".coreyolo", ".mlpackage", ".mlmodel"} or path.is_dir():
             if not path.exists():
                 raise FileNotFoundError(f"Checkpoint not found: {path}")
@@ -124,7 +130,7 @@ class Detector:
         self.task = str(ckpt.get("task", self.task))
         self.nm = int(ckpt.get("nm", self.nm))
         self.imgsz = int(ckpt.get("imgsz", self.imgsz))
-        self.end2end = bool(ckpt.get("end2end", is_e2e_family(self.family)))
+        self.end2end = bool(ckpt.get("end2end", is_e2e_family(self.family) or is_rfdetr_family(self.family)))
         self.names = ckpt.get("names") or self.names or [f"class_{i}" for i in range(self.nc)]
         self._origin = origin_metadata(ckpt)
 
@@ -168,7 +174,7 @@ class Detector:
         return self._predictor
 
     @property
-    def model(self) -> CoreYOLO:
+    def model(self) -> CoreYOLO | RFDETR:
         """Underlying PyTorch module (not used for Core ML packages)."""
         if self._nn is not None:
             return self._nn

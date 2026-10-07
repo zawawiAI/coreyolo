@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CoreYOLO — Object detection for Apple silicon</title>
   <meta name="description" content="MIT code. Weights per checkpoint. Train in PyTorch, ship Core ML to Apple silicon." />
-  <link rel="stylesheet" href="css/site.css?v=oss" />
+  <link rel="stylesheet" href="css/site.css?v=kl" />
 </head>
 <body>
   <div class="ribbon">Code MIT. Weights per checkpoint. YOLO is a trademark of its owners. <a href="docs.html#license">License</a></div>
@@ -36,14 +36,14 @@
 
   <div class="phone-stage">
     <div class="phone" aria-hidden="true">
-      <img class="scene" src="img/scene.jpg" alt="" />
+      <img class="scene" src="img/scene.jpg?v=kl" alt="" />
       <div class="notch"></div>
-      <div class="box" style="left:7.4%;top:75.2%;width:15.0%;height:21.2%;border-color:#64d2ff;"></div>
-      <div class="tag" style="left:7.4%;top:71.8%;background:#64d2ff;">person 0.81</div>
-      <div class="box" style="left:22.5%;top:78.0%;width:14.8%;height:21.6%;border-color:#5e5ce6;"></div>
-      <div class="tag" style="left:22.5%;top:74.6%;background:#5e5ce6;">person 0.82</div>
-      <div class="box" style="left:55.8%;top:80.2%;width:39.1%;height:16.1%;border-color:#32d74b;"></div>
-      <div class="tag" style="left:55.8%;top:76.8%;background:#32d74b;">car 0.72</div>
+      <div class="box" style="left:48%;top:6.8%;width:50%;height:11.5%;border-color:#64d2ff;"></div>
+      <div class="tag" style="left:56%;top:4.2%;background:#64d2ff;">airplane 0.93</div>
+      <div class="box" style="left:36%;top:81.5%;width:36%;height:15.5%;border-color:#32d74b;"></div>
+      <div class="tag" style="left:36%;top:78.1%;background:#32d74b;">car 0.91</div>
+      <div class="box" style="left:87.5%;top:79.5%;width:9%;height:9%;border-color:#5e5ce6;"></div>
+      <div class="tag" style="left:72%;top:76.1%;background:#5e5ce6;">person 0.88</div>
     </div>
   </div>
 
@@ -81,14 +81,15 @@
 model = Detector("n")              # GELAN n; also "s" / "m" / "l", or family="e2e"
 model.train(data="data.yaml", epochs=100, imgsz=640)
 model.save("weights/app.coreyolo")
-model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU</code></pre>
+model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU
+# RF-DETR export is FP16 on the Neural Engine, palettes off</code></pre>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap-wide">
-      <h2>Three graphs. One trainer.</h2>
-      <p class="lead">Pick the graph that matches the phone, not a 50-task zoo.</p>
+      <h2>Four graphs. One trainer.</h2>
+      <p class="lead">Pick the graph that matches the phone.</p>
       <div class="grid-2">
         <article class="card">
           <h3>GELAN — default</h3>
@@ -103,6 +104,11 @@ model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU</code></pre
         <article class="card">
           <h3>E2E</h3>
           <p>Original C3k2 + C2PSA graph. NMS-free top-300 at inference. You train it from scratch.</p>
+          <p><a href="models.html">See models ›</a></p>
+        </article>
+        <article class="card">
+          <h3>RF-DETR</h3>
+          <p>Set prediction on LibreYOLO’s Core ML contract for this family: fixed RGB image, ImageNet norm inside the graph, no NMS. Scales n / s / m / l at 384 / 512 / 576 / 704. CoreYOLO ships FP16 on the Neural Engine. Train from scratch (MIT).</p>
           <p><a href="models.html">See models ›</a></p>
         </article>
       </div>
@@ -142,7 +148,7 @@ model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU</code></pre
       <div class="grid-2">
         <article class="card">
           <h3>Detect</h3>
-          <p>Anchor-free boxes at strides 8, 16, and 32. Class-aware NMS on the host for GELAN. Top-300 for E2E.</p>
+          <p>Anchor-free boxes at strides 8, 16, and 32. Class-aware NMS on the host for GELAN. Top-300 for E2E. Set prediction for RF-DETR, layout <code>(1, Q, 6)</code>, no NMS.</p>
         </article>
         <article class="card">
           <h3>Segment</h3>

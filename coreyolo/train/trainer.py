@@ -18,9 +18,11 @@ from coreyolo.data.dataset import YOLODetectionDataset, collate_fn
 from coreyolo.data.yaml import YOLODatasetYAML
 from coreyolo.infer.nms import non_max_suppression
 from coreyolo.nn.decode import xywh_to_xyxy
-from coreyolo.nn.model import build_model, normalize_family
+from coreyolo.nn.model import build_model, is_rfdetr_family, normalize_family
 from coreyolo.nn.modules import normalize_act
+from coreyolo.nn.rfdetr import check_rfdetr_imgsz, rfdetr_native_imgsz
 from coreyolo.train.loss import DetectionLoss, SegmentationLoss
+from coreyolo.train.set_loss import SetCriterion
 from coreyolo.train.metrics import ap_per_class
 from coreyolo.utils import (
     increment_path,
@@ -115,10 +117,42 @@ def _sgd_param_groups(model: torch.nn.Module, lr: float, momentum: float, weight
     )
 
 
+def _adamw_param_groups(model: torch.nn.Module, lr: float, weight_decay: float) -> torch.optim.AdamW:
+    decay, no_decay = [], []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if param.ndim <= 1 or name.endswith(".bias"):
+            no_decay.append(param)
+        else:
+            decay.append(param)
+    return torch.optim.AdamW(
+        [
+            {"params": decay, "weight_decay": weight_decay},
+            {"params": no_decay, "weight_decay": 0.0},
+        ],
+        lr=lr,
+    )
+
+
 def train(cfg: TrainConfig) -> Path:
     torch.manual_seed(cfg.seed)
     cfg.act = normalize_act(cfg.act)
     cfg.family = normalize_family(cfg.family)
+    if is_rfdetr_family(cfg.family):
+        if cfg.act == "relu":
+            cfg.act = "gelu"
+            print("rfdetr: encoder FFN uses tanh-GELU (Core ML).")
+        if cfg.lr0 > 1e-4:
+            print(
+                f"rfdetr: lowering lr0 from {cfg.lr0} to 1e-4. "
+                "Set-prediction diverges at a YOLO learning rate."
+            )
+            cfg.lr0 = 1e-4
+        check_rfdetr_imgsz(cfg.model, cfg.imgsz)
+        native = rfdetr_native_imgsz(cfg.model)
+        if cfg.imgsz != native:
+            print(f"rfdetr scale {cfg.model}: native imgsz is {native} (this run uses {cfg.imgsz}).")
     device = select_device(cfg.device)
     task = str(cfg.task).lower()
     print(f"device: {device}  family={cfg.family}  task={task}  act={cfg.act}")
@@ -191,6 +225,13 @@ def train(cfg: TrainConfig) -> Path:
                     "See weights/LICENSE_NOTICE.txt and docs/licenses.md.",
                     file=sys.stderr,
                 )
+            elif license_id.upper().startswith("APACHE"):
+                print(
+                    "warning: --resume carries Apache-2.0 tensors. "
+                    "Fine-tunes keep that license, attribution, and patent notice. "
+                    "See weights/LICENSE_NOTICE.txt and docs/licenses.md.",
+                    file=sys.stderr,
+                )
             else:
                 print(
                     "warning: --resume is converted MultimediaTechLab tensors (MIT). "
@@ -199,11 +240,16 @@ def train(cfg: TrainConfig) -> Path:
                     file=sys.stderr,
                 )
 
-    if task == "segment":
+    if is_rfdetr_family(cfg.family):
+        criterion = SetCriterion()
+    elif task == "segment":
         criterion = SegmentationLoss(model, box=cfg.box, cls=cfg.cls, dfl=cfg.dfl)
     else:
         criterion = DetectionLoss(model, box=cfg.box, cls=cfg.cls, dfl=cfg.dfl)
-    optimizer = _sgd_param_groups(model, cfg.lr0, cfg.momentum, cfg.weight_decay)
+    if is_rfdetr_family(cfg.family):
+        optimizer = _adamw_param_groups(model, cfg.lr0, cfg.weight_decay)
+    else:
+        optimizer = _sgd_param_groups(model, cfg.lr0, cfg.momentum, cfg.weight_decay)
     try:
         ema = ModelEMA(model)
     except Exception:
@@ -243,7 +289,7 @@ def train(cfg: TrainConfig) -> Path:
             preds = model(imgs)
             loss, items = criterion(preds, batch)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 10.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1 if is_rfdetr_family(cfg.family) else 10.0)
             optimizer.step()
             if ema is not None:
                 ema.update(model)
@@ -284,6 +330,7 @@ def train(cfg: TrainConfig) -> Path:
             "nm": int(getattr(model.head, "nm", 0) or 0),
             "end2end": bool(getattr(model.head, "end2end", False)),
             "reg_max": int(getattr(model.head, "reg_max", 16)),
+            "queries": int(getattr(model, "num_queries", 0) or 0),
             "imgsz": cfg.imgsz,
             "args": asdict(cfg),
             "weights_license": MIT_WEIGHT_LICENSE,

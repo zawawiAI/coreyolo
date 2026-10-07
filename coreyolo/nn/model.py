@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 
 from coreyolo.nn.head import Detect, Segment
+from coreyolo.nn.rfdetr import RFDETR
 from coreyolo.nn.modules import (
     AConv,
     ADown,
@@ -42,7 +43,7 @@ SCALES_E2E: dict[str, tuple[float, float, int]] = {
 }
 
 SCALES = SCALES_DFL
-FAMILIES = ("dfl", "gelan", "e2e")
+FAMILIES = ("dfl", "gelan", "e2e", "rfdetr")
 FAMILY_ALIASES = {
     "dfl": "dfl",
     "c2f": "dfl",
@@ -53,6 +54,9 @@ FAMILY_ALIASES = {
     "e2e": "e2e",
     "c3k2": "e2e",
     "26": "e2e",
+    "rfdetr": "rfdetr",
+    "rf-detr": "rfdetr",
+    "rf_detr": "rfdetr",
 }
 
 # Compact GELAN as in the YOLOv9 paper. Scale n is the tiny channel table
@@ -141,14 +145,15 @@ GELAN_SCALES["x"] = GELAN_SCALES["l"]
 
 
 def normalize_family(family: str | None = None) -> str:
-    """Map a family id to ``dfl``, ``gelan``, or ``e2e``. ``8`` / ``9`` / ``26`` remain aliases."""
-    raw = str(family or "gelan").strip().lower()
+    """Map a family id to ``dfl``, ``gelan``, ``e2e``, or ``rfdetr``."""
+    raw = str(family or "gelan").strip().lower().replace(" ", "")
     if raw.startswith("v") and raw[1:].isdigit():
         raw = raw[1:]
     key = FAMILY_ALIASES.get(raw, raw)
     if key not in FAMILIES:
         raise ValueError(
-            f"Unknown family {family!r}. Choose from {list(FAMILIES)} (aliases: 8→dfl, 9→gelan, 26→e2e)"
+            f"Unknown family {family!r}. Choose from {list(FAMILIES)} "
+            "(aliases: 8→dfl, 9→gelan, 26→e2e, rf-detr→rfdetr)"
         )
     return key
 
@@ -159,6 +164,10 @@ def is_e2e_family(family: str | None) -> bool:
 
 def is_gelan_family(family: str | None) -> bool:
     return normalize_family(family) == "gelan"
+
+
+def is_rfdetr_family(family: str | None) -> bool:
+    return normalize_family(family) == "rfdetr"
 
 
 def _elan_block(kind: str, c1: int, c2: int, c3: int, c4: int, n: int, act: str) -> nn.Module:
@@ -207,6 +216,8 @@ class CoreYOLO(nn.Module):
     ) -> None:
         super().__init__()
         family = normalize_family(family)
+        if family == "rfdetr":
+            raise ValueError("family 'rfdetr' is built with build_model(), not CoreYOLO()")
         if family not in FAMILIES:
             raise ValueError(f"Unknown family '{family}'. Choose from {list(FAMILIES)}")
         task = str(task).lower()
@@ -436,7 +447,7 @@ def build_model(
     family: str = "gelan",
     task: str = "detect",
     nm: int = 32,
-) -> CoreYOLO:
+) -> CoreYOLO | RFDETR:
     if weights:
         from coreyolo.utils import load_checkpoint
 
@@ -448,7 +459,13 @@ def build_model(
             nc = int(ckpt.get("nc", nc))
             task = str(ckpt.get("task", task))
             nm = int(ckpt.get("nm", nm))
-    model = CoreYOLO(nc=nc, scale=scale, act=act, family=family, task=task, nm=nm)
+    family = normalize_family(family)
+    if family == "rfdetr":
+        if str(task).lower() != "detect":
+            raise ValueError("rfdetr is detection only")
+        model = RFDETR(nc=nc, scale=str(scale), act=str(act or "gelu"))
+    else:
+        model = CoreYOLO(nc=nc, scale=scale, act=act, family=family, task=task, nm=nm)
     if weights:
         state = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
         model.load_state_dict(state, strict=False)

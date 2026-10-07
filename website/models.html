@@ -77,7 +77,7 @@
   <section class="section gray">
     <div class="wrap-wide">
       <h2>Graphs</h2>
-      <p class="lead">Same trainer. Different graphs. Default is <code>--family gelan</code> (YOLOv9). Also <code>dfl</code> or <code>e2e</code>.</p>
+      <p class="lead">Same trainer. Different graphs. Default is <code>--family gelan</code> (YOLOv9). Also <code>dfl</code>, <code>e2e</code>, or <code>rfdetr</code>.</p>
       <div class="grid-2">
         <article class="card">
           <h3>GELAN — default</h3>
@@ -90,6 +90,10 @@
         <article class="card">
           <h3>E2E</h3>
           <p>Original C3k2, residual SPPF, C2PSA, dual TAL head, <code>reg_max=1</code>. Eval is NMS-free top-300, <code>(B, 300, 6)</code> as xyxy, conf, cls. Export drops the one-to-many train head. Train from scratch.</p>
+        </article>
+        <article class="card">
+          <h3>RF-DETR</h3>
+          <p>Set prediction, on LibreYOLO's Core ML contract for this family: fixed RGB image, ImageNet norm inside the graph, no NMS. n / s / m / l at 384 / 512 / 576 / 704. CoreYOLO ships it as FP16 on the Neural Engine. Train from scratch (MIT). Upstream Nano–Large stays Apache-2.0. XLarge / 2XLarge (PML 1.0) are refused.</p>
         </article>
       </div>
     </div>
@@ -175,6 +179,15 @@
               <td>ReLU</td>
               <td>ANE</td>
               <td><code>coreyolo train --recipe coco-n-e2e</code></td>
+              <td>MIT</td>
+            </tr>
+            <tr>
+              <td>coreyolo-rfdetr-n</td>
+              <td>rfdetr</td>
+              <td>detect</td>
+              <td>GELU</td>
+              <td>ANE</td>
+              <td><code>coreyolo train --recipe coco-n-rfdetr</code></td>
               <td>MIT</td>
             </tr>
           </tbody>

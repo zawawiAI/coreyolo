@@ -19,6 +19,8 @@ CHECKPOINT_FORMAT = "coreyolo"
 NATIVE_WEIGHT_EXTS = {".pt", ".coreyolo"}
 AGPL_WEIGHT_LICENSE = "AGPL-3.0"
 MIT_WEIGHT_LICENSE = "MIT"
+APACHE_WEIGHT_LICENSE = "Apache-2.0"
+PML_WEIGHT_LICENSE = "PML-1.0"
 
 # Printed when loading/exporting converted third-party YOLOv9 tensors.
 AGPL_WEIGHTS_NOTICE = """\
@@ -31,6 +33,20 @@ MTL_WEIGHTS_NOTICE = """\
 license: these tensors inherit MIT from MultimediaTechLab/YOLO, copyright Kin-Yiu Wong
 and Hao-Tang Tsui. Keep the license text and that copyright notice with any copy.
 Converting the file does not change its applicable terms.
+"""
+
+APACHE_WEIGHTS_NOTICE = """\
+license: these tensors inherit Apache-2.0. Keep the license text, attribution, and
+patent notice with any copy. Converting the file does not change its applicable terms.
+See weights/LICENSE_NOTICE.txt and docs/licenses.md.
+"""
+
+PML_WEIGHTS_REFUSAL = """\
+RF-DETR XLarge and 2XLarge checkpoints are Platform Model License 1.0.
+CoreYOLO does not load them, convert them, or relicense them as MIT or Apache-2.0.
+Nano, Small, Medium, and Large on Roboflow's graph stay Apache-2.0.
+This repository trains its own Core ML rfdetr graph from scratch (MIT).
+See docs/licenses.md.
 """
 
 _GPU_ALIASES = {
@@ -168,6 +184,11 @@ def checkpoint_weight_license(ckpt: Any) -> str:
     vendor = str(ckpt.get("source_vendor") or "")
     if "multimediatechlab" in vendor.lower():
         return MIT_WEIGHT_LICENSE
+    if "roboflow" in vendor.lower() or "rf-detr" in vendor.lower() or "rfdetr" in vendor.lower():
+        scale = str(ckpt.get("scale") or "").lower()
+        if scale in {"x", "xl", "xlarge", "2xl", "2xlarge"}:
+            return PML_WEIGHT_LICENSE
+        return APACHE_WEIGHT_LICENSE
     family = str(ckpt.get("source_family") or "")
     if family.startswith("yolov8") or family.startswith("yolov9") or vendor.lower() in {"yolov9", "yolov8", "ultralytics"}:
         return AGPL_WEIGHT_LICENSE
@@ -179,19 +200,62 @@ def is_converted_agpl_weights(ckpt: Any) -> bool:
     return str(checkpoint_weight_license(ckpt)).upper().startswith("AGPL")
 
 
+def upstream_rfdetr_kind(path: str | Path | None, ckpt: Any) -> str | None:
+    """``pml`` or ``apache`` when ``ckpt`` is an upstream RF-DETR file, else None.
+
+    A native ``format: coreyolo`` checkpoint is not upstream. A PML stamp on any
+    file is still ``pml``.
+    """
+    license_id = ""
+    if isinstance(ckpt, dict):
+        license_id = str(ckpt.get("weights_license") or ckpt.get("source_license") or "")
+        if license_id.upper().startswith("PML"):
+            return "pml"
+        if ckpt.get("format") == CHECKPOINT_FORMAT or str(ckpt.get("family") or "") == "rfdetr":
+            return None
+    name = Path(path).name.lower().replace("_", "-") if path else ""
+    pml_name = any(tok in name for tok in ("2xlarge", "2x-large", "xlarge", "x-large"))
+    rf_name = "rf-detr" in name or "rfdetr" in name
+    if rf_name and pml_name:
+        return "pml"
+    if rf_name:
+        return "apache"
+    keys = " ".join(_checkpoint_state_keys(ckpt)).lower()
+    if any(tok in keys for tok in ("dinov2", "lwdetr")):
+        return "pml" if pml_name or "xlarge" in keys else "apache"
+    return None
+
+
+def refuse_upstream_rfdetr(path: str | Path, ckpt: Any) -> None:
+    """Stop PML files, and stop upstream Apache RF-DETR pickles (different graph)."""
+    kind = upstream_rfdetr_kind(path, ckpt)
+    if kind is None:
+        return
+    name = Path(path).name
+    if kind == "pml":
+        raise TypeError(f"{name}: {PML_WEIGHTS_REFUSAL.strip()}")
+    raise TypeError(
+        f"{name} is an upstream RF-DETR checkpoint. Nano through Large on that graph are "
+        "Apache-2.0 (DINOv2 backbone, Apache-2.0). CoreYOLO does not remap that file and "
+        "does not relicense it. Train --family rfdetr from scratch; weights you train are yours. "
+        "See docs/licenses.md."
+    )
+
+
 def origin_metadata(ckpt: Any) -> dict[str, Any]:
     """Fields that must follow converted tensors through save, train, and export."""
     if not isinstance(ckpt, dict):
         return {}
     vendor = str(ckpt.get("source_vendor") or "")
     copyright = ckpt.get("source_copyright")
-    if not is_converted_agpl_weights(ckpt) and not vendor and not copyright:
-        return {}
     license_id = checkpoint_weight_license(ckpt)
+    apache = license_id.upper().startswith("APACHE")
+    if not is_converted_agpl_weights(ckpt) and not vendor and not copyright and not apache:
+        return {}
     out: dict[str, Any] = {
         "weights_license": license_id,
         "source_license": str(ckpt.get("source_license") or license_id),
-        "source_family": ckpt.get("source_family") or "yolov9",
+        "source_family": ckpt.get("source_family") or ("rfdetr" if apache else "yolov9"),
     }
     for key in ("source", "source_version", "source_vendor", "source_copyright"):
         if ckpt.get(key) is not None:
@@ -203,6 +267,9 @@ def warn_converted_weights(ckpt: Any, *, stream: Any = None) -> None:
     """Remind that a CoreYOLO file can still be third-party YOLOv9 numbers."""
     if is_converted_agpl_weights(ckpt):
         print(AGPL_WEIGHTS_NOTICE, end="", file=stream or sys.stderr)
+        return
+    if str(checkpoint_weight_license(ckpt)).upper().startswith("APACHE"):
+        print(APACHE_WEIGHTS_NOTICE, end="", file=stream or sys.stderr)
         return
     if isinstance(ckpt, dict) and ckpt.get("source_vendor"):
         print(MTL_WEIGHTS_NOTICE, end="", file=stream or sys.stderr)
@@ -221,6 +288,7 @@ def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") 
     """Load a CoreYOLO checkpoint. Sequential ``yolov9t.pt`` pickles are rejected."""
     path = Path(path)
     ckpt = torch.load(path, map_location=map_location, weights_only=False)
+    refuse_upstream_rfdetr(path, ckpt)
     if is_sequential_yolo_checkpoint(ckpt):
         raise TypeError(
             f"{path.name} is an upstream YOLOv9 pickle, not CoreYOLO.\n"
