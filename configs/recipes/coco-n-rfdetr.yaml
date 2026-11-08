@@ -2,8 +2,8 @@
 # Square size must be divisible by patch 16 × 2 windows (32). Native size is 384.
 # Learning rate stays at 1e-4. The trainer also caps a YOLO-style 0.01 default.
 #
-#   coreyolo coco --out datasets/coco --download
-#   coreyolo train --recipe coco-n-rfdetr
+#   yolosilicon coco --out datasets/coco --download
+#   yolosilicon train --recipe coco-n-rfdetr
 
 data: datasets/coco/data.yaml
 model: n

@@ -3,24 +3,24 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from coreyolo import Detector, YOLO, Result
-from coreyolo.data.dummy import write_dummy_dataset
+from yolosilicon import Detector, Result
+from yolosilicon.data.dummy import write_dummy_dataset
 
 
 def test_sdk_family_aliases() -> None:
-    dfl = YOLO("n", nc=2, family="8", device="cpu", imgsz=64)
+    dfl = Detector("n", nc=2, family="8", device="cpu", imgsz=64)
     assert dfl.family == "dfl"
     assert dfl.end2end is False
-    e2e = YOLO("n", nc=2, family="26", device="cpu", imgsz=64)
+    e2e = Detector("n", nc=2, family="26", device="cpu", imgsz=64)
     assert e2e.family == "e2e"
     assert e2e.end2end is True
-    gelan = YOLO("n", nc=2, family="9", device="cpu", imgsz=64)
+    gelan = Detector("n", nc=2, family="9", device="cpu", imgsz=64)
     assert gelan.family == "gelan"
     assert gelan.end2end is False
 
 
 def test_sdk_predict_scale_and_result(tmp_path: Path) -> None:
-    model = YOLO("n", nc=2, names=["red_box", "blue_box"], device="cpu", imgsz=64)
+    model = Detector("n", nc=2, names=["red_box", "blue_box"], device="cpu", imgsz=64)
     image = Image.new("RGB", (80, 60), (20, 20, 20))
     results = model.predict(image, conf=0.001)
     assert len(results) == 1
@@ -35,7 +35,7 @@ def test_sdk_predict_scale_and_result(tmp_path: Path) -> None:
 
 def test_sdk_predict_numpy_and_dir(tmp_path: Path) -> None:
     yaml_path = write_dummy_dataset(tmp_path, n_train=1, n_val=1, size=64)
-    model = YOLO("n", nc=2, device="cpu", imgsz=64)
+    model = Detector("n", nc=2, device="cpu", imgsz=64)
     arr = np.zeros((64, 64, 3), dtype=np.uint8)
     results = model(arr, conf=0.9)
     assert len(results) == 1
@@ -47,7 +47,7 @@ def test_sdk_predict_numpy_and_dir(tmp_path: Path) -> None:
 
 def test_sdk_train_then_predict(tmp_path: Path) -> None:
     data = write_dummy_dataset(tmp_path / "data", n_train=8, n_val=4, size=64)
-    model = YOLO("n", nc=2, device="cpu", imgsz=64)
+    model = Detector("n", nc=2, device="cpu", imgsz=64)
     save_dir = model.train(
         data,
         epochs=1,
@@ -71,42 +71,41 @@ def test_sdk_train_then_predict(tmp_path: Path) -> None:
 
 
 def test_sdk_native_coreyolo_roundtrip(tmp_path: Path) -> None:
-    src = YOLO("n", nc=3, names=["a", "b", "c"], device="cpu", imgsz=64)
-    path = src.save(tmp_path / "app.coreyolo")
-    assert path.suffix == ".coreyolo"
-    loaded = YOLO(path, device="cpu", imgsz=64)
+    src = Detector("n", nc=3, names=["a", "b", "c"], device="cpu", imgsz=64)
+    path = src.save(tmp_path / "app.yolosilicon")
+    assert path.suffix == ".yolosilicon"
+    loaded = Detector(path, device="cpu", imgsz=64)
     assert loaded.names == ["a", "b", "c"]
-    assert loaded.info().get("format") == "coreyolo" or loaded.weights.suffix == ".coreyolo"
+    assert loaded.info().get("format") == "yolosilicon" or loaded.weights.suffix == ".yolosilicon"
     ckpt = __import__("torch").load(path, map_location="cpu", weights_only=False)
-    assert ckpt["format"] == "coreyolo"
+    assert ckpt["format"] == "yolosilicon"
     assert any(k.startswith("stem.") for k in ckpt["model"])
 
 
-def test_rejects_yolov9_pt(tmp_path: Path) -> None:
+def test_rejects_upstream_pt(tmp_path: Path) -> None:
     import torch
 
-    from coreyolo.utils import load_checkpoint
+    from yolosilicon.utils import load_checkpoint
 
-    fake = tmp_path / "yolov9t.pt"
+    fake = tmp_path / "upstream.pt"
     torch.save({"model": {"model.22.dfl.conv.weight": torch.zeros(1, 16, 1, 1)}}, fake)
     try:
         load_checkpoint(fake)
         raised = False
     except TypeError as exc:
         raised = True
-        assert "YOLOv9 pickle" in str(exc)
+        assert "pickle" in str(exc).lower()
         assert "AGPL-3.0" in str(exc)
     assert raised
     try:
-        YOLO(fake, device="cpu")
-        yolo_raised = False
+        Detector(fake, device="cpu")
+        detector_raised = False
     except TypeError:
-        yolo_raised = True
-    assert yolo_raised
+        detector_raised = True
+    assert detector_raised
 
 
 def test_detector_is_public_name() -> None:
-    assert Detector is YOLO
     model = Detector("n", nc=2, device="cpu", imgsz=64)
     assert repr(model).startswith("Detector(")
 
@@ -114,11 +113,11 @@ def test_detector_is_public_name() -> None:
 def test_save_preserves_agpl_origin(tmp_path: Path) -> None:
     import torch
 
-    from coreyolo.nn.model import build_model
-    from coreyolo.utils import save_checkpoint
+    from yolosilicon.nn.model import build_model
+    from yolosilicon.utils import save_checkpoint
 
     nn = build_model(nc=2, scale="n", act="silu", family="gelan")
-    src = tmp_path / "converted.coreyolo"
+    src = tmp_path / "converted.yolosilicon"
     save_checkpoint(
         src,
         {
@@ -136,7 +135,7 @@ def test_save_preserves_agpl_origin(tmp_path: Path) -> None:
     )
     loaded = Detector(src, device="cpu", imgsz=64)
     assert loaded.info()["weights_license"] == "AGPL-3.0"
-    out = loaded.save(tmp_path / "resaved.coreyolo")
+    out = loaded.save(tmp_path / "resaved.yolosilicon")
     ckpt = torch.load(out, map_location="cpu", weights_only=False)
     assert ckpt["weights_license"] == "AGPL-3.0"
     assert ckpt.get("source_family") == "yolov9"
@@ -145,11 +144,11 @@ def test_save_preserves_agpl_origin(tmp_path: Path) -> None:
 def test_save_preserves_mtl_mit_origin(tmp_path: Path) -> None:
     import torch
 
-    from coreyolo.nn.model import build_model
-    from coreyolo.utils import save_checkpoint
+    from yolosilicon.nn.model import build_model
+    from yolosilicon.utils import save_checkpoint
 
     nn = build_model(nc=2, scale="n", act="silu", family="gelan")
-    src = tmp_path / "converted-mit.coreyolo"
+    src = tmp_path / "converted-mit.yolosilicon"
     save_checkpoint(
         src,
         {
@@ -163,14 +162,14 @@ def test_save_preserves_mtl_mit_origin(tmp_path: Path) -> None:
             "weights_license": "MIT",
             "source_license": "MIT",
             "source_family": "yolov9",
-            "source_vendor": "MultimediaTechLab/YOLO",
+            "source_vendor": "MultimediaTechLab",
             "source_copyright": "Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui",
         },
     )
     loaded = Detector(src, device="cpu", imgsz=64)
     assert loaded.info()["weights_license"] == "MIT"
-    out = loaded.save(tmp_path / "resaved-mit.coreyolo")
+    out = loaded.save(tmp_path / "resaved-mit.yolosilicon")
     ckpt = torch.load(out, map_location="cpu", weights_only=False)
     assert ckpt["weights_license"] == "MIT"
-    assert ckpt["source_vendor"] == "MultimediaTechLab/YOLO"
+    assert ckpt["source_vendor"] == "MultimediaTechLab"
     assert "Wong" in str(ckpt.get("source_copyright"))

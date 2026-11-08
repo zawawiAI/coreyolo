@@ -3,4 +3,4 @@ include NOTICE
 include README.md
 include pyproject.toml
 include weights/LICENSE_NOTICE.txt
-recursive-include coreyolo/recipes *.yaml
+recursive-include yolosilicon/recipes *.yaml

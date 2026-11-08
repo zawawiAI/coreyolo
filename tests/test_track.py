@@ -1,6 +1,6 @@
 import numpy as np
 
-from coreyolo.infer.track import IOUTracker, _iou_matrix
+from yolosilicon.infer.track import IOUTracker, _iou_matrix
 
 
 def test_iou_identical_boxes() -> None:

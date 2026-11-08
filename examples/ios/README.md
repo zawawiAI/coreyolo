@@ -1,20 +1,20 @@
-# CoreYOLO iPhone sample
+# YOLOSilicon iPhone sample
 
-SwiftUI camera app for **iOS 16+**. Letterbox → Core ML → host NMS (GELAN/DFL) or top-300 (E2E). Matches `coreyolo.data.augment.letterbox` and `coreyolo.infer.nms`.
+SwiftUI camera app for **iOS 16+**. Letterbox → Core ML → host NMS (GELAN/DFL) or top-300 (E2E). Matches `yolosilicon.data.augment.letterbox` and `yolosilicon.infer.nms`.
 
 ## 1. Export a model
 
 ```bash
-coreyolo export --weights weights/coreyolo-n-coco.coreyolo --imgsz 640 --out weights/coreyolo-n-coco.mlpackage
+yolosilicon export --weights weights/yolosilicon-n-coco.yolosilicon --imgsz 640 --out weights/yolosilicon-n-coco.mlpackage
 ```
 
-Rename or copy to `CoreYOLO.mlpackage` (the name `Detector.swift` looks for in the app bundle).
+Rename or copy to `YOLOSilicon.mlpackage` (the name `Detector.swift` looks for in the app bundle).
 
 ## 2. Add it to Xcode
 
-1. Open `CoreYOLODemo.xcodeproj`.
-2. Drag `CoreYOLO.mlpackage` into the `CoreYOLODemo` group.
-3. Check **Copy items if needed** and the **CoreYOLODemo** target.
+1. Open `YOLOSiliconDemo.xcodeproj`.
+2. Drag `YOLOSilicon.mlpackage` into the `YOLOSiliconDemo` group.
+3. Check **Copy items if needed** and the **YOLOSiliconDemo** target.
 4. Set your **Team** under Signing.
 5. Run on a **device** (camera + Neural Engine / GPU). The simulator has no camera and a weak Core ML path.
 

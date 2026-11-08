@@ -1,15 +1,15 @@
 import json
 from pathlib import Path
 
-from coreyolo.data.coco import (
+from yolosilicon.data.coco import (
     COCO_ID_TO_IDX,
     COCO_NAMES,
-    coco_bbox_to_yolo,
+    coco_to_normalized_bbox,
     convert_coco_json,
     write_data_yaml,
 )
-from coreyolo.data.yaml import YOLODatasetYAML
-from coreyolo.train.recipe import load_recipe, train_config_from_recipe
+from yolosilicon.data.yaml import DatasetConfig
+from yolosilicon.train.recipe import load_recipe, train_config_from_recipe
 
 
 def test_coco_80_mapping() -> None:
@@ -21,15 +21,15 @@ def test_coco_80_mapping() -> None:
     assert 12 not in COCO_ID_TO_IDX
 
 
-def test_coco_bbox_to_yolo() -> None:
-    box = coco_bbox_to_yolo([50, 40, 100, 80], 200, 160)
+def test_coco_to_normalized_bbox() -> None:
+    box = coco_to_normalized_bbox([50, 40, 100, 80], 200, 160)
     assert box is not None
     xc, yc, w, h = box
     assert abs(xc - 0.5) < 1e-6
     assert abs(yc - 0.5) < 1e-6
     assert abs(w - 0.5) < 1e-6
     assert abs(h - 0.5) < 1e-6
-    assert coco_bbox_to_yolo([0, 0, 0, 10], 100, 100) is None
+    assert coco_to_normalized_bbox([0, 0, 0, 10], 100, 100) is None
 
 
 def test_convert_coco_json(tmp_path: Path) -> None:
@@ -66,7 +66,7 @@ def test_coco_data_yaml_roundtrip(tmp_path: Path) -> None:
     (tmp_path / "valid" / "labels").mkdir(parents=True)
     (tmp_path / "train" / "images" / "a.jpg").write_bytes(b"")
     yaml_path = write_data_yaml(tmp_path)
-    spec = YOLODatasetYAML(yaml_path)
+    spec = DatasetConfig(yaml_path)
     assert spec.nc == 80
     assert spec.names[0] == "person"
     assert spec.names[79] == "toothbrush"
@@ -95,11 +95,11 @@ def test_coco_n_e2e_recipe() -> None:
 
 
 def test_recipes_ship_inside_package() -> None:
-    from coreyolo.train.recipe import recipe_path
+    from yolosilicon.train.recipe import recipe_path
 
     path = recipe_path("coco-n")
     assert path.is_file()
-    assert "coreyolo" in path.parts
+    assert "yolosilicon" in path.parts
     assert path.name == "coco-n.yaml"
 
 

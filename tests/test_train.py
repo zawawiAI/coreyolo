@@ -2,18 +2,18 @@ from pathlib import Path
 
 import torch
 
-from coreyolo.data.dataset import YOLODetectionDataset, collate_fn
-from coreyolo.data.dummy import write_dummy_dataset
-from coreyolo.data.yaml import YOLODatasetYAML
-from coreyolo.nn.model import build_model
-from coreyolo.train.loss import DetectionLoss
-from coreyolo.train.trainer import TrainConfig, train
+from yolosilicon.data.dataset import DetectionDataset, collate_fn
+from yolosilicon.data.dummy import write_dummy_dataset
+from yolosilicon.data.yaml import DatasetConfig
+from yolosilicon.nn.model import build_model
+from yolosilicon.train.loss import DetectionLoss
+from yolosilicon.train.trainer import TrainConfig, train
 
 
 def test_one_train_step(tmp_path: Path) -> None:
     yaml_path = write_dummy_dataset(tmp_path, n_train=4, n_val=2, size=64)
-    spec = YOLODatasetYAML(yaml_path)
-    ds = YOLODetectionDataset(spec, "train", imgsz=64, augment=False, mosaic=0.0)
+    spec = DatasetConfig(yaml_path)
+    ds = DetectionDataset(spec, "train", imgsz=64, augment=False, mosaic=0.0)
     batch = collate_fn([ds[0], ds[1]])
     model = build_model(nc=spec.nc, scale="n")
     model.train()
@@ -27,8 +27,8 @@ def test_one_train_step(tmp_path: Path) -> None:
 
 def test_one_train_step_e2e(tmp_path: Path) -> None:
     yaml_path = write_dummy_dataset(tmp_path, n_train=4, n_val=2, size=64)
-    spec = YOLODatasetYAML(yaml_path)
-    ds = YOLODetectionDataset(spec, "train", imgsz=64, augment=False, mosaic=0.0)
+    spec = DatasetConfig(yaml_path)
+    ds = DetectionDataset(spec, "train", imgsz=64, augment=False, mosaic=0.0)
     batch = collate_fn([ds[0], ds[1]])
     model = build_model(nc=spec.nc, scale="n", family="e2e")
     model.train()

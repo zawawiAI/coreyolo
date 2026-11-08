@@ -1,4 +1,4 @@
-# Alias of coco-n-e2e. Prefer: coreyolo train --recipe coco-n-e2e
+# Alias of coco-n-e2e. Prefer: yolosilicon train --recipe coco-n-e2e
 # Kept so --recipe coco-n-26 still works.
 
 data: datasets/coco/data.yaml

@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from coreyolo.cli import build_parser
-from coreyolo.zoo import assert_zoo_license_labels, listed_release_files, load_manifest, record_metrics, write_metrics_json
+from yolosilicon.cli import build_parser
+from yolosilicon.zoo import assert_zoo_license_labels, listed_release_files, load_manifest, record_metrics, write_metrics_json
 
 
 def test_train_cli_act_gelu() -> None:

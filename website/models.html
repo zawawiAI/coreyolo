@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Models — CoreYOLO</title>
-  <meta name="description" content="CoreYOLO scales n through x, GELAN, DFL, and E2E graphs, detect and segment." />
+  <title>Models — YOLOSilicon</title>
+  <meta name="description" content="YOLOSilicon scales n through x, GELAN, DFL, and E2E graphs, detect and segment." />
   <link rel="stylesheet" href="css/site.css?v=oss" />
 </head>
 <body>
@@ -17,7 +17,7 @@
         <li><a href="models.html" aria-current="page">Models</a></li>
         <li><a href="docs.html">Docs</a></li>
         <li><a href="deploy.html">Deploy</a></li>
-        <li><a href="https://github.com/zawawiAI/coreyolo">GitHub</a></li>
+        <li><a href="https://github.com/zawawiAI/yolosilicon">GitHub</a></li>
         <li><a class="nav-cta" href="docs.html#quickstart">Get started</a></li>
       </ul>
     </div>
@@ -93,7 +93,7 @@
         </article>
         <article class="card">
           <h3>RF-DETR</h3>
-          <p>Set prediction, on LibreYOLO's Core ML contract for this family: fixed RGB image, ImageNet norm inside the graph, no NMS. n / s / m / l at 384 / 512 / 576 / 704. CoreYOLO ships it as FP16 on the Neural Engine. Train from scratch (MIT). Upstream Nano–Large stays Apache-2.0. XLarge / 2XLarge (PML 1.0) are refused.</p>
+          <p>Set prediction, on LibreYOLO's Core ML contract for this family: fixed RGB image, ImageNet norm inside the graph, no NMS. n / s / m / l at 384 / 512 / 576 / 704. YOLOSilicon ships it as FP16 on the Neural Engine. Train from scratch (MIT). Upstream Nano–Large stays Apache-2.0. XLarge / 2XLarge (PML 1.0) are refused.</p>
         </article>
       </div>
     </div>
@@ -119,75 +119,75 @@
           </thead>
           <tbody>
             <tr>
-              <td>coreyolo-n-coco</td>
+              <td>yolosilicon-n-coco</td>
               <td>gelan</td>
               <td>detect</td>
               <td>SiLU</td>
               <td>GPU</td>
-              <td><code>coreyolo convert --weights v9-t.pt</code></td>
+              <td><code>yolosilicon convert --weights v9-t.pt</code></td>
               <td>MIT</td>
             </tr>
             <tr>
-              <td>coreyolo-s-coco</td>
+              <td>yolosilicon-s-coco</td>
               <td>gelan</td>
               <td>detect</td>
               <td>SiLU</td>
               <td>GPU</td>
-              <td><code>coreyolo convert --weights v9-s.pt</code></td>
+              <td><code>yolosilicon convert --weights v9-s.pt</code></td>
               <td>MIT</td>
             </tr>
             <tr>
-              <td>coreyolo-m-coco</td>
+              <td>yolosilicon-m-coco</td>
               <td>gelan</td>
               <td>detect</td>
               <td>SiLU</td>
               <td>GPU</td>
-              <td><code>coreyolo convert --weights v9-m.pt</code></td>
+              <td><code>yolosilicon convert --weights v9-m.pt</code></td>
               <td>MIT</td>
             </tr>
             <tr>
-              <td>coreyolo-l-coco</td>
+              <td>yolosilicon-l-coco</td>
               <td>gelan</td>
               <td>detect</td>
               <td>SiLU</td>
               <td>GPU</td>
-              <td><code>coreyolo convert --weights v9-c.pt</code></td>
+              <td><code>yolosilicon convert --weights v9-c.pt</code></td>
               <td>MIT</td>
             </tr>
             <tr>
-              <td>coreyolo-n-coco-seg</td>
+              <td>yolosilicon-n-coco-seg</td>
               <td>gelan</td>
               <td>segment</td>
               <td>ReLU</td>
               <td>ANE</td>
-              <td><code>coreyolo train --task segment --family gelan</code></td>
+              <td><code>yolosilicon train --task segment --family gelan</code></td>
               <td>MIT</td>
             </tr>
             <tr>
-              <td>coreyolo-n-coco-relu</td>
+              <td>yolosilicon-n-coco-relu</td>
               <td>gelan</td>
               <td>detect</td>
               <td>ReLU</td>
               <td>ANE</td>
-              <td><code>coreyolo train --recipe coco-n</code></td>
+              <td><code>yolosilicon train --recipe coco-n</code></td>
               <td>MIT</td>
             </tr>
             <tr>
-              <td>coreyolo-e2e-n-coco</td>
+              <td>yolosilicon-e2e-n-coco</td>
               <td>e2e</td>
               <td>detect</td>
               <td>ReLU</td>
               <td>ANE</td>
-              <td><code>coreyolo train --recipe coco-n-e2e</code></td>
+              <td><code>yolosilicon train --recipe coco-n-e2e</code></td>
               <td>MIT</td>
             </tr>
             <tr>
-              <td>coreyolo-rfdetr-n</td>
+              <td>yolosilicon-rfdetr-n</td>
               <td>rfdetr</td>
               <td>detect</td>
               <td>GELU</td>
               <td>ANE</td>
-              <td><code>coreyolo train --recipe coco-n-rfdetr</code></td>
+              <td><code>yolosilicon train --recipe coco-n-rfdetr</code></td>
               <td>MIT</td>
             </tr>
           </tbody>
@@ -196,7 +196,7 @@
       <p class="lead" style="margin-top:28px">See <code>weights/manifest.json</code> and <code>weights/LICENSE_NOTICE.txt</code> in the repository.</p>
 
       <h2>Licensing</h2>
-      <p class="lead">CoreYOLO code is MIT. Converted zoo weights are MIT. A model you train yourself is yours.</p>
+      <p class="lead">YOLOSilicon code is MIT. Converted zoo weights are MIT. A model you train yourself is yours.</p>
       <p>Choosing a model means choosing its license.</p>
     </div>
   </section>
@@ -221,11 +221,11 @@
       </div>
       <div>
         <h4>Project</h4>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
+        <a href="https://github.com/zawawiAI/yolosilicon/blob/main/LICENSE">MIT</a>
         <a href="docs.html#license">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
+    <p class="legal">Copyright © 2026 YOLOSilicon contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

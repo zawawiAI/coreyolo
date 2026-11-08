@@ -1,7 +1,7 @@
 from PIL import Image
 
-from coreyolo.data.augment import letterbox
-from coreyolo.infer.nms import scale_boxes
+from yolosilicon.data.augment import letterbox
+from yolosilicon.infer.nms import scale_boxes
 import torch
 
 

@@ -1,0 +1,146 @@
+"""Catalog of public YOLOSilicon checkpoints (GitHub Releases, not git)."""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+from yolosilicon.utils import __version__
+
+__all__ = [
+    "DEFAULT_MANIFEST",
+    "assert_zoo_license_labels",
+    "listed_release_files",
+    "load_manifest",
+    "record_metrics",
+    "write_metrics_json",
+]
+
+DEFAULT_MANIFEST = Path("weights") / "manifest.json"
+
+
+def load_manifest(path: str | Path | None = None) -> dict[str, Any]:
+    path = Path(path or DEFAULT_MANIFEST)
+    return json.loads(path.read_text())
+
+
+def write_metrics_json(path: str | Path, payload: dict[str, Any]) -> Path:
+    dest = Path(path)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    body = dict(payload)
+    body.setdefault("yolosilicon", __version__)
+    body.setdefault("recorded_at", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    dest.write_text(json.dumps(body, indent=2) + "\n")
+    return dest
+
+
+def record_metrics(
+    model_id: str,
+    metrics: dict[str, Any],
+    *,
+    manifest: str | Path | None = None,
+    extra: dict[str, Any] | None = None,
+) -> Path:
+    """Fill ``mAP50`` / ``mAP50-95`` on an existing zoo entry."""
+    path = Path(manifest or DEFAULT_MANIFEST)
+    catalog = load_manifest(path)
+    found = None
+    for entry in catalog.get("models", []):
+        if entry.get("id") == model_id:
+            found = entry
+            break
+    if found is None:
+        known = [m.get("id") for m in catalog.get("models", [])]
+        raise KeyError(f"unknown zoo id {model_id!r}; known: {known}")
+    slot = found.setdefault("metrics", {})
+    slot["mAP50"] = metrics.get("mAP50")
+    slot["mAP50-95"] = metrics.get("mAP50-95", metrics.get("mAP50_95"))
+    slot["updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if extra:
+        if extra.get("weights"):
+            found["source_weights"] = extra["weights"]
+        if extra.get("data"):
+            slot["data"] = extra["data"]
+        if extra.get("imgsz") is not None:
+            found["imgsz"] = int(extra["imgsz"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(catalog, indent=2) + "\n")
+    return path
+
+
+def listed_release_files(manifest: str | Path | None = None, root: str | Path | None = None) -> list[Path]:
+    """Local files named by the catalog, if they exist (for ``gh release upload``)."""
+    catalog = load_manifest(manifest)
+    base = Path(root or Path(manifest or DEFAULT_MANIFEST).parent)
+    found: list[Path] = []
+    for entry in catalog.get("models", []):
+        files = entry.get("files") or {}
+        for name in files.values():
+            path = base / name
+            if path.is_file() or path.is_dir():
+                found.append(path)
+    return found
+
+
+def _convert_weight_source(how: str, origin: str) -> str | None:
+    """Classify a zoo row as MIT v9 convert, AGPL YOLOv9 convert, or unknown convert."""
+    blob = f"{how} {origin}".lower()
+    if any(token in blob for token in ("v9-t.pt", "v9-s.pt", "v9-m.pt", "v9-c.pt", "multimediatechlab")):
+        return "mtl"
+    if any(
+        token in blob
+        for token in ("yolov9t.pt", "yolov9s.pt", "yolov9m.pt", "yolov9c.pt", "ultralytics")
+    ):
+        return "ultralytics"
+    if origin.lower() in {"yolov9", "yolov8"} or origin.lower().startswith("yolov9"):
+        return "ultralytics"
+    if how.startswith("coreyolo convert"):
+        return "unknown"
+    return None
+
+
+def _rfdetr_weight_source(how: str, origin: str) -> str | None:
+    """``pml`` or ``apache`` for an upstream RF-DETR zoo row. Scratch trains stay out."""
+    if how.startswith("coreyolo train"):
+        return None
+    blob = f"{how} {origin}".lower()
+    if any(tok in blob for tok in ("pml", "xlarge", "2xlarge", "2x-large", "platform model")):
+        return "pml"
+    if any(tok in blob for tok in ("roboflow", "rf-detr", "rfdetr", "dinov2")):
+        return "apache"
+    return None
+
+
+def assert_zoo_license_labels(path: str | Path | None = None) -> None:
+    """Refuse to publish AGPL YOLOv9 tensors as MIT, MIT v9 tensors as AGPL, or PML RF-DETR at all."""
+    catalog = load_manifest(path)
+    errors: list[str] = []
+    for entry in catalog.get("models", []):
+        model_id = str(entry.get("id") or "?")
+        how = str(entry.get("how") or "")
+        origin = str(entry.get("weights_origin") or "")
+        license_id = str(entry.get("weights_license") or "")
+        source = _convert_weight_source(how, origin)
+        if source in {"ultralytics", "unknown"} and not license_id.upper().startswith("AGPL"):
+            errors.append(f"{model_id}: AGPL YOLOv9 convert must stay AGPL-3.0, not {license_id!r}")
+        if source in {"ultralytics", "unknown"} and license_id.upper() == "MIT":
+            errors.append(f"{model_id}: do not rehost AGPL YOLOv9 tensors as MIT")
+        if source == "mtl" and license_id.upper() != "MIT":
+            errors.append(f"{model_id}: v9-*.pt convert should be MIT, got {license_id!r}")
+        if how.startswith("coreyolo train") and license_id.upper() != "MIT":
+            errors.append(f"{model_id}: trained-from-scratch rows should be MIT, got {license_id!r}")
+        rf = _rfdetr_weight_source(how, origin)
+        if rf == "pml":
+            errors.append(f"{model_id}: RF-DETR XLarge/2XLarge (PML-1.0) must not be published")
+        if rf == "apache" and license_id != "Apache-2.0":
+            errors.append(
+                f"{model_id}: Roboflow RF-DETR Nano–Large weights stay Apache-2.0, not {license_id!r}"
+            )
+        if rf == "apache" and license_id.upper() == "MIT":
+            errors.append(f"{model_id}: do not rehost Roboflow RF-DETR tensors as MIT")
+        if license_id.upper().startswith("PML"):
+            errors.append(f"{model_id}: PML-1.0 weights are not a YOLOSilicon zoo license")
+    if errors:
+        raise ValueError("zoo license labels are wrong:\n  " + "\n  ".join(errors))

@@ -1,24 +1,24 @@
 # Licensing
 
-CoreYOLO carries two separately licensed things: its own code, and pretrained checkpoints. They are often not the same license.
+YOLOSilicon carries two separately licensed things: its own code, and pretrained checkpoints. They are often not the same license.
 
 This page describes the licenses involved. It is a description, not legal advice, and it does not create any warranty. If the answer matters commercially, read the licenses yourself and take your own counsel.
 
 Read the MIT text in [`LICENSE`](../LICENSE), [`NOTICE`](../NOTICE), [`weights/LICENSE_NOTICE.txt`](../weights/LICENSE_NOTICE.txt), and the [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) text.
 
-## CoreYOLO's own code
+## YOLOSilicon's own code
 
-The library is MIT. That covers the Python API, the CLI, the trainers, validators and exporters, the dataset loaders, and the conversion code under `coreyolo/export/convert.py`. Use it in a commercial or closed-source product, keep the copyright line and the license text with any copy you redistribute, and the obligation ends there.
+The library is MIT. That covers the Python API, the CLI, the trainers, validators and exporters, the dataset loaders, and the conversion code under `yolosilicon/export/convert.py`. Use it in a commercial or closed-source product, keep the copyright line and the license text with any copy you redistribute, and the obligation ends there.
 
 The grant stops at the code. [`NOTICE`](../NOTICE) puts it plainly:
 
 > Those licenses vary and are not all permissive: some published YOLOv9 dumps are AGPL-3.0, and this MIT License does not extend to them. Choosing a model means choosing its license.
 
-This repository does **not** vendor third-party detector source. The public Python type is `from coreyolo import Detector`. `YOLO` is a compatibility alias only.
+This repository does **not** vendor third-party detector source. The public Python type is `from yolosilicon import Detector`. `YOLO` is a compatibility alias only.
 
 ## Upstream code
 
-CoreYOLO reimplements a small Core ML-first stack of published detector ideas (GELAN, CSP backbone, PAN-FPN, decoupled head, Distribution Focal Loss). Similarity of architecture is not a license to copy someone else’s **source** or **pretrained weight files**. MIT does not overwrite an upstream checkpoint, and CoreYOLO does not relicense anyone's work.
+YOLOSilicon reimplements a small Core ML-first stack of published detector ideas (GELAN, CSP backbone, PAN-FPN, decoupled head, Distribution Focal Loss). Similarity of architecture is not a license to copy someone else’s **source** or **pretrained weight files**. MIT does not overwrite an upstream checkpoint, and YOLOSilicon does not relicense anyone's work.
 
 The GELAN convert path follows the authors' **MIT re-release** of YOLOv9 (copyright Kin-Yiu Wong and Hao-Tang Tsui), not the GPL-3.0 repository that carries the same model. Other published YOLOv9 dumps stay AGPL-3.0.
 
@@ -32,25 +32,25 @@ Licenses differ between sources, and converting the file does not change its app
 
 | Checkpoint | Upstream | Weights |
 |---|---|---|
-| `coreyolo-n-coco` from `v9-t.pt` | YOLOv9 v1.0-alpha | MIT |
-| `coreyolo-s-coco` from `v9-s.pt` | YOLOv9 v1.0-alpha | MIT |
-| `coreyolo-m-coco` from `v9-m.pt` | YOLOv9 v1.0-alpha | MIT |
-| `coreyolo-l-coco` from `v9-c.pt` | YOLOv9 v1.0-alpha | MIT |
-| `coreyolo-n-coco-relu`, `coreyolo-n-coco-seg`, `coreyolo-e2e-n-coco`, `coreyolo-rfdetr-n` | trained here | MIT |
+| `yolosilicon-n-coco` from `v9-t.pt` | YOLOv9 v1.0-alpha | MIT |
+| `yolosilicon-s-coco` from `v9-s.pt` | YOLOv9 v1.0-alpha | MIT |
+| `yolosilicon-m-coco` from `v9-m.pt` | YOLOv9 v1.0-alpha | MIT |
+| `yolosilicon-l-coco` from `v9-c.pt` | YOLOv9 v1.0-alpha | MIT |
+| `yolosilicon-n-coco-relu`, `yolosilicon-n-coco-seg`, `yolosilicon-e2e-n-coco`, `yolosilicon-rfdetr-n` | trained here | MIT |
 | Roboflow RF-DETR Nano / Small / Medium / Large | roboflow/rf-detr | Apache-2.0 (not remapped) |
 | Roboflow RF-DETR XLarge / 2XLarge | roboflow/rf-detr | PML-1.0 (refused) |
 | Other published YOLOv9 dumps | separate checkpoint | AGPL-3.0 |
 
 ```bash
-coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
-coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo
-coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
-coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo
+yolosilicon convert --weights v9-t.pt --out weights/yolosilicon-n-coco.yolosilicon
+yolosilicon convert --weights v9-s.pt --out weights/yolosilicon-s-coco.yolosilicon
+yolosilicon convert --weights v9-m.pt --out weights/yolosilicon-m-coco.yolosilicon
+yolosilicon convert --weights v9-c.pt --out weights/yolosilicon-l-coco.yolosilicon
 ```
 
 ## Finding the terms for one model
 
-`weights/LICENSE_NOTICE.txt` is the per-source summary. `NOTICE` names the upstream files convert can remap. The zoo table on [Models](https://zawawiai.github.io/coreyolo/models.html) has a Weights column, one row per published file.
+`weights/LICENSE_NOTICE.txt` is the per-source summary. `NOTICE` names the upstream files convert can remap. The zoo table on [Models](https://zawawiai.github.io/yolosilicon/models.html) has a Weights column, one row per published file.
 
 Then check the GitHub Release of the exact file you are about to download. It is authoritative, and it can change without a docs page changing with it.
 
@@ -62,15 +62,15 @@ Upstream license: MIT.
 
 Upstream files: `v9-t.pt`, `v9-s.pt`, `v9-m.pt`, `v9-c.pt`.
 
-CoreYOLO code: MIT.
+YOLOSilicon code: MIT.
 
-Weights: MIT. Convert remaps names onto `format: coreyolo`.
+Weights: MIT. Convert remaps names onto `format: yolosilicon`.
 
-Interpretation: MIT is a permissive license, so these weights can be used in commercial and closed-source products. The one standing obligation is to keep the license text and the copyright notice, Kin-Yiu Wong and Hao-Tang Tsui, with any copy you redistribute. It places no condition on your own application code, and a model you train yourself on your own data is yours. The port follows the authors' MIT re-release of YOLOv9, not the GPL-3.0 repository that carries the same model, so the permissive terms come from the source CoreYOLO actually converts.
+Interpretation: MIT is a permissive license, so these weights can be used in commercial and closed-source products. The one standing obligation is to keep the license text and the copyright notice, Kin-Yiu Wong and Hao-Tang Tsui, with any copy you redistribute. It places no condition on your own application code, and a model you train yourself on your own data is yours. The port follows the authors' MIT re-release of YOLOv9, not the GPL-3.0 repository that carries the same model, so the permissive terms come from the source YOLOSilicon actually converts.
 
 ## Other published YOLOv9 dumps — interpretation
 
-Those files are a different dump, typically AGPL-3.0. Convert still remaps names; the checkpoint is stamped `weights_license: AGPL-3.0`. They are not covered by CoreYOLO's MIT License. Do not rehost them as MIT.
+Those files are a different dump, typically AGPL-3.0. Convert still remaps names; the checkpoint is stamped `weights_license: AGPL-3.0`. They are not covered by YOLOSilicon's MIT License. Do not rehost them as MIT.
 
 AGPL-3.0 is copyleft, including over a network: if you modify those tensors or use them inside a software service (SaaS) so users interact with it over a network, you typically must make the corresponding source of your whole application available under AGPL-3.0. A commercial product or a closed-source internal enterprise tool that uses those weights without publishing source usually needs a commercial license from the copyright holders.
 
@@ -84,7 +84,7 @@ Where a license carries its restriction into derivative works, fine-tuning does 
 
 Decide the license question when you pick the model rather than when you ship, and read the terms on the file you actually downloaded.
 
-YOLO11 and YOLO26 **weights** cannot be converted (different graph). Train CoreYOLO E2E yourself if you want that family without taking those checkpoints.
+YOLO11 and YOLO26 **weights** cannot be converted (different graph). Train YOLOSilicon E2E yourself if you want that family without taking those checkpoints.
 
 ## RF-DETR (Roboflow) — interpretation
 
@@ -94,13 +94,13 @@ Upstream license: Apache-2.0 for Nano, Small, Medium, and Large. Platform Model 
 
 Upstream source: [github.com/roboflow/rf-detr](https://github.com/roboflow/rf-detr). The backbone lineage is DINOv2 (Apache-2.0, Meta).
 
-CoreYOLO code: MIT. `family=rfdetr` follows LibreYOLO's Core ML contract for this family (fixed RGB image, ImageNet norm inside the graph, set prediction, no NMS) and pins FP16 to the Neural Engine. The graph is still CoreYOLO's own (windowed self-attention, dense query cross-attention). Similarity of that idea is not a license to copy LibreYOLO's or Roboflow's source or weight files. This repository does not vendor either project and does not remap `rf-detr-*.pth`.
+YOLOSilicon code: MIT. `family=rfdetr` follows LibreYOLO's Core ML contract for this family (fixed RGB image, ImageNet norm inside the graph, set prediction, no NMS) and pins FP16 to the Neural Engine. The graph is still YOLOSilicon's own (windowed self-attention, dense query cross-attention). Similarity of that idea is not a license to copy LibreYOLO's or Roboflow's source or weight files. This repository does not vendor either project and does not remap `rf-detr-*.pth`.
 
 Weights you train with `--family rfdetr` or `--recipe coco-n-rfdetr`: MIT. The code is permissive, so a model you train yourself on data you have the right to use is yours.
 
-Upstream Nano–Large checkpoints: Apache-2.0, on Roboflow's graph. Apache-2.0 is a permissive license, so those weights can be used in commercial and closed-source products. It asks you to keep its license text, attribution notices, and patent notice with any copy of the weights you redistribute. It places no obligation on your own application code. CoreYOLO does not relicense them as MIT. A fine-tune of those tensors keeps Apache-2.0.
+Upstream Nano–Large checkpoints: Apache-2.0, on Roboflow's graph. Apache-2.0 is a permissive license, so those weights can be used in commercial and closed-source products. It asks you to keep its license text, attribution notices, and patent notice with any copy of the weights you redistribute. It places no obligation on your own application code. YOLOSilicon does not relicense them as MIT. A fine-tune of those tensors keeps Apache-2.0.
 
-Upstream XLarge and 2XLarge: Platform Model License 1.0. CoreYOLO refuses those files. Do not stamp them MIT or Apache-2.0, and do not put them in the zoo.
+Upstream XLarge and 2XLarge: Platform Model License 1.0. YOLOSilicon refuses those files. Do not stamp them MIT or Apache-2.0, and do not put them in the zoo.
 
 ```
 @inproceedings{robinson2026rfdetr,

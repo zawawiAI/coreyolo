@@ -17,14 +17,14 @@ build/
 # Training / export artifacts
 runs/
 *.pt
-*.coreyolo
+*.yolosilicon
 *.pth
 *.onnx
 *.mlpackage/
 *.mlmodel
 *.mlmodelc/
 
-# Downloaded / user datasets (keep the Python package coreyolo/data/)
+# Downloaded / user datasets (keep the Python package yolosilicon/data/)
 datasets/
 /data/
 *.jpg

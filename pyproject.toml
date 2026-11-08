@@ -3,14 +3,14 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "coreyolo"
+name = "yolosilicon"
 version = "0.2.1"
 description = "Object detector for Core ML on Apple silicon. Code MIT; weights per checkpoint."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE", "weights/LICENSE_NOTICE.txt"]
 requires-python = ">=3.10"
-authors = [{ name = "CoreYOLO contributors" }]
+authors = [{ name = "YOLOSilicon contributors" }]
 keywords = ["object-detection", "coreml", "apple-silicon", "roboflow"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -37,22 +37,22 @@ dev = ["pytest>=8.0", "build>=1.2", "twine>=5.0"]
 video = ["opencv-python>=4.8"]
 
 [project.scripts]
-coreyolo = "coreyolo.cli:main"
+yolosilicon = "yolosilicon.cli:main"
 
 [project.urls]
-Homepage = "https://zawawiai.github.io/coreyolo"
-Documentation = "https://zawawiai.github.io/coreyolo/docs.html"
-Repository = "https://github.com/zawawiAI/coreyolo"
-Issues = "https://github.com/zawawiAI/coreyolo/issues"
+Homepage = "https://zawawiai.github.io/yolosilicon"
+Documentation = "https://zawawiai.github.io/yolosilicon/docs.html"
+Repository = "https://github.com/zawawiAI/yolosilicon"
+Issues = "https://github.com/zawawiAI/yolosilicon/issues"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["coreyolo*"]
+include = ["yolosilicon*"]
 
 [tool.setuptools.package-data]
-coreyolo = ["recipes/*.yaml"]
+yolosilicon = ["recipes/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

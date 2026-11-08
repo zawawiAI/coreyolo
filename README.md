@@ -1,13 +1,13 @@
 <p align="center">
-  <strong>CoreYOLO</strong><br />
+  <strong>YOLOSilicon</strong><br />
   <sub>Object detection. Built for Apple.</sub>
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/coreyolo/"><img alt="PyPI" src="https://img.shields.io/pypi/v/coreyolo"></a>
-  <a href="https://pypi.org/project/coreyolo/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/coreyolo"></a>
+  <a href="https://pypi.org/project/yolosilicon/"><img alt="PyPI" src="https://img.shields.io/pypi/v/yolosilicon"></a>
+  <a href="https://pypi.org/project/yolosilicon/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/yolosilicon"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <a href="https://github.com/zawawiAI/coreyolo/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/zawawiAI/coreyolo/ci.yml?branch=main&label=CI"></a>
+  <a href="https://github.com/zawawiAI/yolosilicon/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/zawawiAI/yolosilicon/ci.yml?branch=main&label=CI"></a>
 </p>
 
 <p align="center">
@@ -16,37 +16,37 @@
 </p>
 
 <p align="center">
-  <img src="website/img/scene.jpg" alt="Street scene used on the CoreYOLO site" width="720" />
+  <img src="website/img/scene.jpg" alt="Street scene used on the YOLOSilicon site" width="720" />
 </p>
 
 <p align="center">
-  <a href="https://zawawiai.github.io/coreyolo/">Website</a>
-  · <a href="https://zawawiai.github.io/coreyolo/docs.html">Docs</a>
-  · <a href="https://zawawiai.github.io/coreyolo/models.html">Models</a>
-  · <a href="https://zawawiai.github.io/coreyolo/deploy.html">Deploy</a>
+  <a href="https://zawawiai.github.io/yolosilicon/">Website</a>
+  · <a href="https://zawawiai.github.io/yolosilicon/docs.html">Docs</a>
+  · <a href="https://zawawiai.github.io/yolosilicon/models.html">Models</a>
+  · <a href="https://zawawiai.github.io/yolosilicon/deploy.html">Deploy</a>
   · <a href="examples/ios">iOS sample</a>
   · <a href="docs/licenses.md">Licenses</a>
 </p>
 
 ```text
-Roboflow data.yaml  →  train  →  .coreyolo  →  export  →  Core ML  →  iPhone / Mac
+Roboflow data.yaml  →  train  →  .yolosilicon  →  export  →  Core ML  →  iPhone / Mac
 ```
 
-The public type is `Detector` (`YOLO` is a compatibility alias). App code loads CoreYOLO files only (`.coreyolo`, trained `best.pt`, or `.mlpackage`).
+The public type is `Detector`. App code loads YOLOSilicon files only (`.yolosilicon`, trained `best.pt`, or `.mlpackage`).
 
 ## Install
 
 ```bash
-pip install coreyolo
-pip install "coreyolo[video]"   # webcam (`--source 0`)
+pip install yolosilicon
+pip install "yolosilicon[video]"   # webcam (`--source 0`)
 ```
 
 ```python
-from coreyolo import Detector
+from yolosilicon import Detector
 
 model = Detector("n")              # GELAN n; also "s" / "m" / "l", or family="e2e"
 model.train(data="data.yaml", epochs=100, imgsz=640)
-model.save("weights/app.coreyolo")
+model.save("weights/app.yolosilicon")
 model.export(imgsz=640)            # ReLU → FP16 + palettes + ANE; SiLU convert → dense FP16 GPU
 ```
 
@@ -81,10 +81,10 @@ Same GELAN trainer. Pick the scale for the device.
 | **l** | 25.59M GELAN · 43.69M DFL · 27.17M E2E | Offline / max accuracy | `v9-c.pt` |
 
 ```bash
-coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
-coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo
-coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
-coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo
+yolosilicon convert --weights v9-t.pt --out weights/yolosilicon-n-coco.yolosilicon
+yolosilicon convert --weights v9-s.pt --out weights/yolosilicon-s-coco.yolosilicon
+yolosilicon convert --weights v9-m.pt --out weights/yolosilicon-m-coco.yolosilicon
+yolosilicon convert --weights v9-c.pt --out weights/yolosilicon-l-coco.yolosilicon
 ```
 
 Source: YOLOv9 v1.0-alpha `v9-*.pt` (copyright Kin-Yiu Wong and Hao-Tang Tsui). Same MIT files LibreYOLO converts. Other published YOLOv9 dumps stay AGPL-3.0. Do not pass those pickles into `Detector()`.
@@ -95,25 +95,25 @@ Binaries live on GitHub Releases, not in git. mAP stays blank until you record C
 
 | Id | Graph | Act | Compute | How | License |
 | --- | --- | --- | --- | --- | --- |
-| `coreyolo-n-coco` | gelan | SiLU | GPU | `convert --weights v9-t.pt` | MIT |
-| `coreyolo-s-coco` | gelan | SiLU | GPU | `convert --weights v9-s.pt` | MIT |
-| `coreyolo-m-coco` | gelan | SiLU | GPU | `convert --weights v9-m.pt` | MIT |
-| `coreyolo-l-coco` | gelan | SiLU | GPU | `convert --weights v9-c.pt` | MIT |
-| `coreyolo-n-coco-seg` | gelan | ReLU | ANE | `train --task segment` | MIT |
-| `coreyolo-n-coco-relu` | gelan | ReLU | ANE | `train --recipe coco-n` | MIT |
-| `coreyolo-e2e-n-coco` | e2e | ReLU | ANE | `train --recipe coco-n-e2e` | MIT |
-| `coreyolo-rfdetr-n` | rfdetr | GELU | ANE | `train --recipe coco-n-rfdetr` | MIT |
+| `yolosilicon-n-coco` | gelan | SiLU | GPU | `convert --weights v9-t.pt` | MIT |
+| `yolosilicon-s-coco` | gelan | SiLU | GPU | `convert --weights v9-s.pt` | MIT |
+| `yolosilicon-m-coco` | gelan | SiLU | GPU | `convert --weights v9-m.pt` | MIT |
+| `yolosilicon-l-coco` | gelan | SiLU | GPU | `convert --weights v9-c.pt` | MIT |
+| `yolosilicon-n-coco-seg` | gelan | ReLU | ANE | `train --task segment` | MIT |
+| `yolosilicon-n-coco-relu` | gelan | ReLU | ANE | `train --recipe coco-n` | MIT |
+| `yolosilicon-e2e-n-coco` | e2e | ReLU | ANE | `train --recipe coco-n-e2e` | MIT |
+| `yolosilicon-rfdetr-n` | rfdetr | GELU | ANE | `train --recipe coco-n-rfdetr` | MIT |
 
 ## Python SDK
 
 ```python
-from coreyolo import Detector
+from yolosilicon import Detector
 
 model = Detector("n")
 model.train(data="datasets/dummy/data.yaml", epochs=20, batch=8, imgsz=320)
-model.save("weights/app.coreyolo")
+model.save("weights/app.yolosilicon")
 
-model = Detector("weights/app.coreyolo")  # or a Core ML .mlpackage
+model = Detector("weights/app.yolosilicon")  # or a Core ML .mlpackage
 results = model.predict("photo.jpg", classes="person", save=True)
 results[0].save("out.jpg")
 model.export(imgsz=320)
@@ -145,9 +145,9 @@ dataset/
 Detect lines are normalized `class xc yc w h`. `data.yaml` may use list or dict `names`, `val` or `valid`.
 
 ```bash
-coreyolo dummy-data --out datasets/dummy
-coreyolo train --data datasets/dummy/data.yaml --model n --epochs 20 --imgsz 320
-coreyolo export --weights runs/detect/train/weights/best.pt --imgsz 320
+yolosilicon dummy-data --out datasets/dummy
+yolosilicon train --data datasets/dummy/data.yaml --model n --epochs 20 --imgsz 320
+yolosilicon export --weights runs/detect/train/weights/best.pt --imgsz 320
 ```
 
 Segmentation: `--task segment`. Mosaic is off. Core ML writes three outputs; NMS and mask assembly stay on the host. iOS sample: [`examples/ios`](examples/ios).
@@ -155,11 +155,11 @@ Segmentation: `--task segment`. Mosaic is off. Core ML writes three outputs; NMS
 ## Train on COCO
 
 ```bash
-coreyolo coco --out datasets/coco --download
-coreyolo train --recipe coco-n-fast    # 100 epochs
-coreyolo train --recipe coco-n         # 300 epochs, ReLU (ANE)
-coreyolo train --recipe coco-n-e2e
-coreyolo train --recipe coco-n-rfdetr   # 384, GELU, FP16 Neural Engine
+yolosilicon coco --out datasets/coco --download
+yolosilicon train --recipe coco-n-fast    # 100 epochs
+yolosilicon train --recipe coco-n         # 300 epochs, ReLU (ANE)
+yolosilicon train --recipe coco-n-e2e
+yolosilicon train --recipe coco-n-rfdetr   # 384, GELU, FP16 Neural Engine
 ```
 
 | Recipe | Scale | Notes |
@@ -172,21 +172,21 @@ coreyolo train --recipe coco-n-rfdetr   # 384, GELU, FP16 Neural Engine
 ## CLI
 
 ```
-coreyolo coco        --out datasets/coco --download [--max-images 512]
-coreyolo convert     --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
-coreyolo train       --recipe coco-n-fast
-coreyolo train       --data data.yaml --model n --family e2e --epochs 100 --device gpu
-coreyolo train       --data data.yaml --model n --family rfdetr --imgsz 384 --lr0 1e-4
-coreyolo val         --data data.yaml --weights best.pt --device gpu
-coreyolo predict     --weights best.mlpackage --source photo.jpg --device gpu
-coreyolo predict     --weights best.mlpackage --source 0 --device gpu   # webcam; Q quits
-coreyolo export      --weights best.pt --imgsz 640 [--int8] [--no-palette]
-coreyolo dummy-data  --out datasets/dummy --segment
+yolosilicon coco        --out datasets/coco --download [--max-images 512]
+yolosilicon convert     --weights v9-t.pt --out weights/yolosilicon-n-coco.yolosilicon
+yolosilicon train       --recipe coco-n-fast
+yolosilicon train       --data data.yaml --model n --family e2e --epochs 100 --device gpu
+yolosilicon train       --data data.yaml --model n --family rfdetr --imgsz 384 --lr0 1e-4
+yolosilicon val         --data data.yaml --weights best.pt --device gpu
+yolosilicon predict     --weights best.mlpackage --source photo.jpg --device gpu
+yolosilicon predict     --weights best.mlpackage --source 0 --device gpu   # webcam; Q quits
+yolosilicon export      --weights best.pt --imgsz 640 [--int8] [--no-palette]
+yolosilicon dummy-data  --out datasets/dummy --segment
 ```
 
 ## License
 
-CoreYOLO's code is [MIT](LICENSE). It does not require you to open source your application, and it does not change if you sell what you build.
+YOLOSilicon's code is [MIT](LICENSE). It does not require you to open source your application, and it does not change if you sell what you build.
 
 Pretrained weights are separate: each one carries the license of whoever trained it, stated per checkpoint. GELAN COCO files converted from `v9-*.pt` are MIT (copyright Kin-Yiu Wong and Hao-Tang Tsui). Other published YOLOv9 dumps stay AGPL-3.0. RF-DETR weights you train here are MIT. Upstream Roboflow Nano–Large checkpoints stay Apache-2.0 and are not remapped; XLarge and 2XLarge (Platform Model License 1.0) are refused. A model you train yourself is yours. Converting a file does not change its applicable terms.
 
