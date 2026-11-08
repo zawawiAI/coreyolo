@@ -9,8 +9,6 @@ Typical use::
     model.save("weights/app.coreyolo")
     results = model.predict("photo.jpg", classes="person")
     model.export()
-
-``YOLO`` remains a compatibility alias. YOLO is a trademark of its owners.
 """
 
 from __future__ import annotations
@@ -223,7 +221,7 @@ class Detector:
         return self.predict(source, **kwargs)
 
     def train(self, data: str | Path, **kwargs: Any) -> Path:
-        """Fit on a Roboflow YOLO ``data.yaml``. Returns the run directory."""
+        """Fit on a Roboflow detection ``data.yaml``. Returns the run directory."""
         from coreyolo.train.trainer import TrainConfig, train
 
         allowed = {f.name for f in fields(TrainConfig)}
@@ -252,17 +250,17 @@ class Detector:
         """Validation mAP on a Roboflow split."""
         from torch.utils.data import DataLoader
 
-        from coreyolo.data.dataset import YOLODetectionDataset, collate_fn
-        from coreyolo.data.yaml import YOLODatasetYAML
+        from coreyolo.data.dataset import DetectionDataset, collate_fn
+        from coreyolo.data.yaml import DatasetConfig
         from coreyolo.train.trainer import validate
         from coreyolo.utils import place_module, select_device
 
-        spec = YOLODatasetYAML(data)
+        spec = DatasetConfig(data)
         device = select_device(kwargs.get("device", self.device))
         nn, device = place_module(self.model, device)
         nn.eval()
         imgsz = int(kwargs.get("imgsz", self.imgsz))
-        ds = YOLODetectionDataset(spec, "val", imgsz=imgsz, augment=False, mosaic=0, task=self.task)
+        ds = DetectionDataset(spec, "val", imgsz=imgsz, augment=False, mosaic=0, task=self.task)
         loader = DataLoader(
             ds,
             batch_size=min(batch, len(ds)),
@@ -397,9 +395,9 @@ class Detector:
         Do not call this from app inference. Convert once, then
         ``Detector(coreyolo_path)``.
         """
-        from coreyolo.export.convert import convert_yolo_pt
+        from coreyolo.export.convert import convert_checkpoint
 
-        path = convert_yolo_pt(weights, out=out, scale=scale)
+        path = convert_checkpoint(weights, out=out, scale=scale)
         return cls(path)
 
     @staticmethod
@@ -444,6 +442,3 @@ class Detector:
             return
         for item in source:
             yield from self._expand_source(item)
-
-
-YOLO = Detector  # compatibility alias; YOLO is a trademark of its owners

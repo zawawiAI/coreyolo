@@ -181,7 +181,7 @@ class Detect(nn.Module):
 
 
 class Segment(Detect):
-    """Detect plus a proto mask branch (YOLO-Seg style).
+    """Detect plus a proto mask branch for instance segmentation.
 
     Training returns ``(det, mask_coeff, proto)``. Inference returns decoded
     boxes plus per-anchor coefficients ``(B, nm, N)`` (or ``(B, K, nm)`` when

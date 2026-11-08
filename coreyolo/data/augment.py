@@ -1,4 +1,4 @@
-"""Letterbox, mosaic, HSV jitter, and geometric augs for YOLO boxes."""
+"""Letterbox, mosaic, HSV jitter, and geometric augs for detection boxes."""
 
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ def random_perspective(
     shear: float = 0.0,
     perspective: float = 0.0,
 ) -> tuple[Image.Image, np.ndarray]:
-    """Affine warp that keeps YOLO ``xywh`` labels in pixel xyxy then back."""
+    """Affine warp that keeps ``xywh`` labels in pixel xyxy then back."""
     w, h = image.size
     # identity
     C = np.eye(3)

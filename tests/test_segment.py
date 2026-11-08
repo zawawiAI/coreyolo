@@ -1,8 +1,8 @@
 import torch
 
-from coreyolo.data.dataset import YOLODetectionDataset, collate_fn
+from coreyolo.data.dataset import DetectionDataset, collate_fn
 from coreyolo.data.dummy import write_dummy_dataset
-from coreyolo.data.yaml import YOLODatasetYAML
+from coreyolo.data.yaml import DatasetConfig
 from coreyolo.nn.model import build_model
 from coreyolo.train.loss import SegmentationLoss
 from coreyolo.train.trainer import TrainConfig, train
@@ -49,8 +49,8 @@ def test_instance_masks_one_upsample() -> None:
 
 def test_one_segment_train_step(tmp_path) -> None:
     yaml_path = write_dummy_dataset(tmp_path, n_train=4, n_val=2, size=64, segment=True)
-    spec = YOLODatasetYAML(yaml_path)
-    ds = YOLODetectionDataset(spec, "train", imgsz=64, augment=False, mosaic=0.0, task="segment")
+    spec = DatasetConfig(yaml_path)
+    ds = DetectionDataset(spec, "train", imgsz=64, augment=False, mosaic=0.0, task="segment")
     batch = collate_fn([ds[0], ds[1]])
     assert "masks" in batch
     assert batch["masks"].ndim == 3

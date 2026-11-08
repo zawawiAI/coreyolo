@@ -157,8 +157,8 @@ def is_coreyolo_checkpoint(ckpt: Any) -> bool:
     return any(k.startswith("stem.") or k.startswith("head.") or k.startswith("stage2.") for k in keys)
 
 
-def is_sequential_yolo_checkpoint(ckpt: Any) -> bool:
-    """True when tensors use upstream YOLOv9 sequential names."""
+def is_upstream_checkpoint(ckpt: Any) -> bool:
+    """True when tensors use upstream sequential names."""
     if is_coreyolo_checkpoint(ckpt):
         return False
     keys = _checkpoint_state_keys(ckpt)
@@ -289,7 +289,7 @@ def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") 
     path = Path(path)
     ckpt = torch.load(path, map_location=map_location, weights_only=False)
     refuse_upstream_rfdetr(path, ckpt)
-    if is_sequential_yolo_checkpoint(ckpt):
+    if is_upstream_checkpoint(ckpt):
         raise TypeError(
             f"{path.name} is an upstream YOLOv9 pickle, not CoreYOLO.\n"
             "Do not load it in app code. Convert once (remap names only), then load the CoreYOLO file:\n"

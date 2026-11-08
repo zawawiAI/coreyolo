@@ -1,4 +1,4 @@
-"""mAP@0.5 and mAP@0.5:0.95 from decoded detections vs YOLO labels."""
+"""mAP@0.5 and mAP@0.5:0.95 from decoded detections vs ground truth labels."""
 
 from __future__ import annotations
 

@@ -143,7 +143,7 @@ class Bottleneck(nn.Module):
 
 
 class C2f(nn.Module):
-    """Cross-stage partial block with bottleneck reuse (YOLO-family C2f)."""
+    """Cross-stage partial block with bottleneck reuse (C2f)."""
 
     def __init__(
         self,

@@ -1,4 +1,4 @@
-"""Roboflow YOLO detection dataset: one ``.txt`` label file per image."""
+"""Roboflow detection dataset: one ``.txt`` label file per image."""
 
 from __future__ import annotations
 
@@ -11,15 +11,15 @@ from PIL import Image, ImageDraw
 from torch.utils.data import Dataset
 
 from coreyolo.data.augment import hsv_jitter, letterbox, mosaic4, random_perspective, hflip
-from coreyolo.data.yaml import YOLODatasetYAML
+from coreyolo.data.yaml import DatasetConfig
 from coreyolo.utils import IMAGE_EXTS
 
 
-def load_yolo_labels(path: Path) -> np.ndarray:
-    """Read Roboflow/YOLO labels: ``class x_center y_center width height`` (normalized).
+def load_detection_labels(path: Path) -> np.ndarray:
+    """Read Roboflow labels: ``class x_center y_center width height`` (normalized).
 
     Extra trailing values (segmentation polygons, OBB, etc.) are ignored so a
-    detect trainer can still consume Roboflow YOLO-Seg exports.
+    detect trainer can still consume Roboflow segmentation exports.
     """
     if not path.is_file():
         return np.zeros((0, 5), dtype=np.float32)
@@ -43,8 +43,8 @@ def _xywh_to_poly(xc: float, yc: float, w: float, h: float) -> np.ndarray:
     return np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
 
 
-def load_yolo_instances(path: Path) -> tuple[np.ndarray, list[np.ndarray]]:
-    """Load YOLO detect or seg labels.
+def load_instance_labels(path: Path) -> tuple[np.ndarray, list[np.ndarray]]:
+    """Load detection or segmentation labels.
 
     Detect lines are ``cls xc yc w h``. Seg lines are ``cls x1 y1 x2 y2 ...``
     (normalized polygon). ``cls xc yc w h`` plus extra polygon points is also
@@ -132,12 +132,12 @@ def pixels_to_normalized(labels: np.ndarray, width: int, height: int) -> np.ndar
     return out
 
 
-class YOLODetectionDataset(Dataset):
-    """Images + YOLO txt labels as used by Roboflow's YOLO export."""
+class DetectionDataset(Dataset):
+    """Images + detection txt labels as used by Roboflow's detection export."""
 
     def __init__(
         self,
-        spec: YOLODatasetYAML,
+        spec: DatasetConfig,
         split: str = "train",
         imgsz: int = 640,
         augment: bool = False,
@@ -181,7 +181,7 @@ class YOLODetectionDataset(Dataset):
     def _load_pair(self, index: int) -> tuple[Image.Image, np.ndarray]:
         path = self.files[index]
         image = Image.open(path).convert("RGB")
-        labels = load_yolo_labels(self._label_path(path))
+        labels = load_detection_labels(self._label_path(path))
         labels = normalized_to_pixels(labels, image.size[0], image.size[1])
         return image, labels
 
@@ -189,7 +189,7 @@ class YOLODetectionDataset(Dataset):
         path = self.files[index]
         image = Image.open(path).convert("RGB")
         w, h = image.size
-        labels, polys = load_yolo_instances(self._label_path(path))
+        labels, polys = load_instance_labels(self._label_path(path))
         labels = normalized_to_pixels(labels, w, h)
         pixel_polys = [p * np.array([w, h], dtype=np.float32) for p in polys]
         return image, labels, pixel_polys

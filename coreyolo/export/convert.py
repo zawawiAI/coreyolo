@@ -49,7 +49,7 @@ license: converted tensors inherit MIT from the YOLOv9 v9-*.pt release,
   See weights/LICENSE_NOTICE.txt and docs/licenses.md.
 """
 
-MTL_VENDOR = "MultimediaTechLab/YOLO"
+MTL_VENDOR = "MultimediaTechLab"
 MTL_COPYRIGHT = "Copyright (c) 2024 Kin-Yiu Wong and Hao-Tang Tsui"
 
 # Compact YOLOv9 GELAN sequential index → CoreYOLO named module.
@@ -313,16 +313,16 @@ def infer_gelan_scale(src: dict[str, torch.Tensor]) -> str:
     return "n"
 
 
-def convert_yolo_pt(
+def convert_checkpoint(
     weights: str | Path,
     out: str | Path | None = None,
     scale: str | None = None,
 ) -> Path:
-    """Load a compact YOLOv9 ``.pt`` and write a CoreYOLO checkpoint.
+    """Load a compact upstream ``.pt`` and write a CoreYOLO checkpoint.
 
     ``v9-*.pt`` maps onto ``family=gelan`` and stays MIT.
-    Other published ``yolov9*.pt`` dumps map onto the same graph and stay AGPL-3.0.
-    YOLO26/YOLO11 raise ``ValueError``.
+    Other published dumps map onto the same graph and stay AGPL-3.0.
+    Later format versions raise ``ValueError``.
     """
     weights = Path(weights)
     ckpt = torch.load(weights, map_location="cpu", weights_only=False)

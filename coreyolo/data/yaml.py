@@ -1,4 +1,4 @@
-"""Parse Roboflow-style YOLO ``data.yaml`` files."""
+"""Parse Roboflow-style detection dataset ``data.yaml`` files."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ def _resolve_split(root: Path, yaml_value: Any, *fallback_dirs: str) -> Path | N
 
 
 def _labels_for_images(images_dir: Path) -> Path | None:
-    """YOLO layout: ``.../images`` ↔ ``.../labels``; also sibling ``labels``."""
+    """Standard layout: ``.../images`` ↔ ``.../labels``; also sibling ``labels``."""
     if images_dir.name == "images":
         labels = images_dir.parent / "labels"
         if labels.is_dir():
@@ -55,10 +55,10 @@ def _labels_for_images(images_dir: Path) -> Path | None:
     return None
 
 
-class YOLODatasetYAML:
-    """Roboflow YOLO export layout.
+class DatasetConfig:
+    """Roboflow detection dataset export layout.
 
-    Expected tree (Roboflow YOLO export)::
+    Expected tree (Roboflow export)::
 
         dataset/
           data.yaml
@@ -113,7 +113,7 @@ class YOLODatasetYAML:
         if images is None or labels is None:
             raise FileNotFoundError(
                 f"Split '{name}' is missing images/ or labels/ under {self.root}. "
-                "Export from Roboflow as YOLO detect txt (or YOLO-Seg) and unzip so "
+                "Export from Roboflow as detection txt (or instance segmentation) and unzip so "
                 "data.yaml sits next to train/ and valid/."
             )
         return images, labels

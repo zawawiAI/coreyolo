@@ -1,4 +1,4 @@
-"""COCO 2017 → Roboflow YOLO layout (data.yaml + train|valid images/labels)."""
+"""COCO 2017 → Roboflow detection layout (data.yaml + train|valid images/labels)."""
 
 from __future__ import annotations
 
@@ -109,8 +109,8 @@ SPLIT_FILES = {
 YOLO_SPLIT = {"train": "train", "val": "valid"}
 
 
-def coco_bbox_to_yolo(bbox: list[float], width: int, height: int) -> tuple[float, float, float, float] | None:
-    """COCO ``xywh`` pixels → YOLO normalized center ``xywh``. Skip degenerate boxes."""
+def coco_to_normalized_bbox(bbox: list[float], width: int, height: int) -> tuple[float, float, float, float] | None:
+    """COCO ``xywh`` pixels → normalized center ``xywh``. Skip degenerate boxes."""
     x, y, w, h = (float(v) for v in bbox)
     if w <= 1 or h <= 1 or width <= 0 or height <= 0:
         return None
@@ -148,7 +148,7 @@ def convert_coco_json(
     max_images: int | None = None,
     skip_crowd: bool = True,
 ) -> dict[str, int]:
-    """Write YOLO ``.txt`` labels next to a COCO instances JSON."""
+"""Write detection ``.txt`` labels next to a COCO instances JSON."""
     with json_path.open() as f:
         coco = json.load(f)
     id_to_img = {im["id"]: im for im in coco["images"]}
@@ -171,12 +171,12 @@ def convert_coco_json(
         w, h = int(im["width"]), int(im["height"])
         lines = []
         for ann in anns_by_img.get(image_id, []):
-            yolo = coco_bbox_to_yolo(ann["bbox"], w, h)
-            if yolo is None:
+            norm = coco_to_normalized_bbox(ann["bbox"], w, h)
+            if norm is None:
                 n_skip += 1
                 continue
             cls = COCO_ID_TO_IDX[ann["category_id"]]
-            xc, yc, bw, bh = yolo
+            xc, yc, bw, bh = norm
             lines.append(f"{cls} {xc:.6f} {yc:.6f} {bw:.6f} {bh:.6f}")
             n_box += 1
         (labels_dir / f"{stem}.txt").write_text("\n".join(lines) + ("\n" if lines else ""))
@@ -231,7 +231,7 @@ def prepare_coco(
     copy_images: bool = False,
     max_images: int | None = None,
 ) -> Path:
-    """Download COCO 2017 and emit a Roboflow-compatible YOLO tree.
+    """Download COCO 2017 and emit a Roboflow-compatible detection tree.
 
     Result::
 

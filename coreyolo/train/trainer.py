@@ -14,8 +14,8 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from coreyolo.data.dataset import YOLODetectionDataset, collate_fn
-from coreyolo.data.yaml import YOLODatasetYAML
+from coreyolo.data.dataset import DetectionDataset, collate_fn
+from coreyolo.data.yaml import DatasetConfig
 from coreyolo.infer.nms import non_max_suppression
 from coreyolo.nn.decode import xywh_to_xyxy
 from coreyolo.nn.model import build_model, is_rfdetr_family, normalize_family
@@ -146,7 +146,7 @@ def train(cfg: TrainConfig) -> Path:
         if cfg.lr0 > 1e-4:
             print(
                 f"rfdetr: lowering lr0 from {cfg.lr0} to 1e-4. "
-                "Set-prediction diverges at a YOLO learning rate."
+                "Set-prediction diverges at a higher learning rate."
             )
             cfg.lr0 = 1e-4
         check_rfdetr_imgsz(cfg.model, cfg.imgsz)
@@ -156,7 +156,7 @@ def train(cfg: TrainConfig) -> Path:
     device = select_device(cfg.device)
     task = str(cfg.task).lower()
     print(f"device: {device}  family={cfg.family}  task={task}  act={cfg.act}")
-    spec = YOLODatasetYAML(cfg.data)
+    spec = DatasetConfig(cfg.data)
     project = cfg.project
     if task == "segment" and project == "runs/detect":
         project = "runs/segment"
@@ -166,7 +166,7 @@ def train(cfg: TrainConfig) -> Path:
     (save_dir / "args.json").write_text(json.dumps(asdict(cfg), indent=2))
     (save_dir / "names.json").write_text(json.dumps(spec.names, indent=2))
 
-    train_ds = YOLODetectionDataset(
+    train_ds = DetectionDataset(
         spec,
         "train",
         imgsz=cfg.imgsz,
@@ -182,7 +182,7 @@ def train(cfg: TrainConfig) -> Path:
         task=task,
     )
     try:
-        val_ds = YOLODetectionDataset(spec, "val", imgsz=cfg.imgsz, augment=False, mosaic=0.0, task=task)
+        val_ds = DetectionDataset(spec, "val", imgsz=cfg.imgsz, augment=False, mosaic=0.0, task=task)
     except FileNotFoundError:
         val_ds = None
 

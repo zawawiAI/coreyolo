@@ -175,17 +175,17 @@ def test_remap_mtl_detect_and_aconv() -> None:
 def test_convert_mtl_v9t_stamps_mit(tmp_path) -> None:
     from pathlib import Path
 
-    from coreyolo.export.convert import convert_yolo_pt
+    from coreyolo.export.convert import convert_checkpoint
     from coreyolo.utils import load_checkpoint
 
     src = Path("weights/mit-src/v9-t.pt")
     if not src.is_file():
         return
     dest = tmp_path / "coreyolo-n-coco.coreyolo"
-    convert_yolo_pt(src, dest)
+    convert_checkpoint(src, dest)
     ckpt = load_checkpoint(dest)
     assert ckpt["weights_license"] == "MIT"
-    assert ckpt["source_vendor"] == "MultimediaTechLab/YOLO"
+    assert ckpt["source_vendor"] == "MultimediaTechLab"
     assert "Kin-Yiu" in str(ckpt.get("source_copyright"))
     assert ckpt["family"] == "gelan"
     assert ckpt["scale"] == "n"
@@ -194,14 +194,14 @@ def test_convert_mtl_v9t_stamps_mit(tmp_path) -> None:
 def test_convert_ultralytics_stamps_agpl(tmp_path) -> None:
     from pathlib import Path
 
-    from coreyolo.export.convert import convert_yolo_pt
+    from coreyolo.export.convert import convert_checkpoint
     from coreyolo.utils import load_checkpoint
 
     src = Path("weights/yolov9s.pt")
     if not src.is_file():
         return
     dest = tmp_path / "from-ultralytics.coreyolo"
-    convert_yolo_pt(src, dest)
+    convert_checkpoint(src, dest)
     ckpt = load_checkpoint(dest)
     assert ckpt["weights_license"] == "AGPL-3.0"
     assert ckpt["source_vendor"] == "ultralytics"

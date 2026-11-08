@@ -22,12 +22,12 @@ def _add_common(p: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="coreyolo",
-        description="Open-source YOLO-style detector with a Core ML / Apple silicon path.",
+        description="Open-source object detector with a Core ML / Apple silicon path.",
     )
     parser.add_argument("--version", action="version", version=f"CoreYOLO {__version__}")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    t = sub.add_parser("train", help="Train on a Roboflow YOLO dataset or a COCO recipe")
+    t = sub.add_parser("train", help="Train on a Roboflow detection dataset or a COCO recipe")
     t.add_argument("--data", default=None, help="path to data.yaml (optional if --recipe sets it)")
     t.add_argument(
         "--recipe",
@@ -114,9 +114,9 @@ def build_parser() -> argparse.ArgumentParser:
     d.add_argument("--out", default="datasets/dummy")
     d.add_argument("--n-train", type=int, default=32)
     d.add_argument("--n-val", type=int, default=8)
-    d.add_argument("--segment", action="store_true", help="write YOLO-seg polygon labels")
+    d.add_argument("--segment", action="store_true", help="write instance segmentation polygon labels")
 
-    c = sub.add_parser("coco", help="Download COCO 2017 and convert to YOLO/Roboflow layout")
+    c = sub.add_parser("coco", help="Download COCO 2017 and convert to Roboflow detection layout")
     c.add_argument("--out", default="datasets/coco")
     c.add_argument("--download", action=argparse.BooleanOptionalAction, default=True)
     c.add_argument("--splits", default="train,val", help="comma-separated: train,val")
@@ -185,12 +185,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "val":
         from torch.utils.data import DataLoader
 
-        from coreyolo.data.dataset import YOLODetectionDataset, collate_fn
-        from coreyolo.data.yaml import YOLODatasetYAML
+        from coreyolo.data.dataset import DetectionDataset, collate_fn
+        from coreyolo.data.yaml import DatasetConfig
         from coreyolo.nn.model import build_model
         from coreyolo.train.trainer import validate
 
-        spec = YOLODatasetYAML(args.data)
+        spec = DatasetConfig(args.data)
         ckpt = load_checkpoint(args.weights, map_location="cpu")
         device = select_device(args.device)
         model = build_model(
@@ -205,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
         model, device = place_module(model, device)
         model.eval()
         print(f"PyTorch device: {device}")
-        ds = YOLODetectionDataset(
+        ds = DetectionDataset(
             spec, "val", imgsz=args.imgsz, augment=False, mosaic=0, task=str(ckpt.get("task", "detect"))
         )
         loader = DataLoader(ds, batch_size=args.batch, shuffle=False, num_workers=args.workers, collate_fn=collate_fn)
@@ -290,14 +290,14 @@ def main(argv: list[str] | None = None) -> int:
             copy_images=args.copy_images,
             max_images=args.max_images,
         )
-        print(f"COCO YOLO dataset: {yaml_path}")
+        print(f"COCO detection dataset: {yaml_path}")
         return 0
 
     if args.cmd == "convert":
-        from coreyolo.export.convert import convert_yolo_pt
+        from coreyolo.export.convert import convert_checkpoint
 
         try:
-            path = convert_yolo_pt(args.weights, out=args.out, scale=args.model)
+            path = convert_checkpoint(args.weights, out=args.out, scale=args.model)
         except ValueError as exc:
             print(exc, file=sys.stderr)
             return 2
