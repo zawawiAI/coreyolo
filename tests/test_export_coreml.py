@@ -10,8 +10,8 @@ import pytest
 import torch
 from PIL import Image
 
-from coreyolo.nn.model import build_model, is_e2e_family
-from coreyolo.utils import save_checkpoint
+from yolosilicon.nn.model import build_model, is_e2e_family
+from yolosilicon.utils import save_checkpoint
 
 pytestmark = [
     pytest.mark.coreml,
@@ -42,7 +42,7 @@ def _tiny_ckpt(tmp_path: Path, family: str = "dfl", task: str = "detect", act: s
 
 
 def _export(tmp_path: Path, family: str, task: str = "detect") -> tuple[Path, dict]:
-    from coreyolo.export.coreml import export_coreml
+    from yolosilicon.export.coreml import export_coreml
 
     weights = _tiny_ckpt(tmp_path, family=family, task=task)
     out = tmp_path / f"tiny-{family}-{task}.mlpackage"
@@ -52,7 +52,7 @@ def _export(tmp_path: Path, family: str, task: str = "detect") -> tuple[Path, di
 
 
 def test_export_dfl_roundtrip(tmp_path: Path) -> None:
-    from coreyolo.export.engine import CoreMLEngine
+    from yolosilicon.export.engine import CoreMLEngine
 
     pkg, _ = _export(tmp_path, "dfl")
     engine = CoreMLEngine(pkg, device="cpu")
@@ -72,7 +72,7 @@ def test_export_dfl_roundtrip(tmp_path: Path) -> None:
 
     ckpt = tmp_path / "tiny-dfl-detect-relu.pt"
     model = build_model(nc=2, scale="n", act="relu", family="dfl")
-    from coreyolo.utils import load_checkpoint
+    from yolosilicon.utils import load_checkpoint
 
     loaded = load_checkpoint(ckpt)
     model.load_state_dict(loaded["model"], strict=False)
@@ -90,7 +90,7 @@ def test_export_dfl_roundtrip(tmp_path: Path) -> None:
 
 
 def test_export_e2e_topk_layout(tmp_path: Path) -> None:
-    from coreyolo.export.engine import CoreMLEngine
+    from yolosilicon.export.engine import CoreMLEngine
 
     pkg, _ = _export(tmp_path, "e2e")
     engine = CoreMLEngine(pkg, device="cpu")
@@ -106,7 +106,7 @@ def test_export_e2e_topk_layout(tmp_path: Path) -> None:
 
 
 def test_export_segment_three_outputs(tmp_path: Path) -> None:
-    from coreyolo.export.engine import CoreMLEngine
+    from yolosilicon.export.engine import CoreMLEngine
 
     pkg, _ = _export(tmp_path, "dfl", task="segment")
     engine = CoreMLEngine(pkg, device="cpu")
@@ -122,8 +122,8 @@ def test_export_segment_three_outputs(tmp_path: Path) -> None:
 
 
 def test_export_fp16_relu_records_ane_optimize(tmp_path: Path) -> None:
-    from coreyolo.export.coreml import ane_preferred_act, export_coreml
-    from coreyolo.export.engine import CoreMLEngine
+    from yolosilicon.export.coreml import ane_preferred_act, export_coreml
+    from yolosilicon.export.engine import CoreMLEngine
 
     assert ane_preferred_act("relu")
     assert ane_preferred_act("star")
@@ -140,8 +140,8 @@ def test_export_fp16_relu_records_ane_optimize(tmp_path: Path) -> None:
 
 
 def test_export_rfdetr_fp16_ane_no_nms(tmp_path: Path) -> None:
-    from coreyolo.export.coreml import export_coreml
-    from coreyolo.export.engine import CoreMLEngine
+    from yolosilicon.export.coreml import export_coreml
+    from yolosilicon.export.engine import CoreMLEngine
 
     weights = _tiny_ckpt(tmp_path, "rfdetr", act="gelu")
     out = tmp_path / "tiny-rfdetr.mlpackage"
@@ -162,8 +162,8 @@ def test_export_rfdetr_fp16_ane_no_nms(tmp_path: Path) -> None:
 
 
 def test_export_fp16_silu_stays_dense_gpu(tmp_path: Path) -> None:
-    from coreyolo.export.coreml import export_coreml
-    from coreyolo.export.engine import CoreMLEngine
+    from yolosilicon.export.coreml import export_coreml
+    from yolosilicon.export.engine import CoreMLEngine
 
     weights = _tiny_ckpt(tmp_path, "gelan", act="silu")
     out = tmp_path / "tiny-gelan-silu-fp16.mlpackage"

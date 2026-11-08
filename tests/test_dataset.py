@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from coreyolo.data.dummy import write_dummy_dataset
-from coreyolo.data.yaml import DatasetConfig
-from coreyolo.data.dataset import load_detection_labels, load_instance_labels
+from yolosilicon.data.dummy import write_dummy_dataset
+from yolosilicon.data.yaml import DatasetConfig
+from yolosilicon.data.dataset import load_detection_labels, load_instance_labels
 
 
 def test_roboflow_yaml_layout(tmp_path: Path) -> None:

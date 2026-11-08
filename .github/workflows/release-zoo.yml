@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Check zoo license labels
-        run: PYTHONPATH=. python3 -c "from coreyolo.zoo import assert_zoo_license_labels; assert_zoo_license_labels()"
+        run: PYTHONPATH=. python3 -c "from yolosilicon.zoo import assert_zoo_license_labels; assert_zoo_license_labels()"
       - name: Pack listed zoo files
         run: |
           python3 - <<'PY'

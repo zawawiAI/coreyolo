@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CoreYOLO — Object detection for Apple silicon</title>
+  <title>YOLOSilicon — Object detection for Apple silicon</title>
   <meta name="description" content="MIT code. Weights per checkpoint. Train in PyTorch, ship Core ML to Apple silicon." />
   <link rel="stylesheet" href="css/site.css?v=kl" />
 </head>
@@ -18,7 +18,7 @@
         <li><a href="models.html">Models</a></li>
         <li><a href="docs.html">Docs</a></li>
         <li><a href="deploy.html">Deploy</a></li>
-        <li><a href="https://github.com/zawawiAI/coreyolo">GitHub</a></li>
+        <li><a href="https://github.com/zawawiAI/yolosilicon">GitHub</a></li>
         <li><a class="nav-cta" href="docs.html#quickstart">Get started</a></li>
       </ul>
     </div>
@@ -71,16 +71,16 @@
   <section class="section dark">
     <div class="wrap">
       <h2>From notebook to iPhone.</h2>
-      <p class="lead">One SDK. Train, validate, predict, export. Application code loads CoreYOLO files only. Prefer <code>Detector</code>; <code>YOLO</code> is a compatibility alias.</p>
+      <p class="lead">One SDK. Train, validate, predict, export. Application code loads YOLOSilicon files only. Prefer <code>Detector</code>; <code>YOLO</code> is a compatibility alias.</p>
       <div class="install">
-        <code id="install-line">pip install coreyolo</code>
+        <code id="install-line">pip install yolosilicon</code>
         <button class="copy" type="button" data-copy="#install-line">Copy</button>
       </div>
-      <pre><code>from coreyolo import Detector
+      <pre><code>from yolosilicon import Detector
 
 model = Detector("n")              # GELAN n; also "s" / "m" / "l", or family="e2e"
 model.train(data="data.yaml", epochs=100, imgsz=640)
-model.save("weights/app.coreyolo")
+model.save("weights/app.yolosilicon")
 model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU
 # RF-DETR export is FP16 on the Neural Engine, palettes off</code></pre>
     </div>
@@ -108,7 +108,7 @@ model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU
         </article>
         <article class="card">
           <h3>RF-DETR</h3>
-          <p>Set prediction on LibreYOLO’s Core ML contract for this family: fixed RGB image, ImageNet norm inside the graph, no NMS. Scales n / s / m / l at 384 / 512 / 576 / 704. CoreYOLO ships FP16 on the Neural Engine. Train from scratch (MIT).</p>
+          <p>Set prediction on LibreYOLO’s Core ML contract for this family: fixed RGB image, ImageNet norm inside the graph, no NMS. Scales n / s / m / l at 384 / 512 / 576 / 704. YOLOSilicon ships FP16 on the Neural Engine. Train from scratch (MIT).</p>
           <p><a href="models.html">See models ›</a></p>
         </article>
       </div>
@@ -175,17 +175,17 @@ model.export(imgsz=640)   # ReLU: palettes+ANE; SiLU: dense FP16 GPU
         <a href="docs.html#quickstart">Quickstart</a>
         <a href="docs.html#cli">CLI</a>
         <a href="docs.html#sdk">Python SDK</a>
-        <a href="https://github.com/zawawiAI/coreyolo/tree/main/examples/ios">iOS sample</a>
+        <a href="https://github.com/zawawiAI/yolosilicon/tree/main/examples/ios">iOS sample</a>
       </div>
       <div>
         <h4>Project</h4>
-        <a href="https://github.com/zawawiAI/coreyolo">GitHub</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/CoreYOLO-White-Paper.pdf">White paper</a>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
+        <a href="https://github.com/zawawiAI/yolosilicon">GitHub</a>
+        <a href="https://github.com/zawawiAI/yolosilicon/blob/main/docs/YOLOSilicon-White-Paper.pdf">White paper</a>
+        <a href="https://github.com/zawawiAI/yolosilicon/blob/main/LICENSE">MIT</a>
         <a href="docs.html#license">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
+    <p class="legal">Copyright © 2026 YOLOSilicon contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

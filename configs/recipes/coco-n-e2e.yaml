@@ -1,6 +1,6 @@
 # COCO 2017 — CoreYOLO E2E nano (C3k2 + C2PSA + NMS-free head).
 # Prepare data first:
-#   coreyolo coco --out datasets/coco --download
+#   yolosilicon coco --out datasets/coco --download
 #
 # Same schedule as coco-n. Train from scratch.
 

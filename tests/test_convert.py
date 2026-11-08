@@ -1,6 +1,6 @@
 import torch
 
-from coreyolo.export.convert import (
+from yolosilicon.export.convert import (
     CONVERT_LICENSE_NOTICE,
     MTL_CONVERT_LICENSE_NOTICE,
     detect_pt_family,
@@ -11,7 +11,7 @@ from coreyolo.export.convert import (
     remap_mtl_state,
     remap_v8_state,
 )
-from coreyolo.nn.model import build_model
+from yolosilicon.nn.model import build_model
 
 
 def test_remap_v8_stem_and_dfl() -> None:
@@ -175,13 +175,13 @@ def test_remap_mtl_detect_and_aconv() -> None:
 def test_convert_mtl_v9t_stamps_mit(tmp_path) -> None:
     from pathlib import Path
 
-    from coreyolo.export.convert import convert_checkpoint
-    from coreyolo.utils import load_checkpoint
+    from yolosilicon.export.convert import convert_checkpoint
+    from yolosilicon.utils import load_checkpoint
 
     src = Path("weights/mit-src/v9-t.pt")
     if not src.is_file():
         return
-    dest = tmp_path / "coreyolo-n-coco.coreyolo"
+    dest = tmp_path / "coreyolo-n-coco.yolosilicon"
     convert_checkpoint(src, dest)
     ckpt = load_checkpoint(dest)
     assert ckpt["weights_license"] == "MIT"
@@ -194,13 +194,13 @@ def test_convert_mtl_v9t_stamps_mit(tmp_path) -> None:
 def test_convert_ultralytics_stamps_agpl(tmp_path) -> None:
     from pathlib import Path
 
-    from coreyolo.export.convert import convert_checkpoint
-    from coreyolo.utils import load_checkpoint
+    from yolosilicon.export.convert import convert_checkpoint
+    from yolosilicon.utils import load_checkpoint
 
     src = Path("weights/yolov9s.pt")
     if not src.is_file():
         return
-    dest = tmp_path / "from-ultralytics.coreyolo"
+    dest = tmp_path / "from-ultralytics.yolosilicon"
     convert_checkpoint(src, dest)
     ckpt = load_checkpoint(dest)
     assert ckpt["weights_license"] == "AGPL-3.0"

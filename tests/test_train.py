@@ -2,12 +2,12 @@ from pathlib import Path
 
 import torch
 
-from coreyolo.data.dataset import DetectionDataset, collate_fn
-from coreyolo.data.dummy import write_dummy_dataset
-from coreyolo.data.yaml import DatasetConfig
-from coreyolo.nn.model import build_model
-from coreyolo.train.loss import DetectionLoss
-from coreyolo.train.trainer import TrainConfig, train
+from yolosilicon.data.dataset import DetectionDataset, collate_fn
+from yolosilicon.data.dummy import write_dummy_dataset
+from yolosilicon.data.yaml import DatasetConfig
+from yolosilicon.nn.model import build_model
+from yolosilicon.train.loss import DetectionLoss
+from yolosilicon.train.trainer import TrainConfig, train
 
 
 def test_one_train_step(tmp_path: Path) -> None:

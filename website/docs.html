@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Docs — CoreYOLO</title>
-  <meta name="description" content="Train, val, predict, and export CoreYOLO. Python SDK and CLI." />
+  <title>Docs — YOLOSilicon</title>
+  <meta name="description" content="Train, val, predict, and export YOLOSilicon. Python SDK and CLI." />
   <link rel="stylesheet" href="css/site.css?v=oss" />
 </head>
 <body>
@@ -17,7 +17,7 @@
         <li><a href="models.html">Models</a></li>
         <li><a href="docs.html" aria-current="page">Docs</a></li>
         <li><a href="deploy.html">Deploy</a></li>
-        <li><a href="https://github.com/zawawiAI/coreyolo">GitHub</a></li>
+        <li><a href="https://github.com/zawawiAI/yolosilicon">GitHub</a></li>
         <li><a class="nav-cta" href="#quickstart">Get started</a></li>
       </ul>
     </div>
@@ -26,7 +26,7 @@
   <header class="page-hero">
     <p class="eyebrow">Documentation</p>
     <h1>From data.yaml to Core ML.</h1>
-    <p>The CLI and the Python SDK share the same internals. Application code loads CoreYOLO files only.</p>
+    <p>The CLI and the Python SDK share the same internals. Application code loads YOLOSilicon files only.</p>
   </header>
 
   <div class="docs-layout">
@@ -47,40 +47,40 @@
     </nav>
     <article class="docs-body">
       <h2 id="quickstart">Quickstart</h2>
-      <p>Install CoreYOLO, then train a nano model on Roboflow YOLO labels.</p>
-      <pre><code>pip install coreyolo</code></pre>
+      <p>Install YOLOSilicon, then train a nano model on Roboflow YOLO labels.</p>
+      <pre><code>pip install yolosilicon</code></pre>
 
       <div class="tabs" role="tablist">
         <button class="tab" type="button" data-tab="py" aria-selected="true">Python</button>
         <button class="tab" type="button" data-tab="cli" aria-selected="false">CLI</button>
       </div>
       <div data-panel="py">
-        <pre><code>from coreyolo import Detector
+        <pre><code>from yolosilicon import Detector
 
 model = Detector("n")              # GELAN n; also "s" / "m" / "l"
 # model = Detector("s")
 # model = Detector("n", family="e2e")
 model.train(data="data.yaml", epochs=100, imgsz=640)
-model.save("weights/app.coreyolo")
+model.save("weights/app.yolosilicon")
 results = model.predict("photo.jpg", classes="person")
 model.export(imgsz=640)           # ReLU: palettes+ANE; SiLU: dense FP16 GPU</code></pre>
       </div>
       <div data-panel="cli" hidden>
-        <pre><code>coreyolo dummy-data --out datasets/dummy
-coreyolo train --data datasets/dummy/data.yaml --model n --family gelan --epochs 20 --imgsz 320
-coreyolo train --data datasets/dummy/data.yaml --model n --family e2e --epochs 20 --imgsz 320
-coreyolo val --data datasets/dummy/data.yaml --weights runs/detect/train/weights/best.pt
-coreyolo export --weights runs/detect/train/weights/best.pt --imgsz 320
-coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source photo.jpg --device auto</code></pre>
+        <pre><code>yolosilicon dummy-data --out datasets/dummy
+yolosilicon train --data datasets/dummy/data.yaml --model n --family gelan --epochs 20 --imgsz 320
+yolosilicon train --data datasets/dummy/data.yaml --model n --family e2e --epochs 20 --imgsz 320
+yolosilicon val --data datasets/dummy/data.yaml --weights runs/detect/train/weights/best.pt
+yolosilicon export --weights runs/detect/train/weights/best.pt --imgsz 320
+yolosilicon predict --weights runs/detect/train/weights/best.mlpackage --source photo.jpg --device auto</code></pre>
       </div>
-      <p><code>Detector("n")</code> builds an untrained GELAN nano graph. Pass <code>"s"</code>, <code>"m"</code>, or <code>"l"</code> for the larger tables, or <code>family="e2e"</code> for the NMS-free graph. <code>Detector("weights/app.coreyolo")</code> or a <code>.mlpackage</code> loads a trained artifact. Do not pass <code>v9-t.pt</code> or <code>yolov9t.pt</code> into <code>Detector()</code> — those layouts are rejected. <code>from coreyolo import YOLO</code> still works as an alias.</p>
+      <p><code>Detector("n")</code> builds an untrained GELAN nano graph. Pass <code>"s"</code>, <code>"m"</code>, or <code>"l"</code> for the larger tables, or <code>family="e2e"</code> for the NMS-free graph. <code>Detector("weights/app.yolosilicon")</code> or a <code>.mlpackage</code> loads a trained artifact. Do not pass <code>v9-t.pt</code> or <code>yolov9t.pt</code> into <code>Detector()</code> — those layouts are rejected. <code>from yolosilicon import YOLO</code> still works as an alias.</p>
 
       <h2 id="sdk">Python SDK</h2>
-      <p><code>from coreyolo import Detector, Result</code>. Methods: <code>train</code>, <code>val</code>, <code>predict</code>, <code>export</code>, <code>save</code>, <code>info</code>, <code>dummy_data</code>. Webcam: <code>model.predict(0)</code> on a Mac. That is not the iPhone runtime. <code>YOLO</code> is a compatibility alias; YOLO is a trademark of its owners.</p>
-      <p>Native checkpoints are tagged <code>format: "coreyolo"</code> with <code>stem.*</code> / <code>head.*</code> tensors. Suffix may be <code>.coreyolo</code> or <code>.pt</code>.</p>
+      <p><code>from yolosilicon import Detector, Result</code>. Methods: <code>train</code>, <code>val</code>, <code>predict</code>, <code>export</code>, <code>save</code>, <code>info</code>, <code>dummy_data</code>. Webcam: <code>model.predict(0)</code> on a Mac. That is not the iPhone runtime. <code>YOLO</code> is a compatibility alias; YOLO is a trademark of its owners.</p>
+      <p>Native checkpoints are tagged <code>format: "yolosilicon"</code> with <code>stem.*</code> / <code>head.*</code> tensors. Suffix may be <code>.yolosilicon</code> or <code>.pt</code>.</p>
 
       <h2 id="cli">CLI</h2>
-      <pre><code>coreyolo train | val | predict | export | convert | coco | dummy-data</code></pre>
+      <pre><code>yolosilicon train | val | predict | export | convert | coco | dummy-data</code></pre>
       <p>Device: <code>--device gpu</code> (default) is PyTorch MPS / Core ML CPU_AND_GPU. <code>auto</code> tries Neural Engine first on a <code>.mlpackage</code>. Also <code>ane</code>, <code>all</code>, <code>cpu</code>.</p>
       <p>Graph: <code>--family gelan</code> (default, YOLOv9 GELAN; n / s / m / l = v9-t / s / m / c), <code>--family dfl</code> (C2f + host NMS), <code>--family e2e</code> (C3k2 + C2PSA, NMS-free), or <code>--family rfdetr</code> (set prediction, n/s/m/l, FP16 on the Neural Engine). Old <code>9</code> / <code>8</code> / <code>26</code> flags still load.</p>
       <p>Activation: <code>--act relu</code> (default, ANE). <code>silu</code> is only for converted YOLOv9 tensors — do not swap it on those checkpoints. Also <code>star</code> (StarReLU), <code>gelu</code>, <code>hardswish</code>.</p>
@@ -89,12 +89,12 @@ coreyolo predict --weights runs/detect/train/weights/best.mlpackage --source pho
       <p><strong>GELAN</strong> is the default detect graph: ELAN1 / RepNCSPELAN4 / SPPELAN, Distribution Focal Loss, decoded xywh, class-aware NMS on the host. Scales <code>n</code> / <code>s</code> / <code>m</code> / <code>l</code> match public <code>v9-t</code> / <code>s</code> / <code>m</code> / <code>c</code>. Core ML layout <code>(1, 4+nc, N)</code>. This graph never had YOLOv9 PGI aux nodes; export is the main branch only.</p>
       <p><strong>DFL</strong> is the older C2f + SPPF graph with the same DFL head.</p>
       <p><strong>E2E</strong> is C3k2 + C2PSA with a dual TAL head and NMS-free top-300 at inference. Core ML layout <code>(1, 300, 6)</code> as xyxy, conf, cls. Export drops the one-to-many train head. Train from scratch: <code>--family e2e</code> or <code>--recipe coco-n-e2e</code>.</p>
-      <p><strong>RF-DETR</strong> follows LibreYOLO's Core ML contract for this family: one fixed RGB image, ImageNet normalization inside the graph, set prediction, no NMS, eval layout <code>(1, Q, 6)</code>. Scales n / s / m / l use 384 / 512 / 576 / 704. LibreYOLO defaults that export to FP32 and <code>compute_units=all</code>. CoreYOLO pins FP16 and the Neural Engine, and uses dense cross-attention so the graph does not need deformable <code>grid_sample</code>. Train with <code>--family rfdetr</code> or <code>--recipe coco-n-rfdetr</code> at <code>lr0=1e-4</code>. Weights you train are MIT. Upstream Roboflow Nano–Large files stay Apache-2.0 and are not remapped. XLarge and 2XLarge (PML 1.0) are refused.</p>
+      <p><strong>RF-DETR</strong> follows LibreYOLO's Core ML contract for this family: one fixed RGB image, ImageNet normalization inside the graph, set prediction, no NMS, eval layout <code>(1, Q, 6)</code>. Scales n / s / m / l use 384 / 512 / 576 / 704. LibreYOLO defaults that export to FP32 and <code>compute_units=all</code>. YOLOSilicon pins FP16 and the Neural Engine, and uses dense cross-attention so the graph does not need deformable <code>grid_sample</code>. Train with <code>--family rfdetr</code> or <code>--recipe coco-n-rfdetr</code> at <code>lr0=1e-4</code>. Weights you train are MIT. Upstream Roboflow Nano–Large files stay Apache-2.0 and are not remapped. XLarge and 2XLarge (PML 1.0) are refused.</p>
 
       <h2 id="export">Export</h2>
-      <pre><code>coreyolo export --weights weights/app.coreyolo --imgsz 640
-coreyolo export --weights weights/app.coreyolo --imgsz 640 --no-palette
-coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8</code></pre>
+      <pre><code>yolosilicon export --weights weights/app.yolosilicon --imgsz 640
+yolosilicon export --weights weights/app.yolosilicon --imgsz 640 --no-palette
+yolosilicon export --weights weights/app.yolosilicon --imgsz 640 --int8</code></pre>
       <p>Default export is an FP16 ML Program (iOS 16 / macOS 13): fused Conv–BN, inference branch only (no train-time aux heads), cached static DFL grids (no <code>meshgrid</code> / <code>arange</code> in the package), host NMS, MIL cleanup passes. ReLU, ReLU6, StarReLU, and HardSwish convert with <code>CPU_AND_NE</code> so the graph stays ANE-legal, then <strong>8-bit k-means palettize</strong>. Converted SiLU YOLOv9 packages stay dense FP16 on GPU. Palettes are ANE-oriented, so RF-DETR skips them and ships FP16 on the Neural Engine. <code>--int8</code> is linear weight quant instead of palettes. Train ReLU from scratch for Neural Engine.</p>
       <p>Python: <code>model.export(imgsz=640)</code> or <code>palettize=False</code>. Package metadata records <code>optimize</code> (<code>palettize8</code> / <code>fp16</code> / <code>int8</code>) and <code>preferred_compute</code> (<code>ane</code> or <code>gpu</code>).</p>
 
@@ -102,30 +102,30 @@ coreyolo export --weights weights/app.coreyolo --imgsz 640 --int8</code></pre>
       <p>Roboflow YOLO export: <code>data.yaml</code> plus <code>train|valid/{images,labels}</code>. Each detect line is normalized <code>class xc yc w h</code>. Segmentation uses polygons. The loader accepts list or dict <code>names</code>, <code>val</code> or <code>valid</code>.</p>
 
       <h2 id="segment">Segmentation</h2>
-      <pre><code>coreyolo dummy-data --out datasets/dummy-seg --segment
-coreyolo train --data datasets/dummy-seg/data.yaml --model n --task segment --epochs 20 --imgsz 320</code></pre>
+      <pre><code>yolosilicon dummy-data --out datasets/dummy-seg --segment
+yolosilicon train --data datasets/dummy-seg/data.yaml --model n --task segment --epochs 20 --imgsz 320</code></pre>
       <p>GELAN (DFL head) is the supported seg graph. E2E can train a proto head too. Mosaic is off so polygons stay valid. Core ML writes three outputs: detections, mask coefficients, proto. NMS and mask assembly stay on the host.</p>
 
       <h2 id="coco">COCO</h2>
-      <pre><code>coreyolo coco --out datasets/coco --download
-coreyolo coco --out datasets/coco --splits val --max-images 512 --no-download
-coreyolo train --recipe coco-n-fast
-coreyolo train --recipe coco-s
-coreyolo train --recipe coco-m
-coreyolo train --recipe coco-n-e2e</code></pre>
+      <pre><code>yolosilicon coco --out datasets/coco --download
+yolosilicon coco --out datasets/coco --splits val --max-images 512 --no-download
+yolosilicon train --recipe coco-n-fast
+yolosilicon train --recipe coco-s
+yolosilicon train --recipe coco-m
+yolosilicon train --recipe coco-n-e2e</code></pre>
       <p>Optional bootstrap, once, not in the app. Converted <code>v9-*.pt</code> files are MIT:</p>
-      <pre><code>coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo
-coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo
-coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo
-coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo</code></pre>
+      <pre><code>yolosilicon convert --weights v9-t.pt --out weights/yolosilicon-n-coco.yolosilicon
+yolosilicon convert --weights v9-s.pt --out weights/yolosilicon-s-coco.yolosilicon
+yolosilicon convert --weights v9-m.pt --out weights/yolosilicon-m-coco.yolosilicon
+yolosilicon convert --weights v9-c.pt --out weights/yolosilicon-l-coco.yolosilicon</code></pre>
 
       <h2 id="license">License</h2>
-      <p>CoreYOLO carries two separately licensed things: its own code, and pretrained checkpoints. They are often not the same license. Choosing a model means choosing its license.</p>
+      <p>YOLOSilicon carries two separately licensed things: its own code, and pretrained checkpoints. They are often not the same license. Choosing a model means choosing its license.</p>
       <div class="note">
         <p><strong>Own code:</strong> MIT. Use it in a commercial or closed-source product; keep the copyright line and the license text with any copy you redistribute.</p>
         <p><strong>GELAN COCO weights:</strong> MIT. A model you train yourself is yours.</p>
         <p><strong>RF-DETR you train:</strong> MIT. The graph follows LibreYOLO’s Core ML contract and does not load LibreYOLO or Roboflow checkpoints. Upstream Nano–Large files stay Apache-2.0. XLarge and 2XLarge (Platform Model License 1.0) are refused.</p>
-        <p>This is a description of the licenses involved, not legal advice. Full write-up: <a href="https://github.com/zawawiAI/coreyolo/blob/main/docs/licenses.md">docs/licenses.md</a>, <a href="https://github.com/zawawiAI/coreyolo/blob/main/weights/LICENSE_NOTICE.txt">weights/LICENSE_NOTICE.txt</a>.</p>
+        <p>This is a description of the licenses involved, not legal advice. Full write-up: <a href="https://github.com/zawawiAI/yolosilicon/blob/main/docs/licenses.md">docs/licenses.md</a>, <a href="https://github.com/zawawiAI/yolosilicon/blob/main/weights/LICENSE_NOTICE.txt">weights/LICENSE_NOTICE.txt</a>.</p>
       </div>
     </article>
   </div>
@@ -150,11 +150,11 @@ coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo</code>
       </div>
       <div>
         <h4>Project</h4>
-        <a href="https://github.com/zawawiAI/coreyolo/blob/main/LICENSE">MIT</a>
+        <a href="https://github.com/zawawiAI/yolosilicon/blob/main/LICENSE">MIT</a>
         <a href="docs.html#license">Licenses</a>
       </div>
     </div>
-    <p class="legal">Copyright © 2026 CoreYOLO contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
+    <p class="legal">Copyright © 2026 YOLOSilicon contributors. Code MIT. Weights carry their own license, stated per checkpoint. YOLO is a trademark of its owners. This is a description of the licenses involved, not legal advice.</p>
   </footer>
   <script src="js/site.js"></script>
 </body>

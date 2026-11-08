@@ -1,7 +1,7 @@
 import torch
 
-from coreyolo.nn.model import build_model
-from coreyolo.infer.nms import non_max_suppression
+from yolosilicon.nn.model import build_model
+from yolosilicon.infer.nms import non_max_suppression
 
 
 def test_forward_shapes_train_and_eval() -> None:
@@ -20,7 +20,7 @@ def test_forward_shapes_train_and_eval() -> None:
 
 
 def test_family_aliases() -> None:
-    from coreyolo.nn.model import is_e2e_family, is_gelan_family, normalize_family
+    from yolosilicon.nn.model import is_e2e_family, is_gelan_family, normalize_family
 
     assert normalize_family(None) == "gelan"
     assert normalize_family("8") == "dfl"
@@ -144,8 +144,8 @@ def test_nms_fp16_collapses_high_class_duplicates() -> None:
 
 
 def test_gpu_device_aliases() -> None:
-    from coreyolo.export.engine import resolve_compute_units
-    from coreyolo.utils import select_device
+    from yolosilicon.export.engine import resolve_compute_units
+    from yolosilicon.utils import select_device
 
     kind, unit = resolve_compute_units("gpu")
     assert kind == "gpu"
@@ -163,14 +163,14 @@ def test_gpu_device_aliases() -> None:
     ane = select_device("ane")
     assert ane.type in {"mps", "cuda", "cpu"}
     if torch.backends.mps.is_available():
-        from coreyolo.utils import mps_usable
+        from yolosilicon.utils import mps_usable
 
         if mps_usable():
             assert select_device("gpu").type == "mps"
 
 
 def test_modern_activations_forward() -> None:
-    from coreyolo.nn.modules import StarReLU, make_act, normalize_act
+    from yolosilicon.nn.modules import StarReLU, make_act, normalize_act
 
     assert normalize_act("GELU") == "gelu"
     assert normalize_act("starrelu") == "star"
@@ -192,7 +192,7 @@ def test_modern_activations_forward() -> None:
 
 
 def test_unknown_activation_rejected() -> None:
-    from coreyolo.nn.modules import normalize_act
+    from yolosilicon.nn.modules import normalize_act
 
     try:
         normalize_act("swiglu")
@@ -203,7 +203,7 @@ def test_unknown_activation_rejected() -> None:
 
 
 def test_fuse_keeps_parameter_device() -> None:
-    from coreyolo.utils import mps_usable
+    from yolosilicon.utils import mps_usable
 
     if not mps_usable():
         return
@@ -234,7 +234,7 @@ def test_e2e_eval_skips_one2many_aux() -> None:
 
 
 def test_static_anchors_match_feature_grids() -> None:
-    from coreyolo.nn.decode import make_anchors, make_static_anchors
+    from yolosilicon.nn.decode import make_anchors, make_static_anchors
 
     model = build_model(nc=3, scale="n", family="gelan")
     model.eval()

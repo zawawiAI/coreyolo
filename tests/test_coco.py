@@ -1,15 +1,15 @@
 import json
 from pathlib import Path
 
-from coreyolo.data.coco import (
+from yolosilicon.data.coco import (
     COCO_ID_TO_IDX,
     COCO_NAMES,
     coco_to_normalized_bbox,
     convert_coco_json,
     write_data_yaml,
 )
-from coreyolo.data.yaml import DatasetConfig
-from coreyolo.train.recipe import load_recipe, train_config_from_recipe
+from yolosilicon.data.yaml import DatasetConfig
+from yolosilicon.train.recipe import load_recipe, train_config_from_recipe
 
 
 def test_coco_80_mapping() -> None:
@@ -95,11 +95,11 @@ def test_coco_n_e2e_recipe() -> None:
 
 
 def test_recipes_ship_inside_package() -> None:
-    from coreyolo.train.recipe import recipe_path
+    from yolosilicon.train.recipe import recipe_path
 
     path = recipe_path("coco-n")
     assert path.is_file()
-    assert "coreyolo" in path.parts
+    assert "yolosilicon" in path.parts
     assert path.name == "coco-n.yaml"
 
 

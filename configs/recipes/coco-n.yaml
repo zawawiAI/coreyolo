@@ -1,6 +1,6 @@
 # COCO 2017 — CoreYOLO-n (Apple silicon 24 GB unified memory).
 # Prepare data first:
-#   coreyolo coco --out datasets/coco --download
+#   yolosilicon coco --out datasets/coco --download
 #
 # Full schedule (~118k train images, 300 epochs). First pass: coco-n-fast.
 

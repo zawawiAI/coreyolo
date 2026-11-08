@@ -1,9 +1,9 @@
 import torch
 
-from coreyolo.nn.model import build_model, is_rfdetr_family, normalize_family
-from coreyolo.nn.rfdetr import check_rfdetr_imgsz, rfdetr_native_imgsz
-from coreyolo.train.set_loss import SetCriterion, linear_sum_assignment
-from coreyolo.utils import (
+from yolosilicon.nn.model import build_model, is_rfdetr_family, normalize_family
+from yolosilicon.nn.rfdetr import check_rfdetr_imgsz, rfdetr_native_imgsz
+from yolosilicon.train.set_loss import SetCriterion, linear_sum_assignment
+from yolosilicon.utils import (
     APACHE_WEIGHT_LICENSE,
     PML_WEIGHT_LICENSE,
     checkpoint_weight_license,
@@ -11,7 +11,7 @@ from coreyolo.utils import (
     refuse_upstream_rfdetr,
     save_checkpoint,
 )
-from coreyolo.zoo import assert_zoo_license_labels
+from yolosilicon.zoo import assert_zoo_license_labels
 
 
 def test_family_alias_and_native_sizes() -> None:
@@ -118,7 +118,7 @@ def test_upstream_pml_refused(tmp_path) -> None:
 
 def test_scratch_checkpoint_stays_mit(tmp_path) -> None:
     model = build_model(nc=2, scale="n", family="rfdetr", act="gelu")
-    path = tmp_path / "coreyolo-rfdetr-n.coreyolo"
+    path = tmp_path / "coreyolo-rfdetr-n.yolosilicon"
     save_checkpoint(
         path,
         {
@@ -130,7 +130,7 @@ def test_scratch_checkpoint_stays_mit(tmp_path) -> None:
             "weights_license": "MIT",
         },
     )
-    from coreyolo.utils import load_checkpoint
+    from yolosilicon.utils import load_checkpoint
 
     ckpt = load_checkpoint(path)
     assert ckpt["family"] == "rfdetr"

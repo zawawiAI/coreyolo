@@ -3,8 +3,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from coreyolo import Detector, Result
-from coreyolo.data.dummy import write_dummy_dataset
+from yolosilicon import Detector, Result
+from yolosilicon.data.dummy import write_dummy_dataset
 
 
 def test_sdk_family_aliases() -> None:
@@ -72,20 +72,20 @@ def test_sdk_train_then_predict(tmp_path: Path) -> None:
 
 def test_sdk_native_coreyolo_roundtrip(tmp_path: Path) -> None:
     src = Detector("n", nc=3, names=["a", "b", "c"], device="cpu", imgsz=64)
-    path = src.save(tmp_path / "app.coreyolo")
-    assert path.suffix == ".coreyolo"
+    path = src.save(tmp_path / "app.yolosilicon")
+    assert path.suffix == ".yolosilicon"
     loaded = Detector(path, device="cpu", imgsz=64)
     assert loaded.names == ["a", "b", "c"]
-    assert loaded.info().get("format") == "coreyolo" or loaded.weights.suffix == ".coreyolo"
+    assert loaded.info().get("format") == "yolosilicon" or loaded.weights.suffix == ".yolosilicon"
     ckpt = __import__("torch").load(path, map_location="cpu", weights_only=False)
-    assert ckpt["format"] == "coreyolo"
+    assert ckpt["format"] == "yolosilicon"
     assert any(k.startswith("stem.") for k in ckpt["model"])
 
 
 def test_rejects_upstream_pt(tmp_path: Path) -> None:
     import torch
 
-    from coreyolo.utils import load_checkpoint
+    from yolosilicon.utils import load_checkpoint
 
     fake = tmp_path / "upstream.pt"
     torch.save({"model": {"model.22.dfl.conv.weight": torch.zeros(1, 16, 1, 1)}}, fake)
@@ -113,11 +113,11 @@ def test_detector_is_public_name() -> None:
 def test_save_preserves_agpl_origin(tmp_path: Path) -> None:
     import torch
 
-    from coreyolo.nn.model import build_model
-    from coreyolo.utils import save_checkpoint
+    from yolosilicon.nn.model import build_model
+    from yolosilicon.utils import save_checkpoint
 
     nn = build_model(nc=2, scale="n", act="silu", family="gelan")
-    src = tmp_path / "converted.coreyolo"
+    src = tmp_path / "converted.yolosilicon"
     save_checkpoint(
         src,
         {
@@ -135,7 +135,7 @@ def test_save_preserves_agpl_origin(tmp_path: Path) -> None:
     )
     loaded = Detector(src, device="cpu", imgsz=64)
     assert loaded.info()["weights_license"] == "AGPL-3.0"
-    out = loaded.save(tmp_path / "resaved.coreyolo")
+    out = loaded.save(tmp_path / "resaved.yolosilicon")
     ckpt = torch.load(out, map_location="cpu", weights_only=False)
     assert ckpt["weights_license"] == "AGPL-3.0"
     assert ckpt.get("source_family") == "yolov9"
@@ -144,11 +144,11 @@ def test_save_preserves_agpl_origin(tmp_path: Path) -> None:
 def test_save_preserves_mtl_mit_origin(tmp_path: Path) -> None:
     import torch
 
-    from coreyolo.nn.model import build_model
-    from coreyolo.utils import save_checkpoint
+    from yolosilicon.nn.model import build_model
+    from yolosilicon.utils import save_checkpoint
 
     nn = build_model(nc=2, scale="n", act="silu", family="gelan")
-    src = tmp_path / "converted-mit.coreyolo"
+    src = tmp_path / "converted-mit.yolosilicon"
     save_checkpoint(
         src,
         {
@@ -168,7 +168,7 @@ def test_save_preserves_mtl_mit_origin(tmp_path: Path) -> None:
     )
     loaded = Detector(src, device="cpu", imgsz=64)
     assert loaded.info()["weights_license"] == "MIT"
-    out = loaded.save(tmp_path / "resaved-mit.coreyolo")
+    out = loaded.save(tmp_path / "resaved-mit.yolosilicon")
     ckpt = torch.load(out, map_location="cpu", weights_only=False)
     assert ckpt["weights_license"] == "MIT"
     assert ckpt["source_vendor"] == "MultimediaTechLab"

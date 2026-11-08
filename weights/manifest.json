@@ -1,22 +1,22 @@
 {
   "version": "0.1.0",
   "license": "MIT",
-  "note": "Package code is MIT. Converted v9-*.pt stay MIT (keep Wong/Tsui copyright). Other published YOLOv9 dumps stay AGPL-3.0. RF-DETR trained here is MIT. Upstream Roboflow Nano–Large weights are Apache-2.0 and are not remapped. XLarge/2XLarge (PML-1.0) are refused. See docs/licenses.md. Checkpoints are GitHub Release assets, not git. Fill mAP with: coreyolo val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
+  "note": "Package code is MIT. Converted v9-*.pt stay MIT (keep Wong/Tsui copyright). Other published YOLOv9 dumps stay AGPL-3.0. RF-DETR trained here is MIT. Upstream Roboflow Nano–Large weights are Apache-2.0 and are not remapped. XLarge/2XLarge (PML-1.0) are refused. See docs/licenses.md. Checkpoints are GitHub Release assets, not git. Fill mAP with: yolosilicon val --data datasets/coco/data.yaml --weights <file> --json weights/metrics-<id>.json --zoo-id <id>",
   "models": [
     {
-      "id": "coreyolo-n-coco",
+      "id": "yolosilicon-n-coco",
       "family": "gelan",
       "scale": "n",
       "task": "detect",
       "act": "silu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo convert --weights v9-t.pt --out weights/coreyolo-n-coco.coreyolo",
+      "how": "yolosilicon convert --weights v9-t.pt --out weights/yolosilicon-n-coco.yolosilicon",
       "weights_origin": "YOLOv9 v1.0-alpha v9-t.pt",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-n-coco.coreyolo",
-        "coreml": "coreyolo-n-coco.mlpackage"
+        "checkpoint": "yolosilicon-n-coco.yolosilicon",
+        "coreml": "yolosilicon-n-coco.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",
@@ -25,19 +25,19 @@
       }
     },
     {
-      "id": "coreyolo-s-coco",
+      "id": "yolosilicon-s-coco",
       "family": "gelan",
       "scale": "s",
       "task": "detect",
       "act": "silu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo convert --weights v9-s.pt --out weights/coreyolo-s-coco.coreyolo",
+      "how": "yolosilicon convert --weights v9-s.pt --out weights/yolosilicon-s-coco.yolosilicon",
       "weights_origin": "YOLOv9 v1.0-alpha v9-s.pt",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-s-coco.coreyolo",
-        "coreml": "coreyolo-s-coco.mlpackage"
+        "checkpoint": "yolosilicon-s-coco.yolosilicon",
+        "coreml": "yolosilicon-s-coco.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",
@@ -46,19 +46,19 @@
       }
     },
     {
-      "id": "coreyolo-m-coco",
+      "id": "yolosilicon-m-coco",
       "family": "gelan",
       "scale": "m",
       "task": "detect",
       "act": "silu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo convert --weights v9-m.pt --out weights/coreyolo-m-coco.coreyolo",
+      "how": "yolosilicon convert --weights v9-m.pt --out weights/yolosilicon-m-coco.yolosilicon",
       "weights_origin": "YOLOv9 v1.0-alpha v9-m.pt",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-m-coco.coreyolo",
-        "coreml": "coreyolo-m-coco.mlpackage"
+        "checkpoint": "yolosilicon-m-coco.yolosilicon",
+        "coreml": "yolosilicon-m-coco.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",
@@ -67,19 +67,19 @@
       }
     },
     {
-      "id": "coreyolo-l-coco",
+      "id": "yolosilicon-l-coco",
       "family": "gelan",
       "scale": "l",
       "task": "detect",
       "act": "silu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo convert --weights v9-c.pt --out weights/coreyolo-l-coco.coreyolo",
+      "how": "yolosilicon convert --weights v9-c.pt --out weights/yolosilicon-l-coco.yolosilicon",
       "weights_origin": "YOLOv9 v1.0-alpha v9-c.pt",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-l-coco.coreyolo",
-        "coreml": "coreyolo-l-coco.mlpackage"
+        "checkpoint": "yolosilicon-l-coco.yolosilicon",
+        "coreml": "yolosilicon-l-coco.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",
@@ -88,19 +88,19 @@
       }
     },
     {
-      "id": "coreyolo-n-coco-seg",
+      "id": "yolosilicon-n-coco-seg",
       "family": "gelan",
       "scale": "n",
       "task": "segment",
       "act": "relu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo train --data datasets/coco/data.yaml --model n --task segment --family gelan",
-      "weights_origin": "coreyolo-train",
+      "how": "yolosilicon train --data datasets/coco/data.yaml --model n --task segment --family gelan",
+      "weights_origin": "yolosilicon-train",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-n-coco-seg.coreyolo",
-        "coreml": "coreyolo-n-coco-seg.mlpackage"
+        "checkpoint": "yolosilicon-n-coco-seg.yolosilicon",
+        "coreml": "yolosilicon-n-coco-seg.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val (box mAP until mask val lands)",
@@ -109,19 +109,19 @@
       }
     },
     {
-      "id": "coreyolo-n-coco-relu",
+      "id": "yolosilicon-n-coco-relu",
       "family": "gelan",
       "scale": "n",
       "task": "detect",
       "act": "relu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo train --recipe coco-n",
-      "weights_origin": "coreyolo-train",
+      "how": "yolosilicon train --recipe coco-n",
+      "weights_origin": "yolosilicon-train",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-n-coco-relu.coreyolo",
-        "coreml": "coreyolo-n-coco-relu.mlpackage"
+        "checkpoint": "yolosilicon-n-coco-relu.yolosilicon",
+        "coreml": "yolosilicon-n-coco-relu.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",
@@ -130,19 +130,19 @@
       }
     },
     {
-      "id": "coreyolo-e2e-n-coco",
+      "id": "yolosilicon-e2e-n-coco",
       "family": "e2e",
       "scale": "n",
       "task": "detect",
       "act": "relu",
       "imgsz": 640,
       "nc": 80,
-      "how": "coreyolo train --recipe coco-n-e2e",
-      "weights_origin": "coreyolo-train",
+      "how": "yolosilicon train --recipe coco-n-e2e",
+      "weights_origin": "yolosilicon-train",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-e2e-n-coco.coreyolo",
-        "coreml": "coreyolo-e2e-n-coco.mlpackage"
+        "checkpoint": "yolosilicon-e2e-n-coco.yolosilicon",
+        "coreml": "yolosilicon-e2e-n-coco.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",
@@ -151,19 +151,19 @@
       }
     },
     {
-      "id": "coreyolo-rfdetr-n",
+      "id": "yolosilicon-rfdetr-n",
       "family": "rfdetr",
       "scale": "n",
       "task": "detect",
       "act": "gelu",
       "imgsz": 384,
       "nc": 80,
-      "how": "coreyolo train --recipe coco-n-rfdetr",
-      "weights_origin": "coreyolo-train",
+      "how": "yolosilicon train --recipe coco-n-rfdetr",
+      "weights_origin": "yolosilicon-train",
       "weights_license": "MIT",
       "files": {
-        "checkpoint": "coreyolo-rfdetr-n.coreyolo",
-        "coreml": "coreyolo-rfdetr-n.mlpackage"
+        "checkpoint": "yolosilicon-rfdetr-n.yolosilicon",
+        "coreml": "yolosilicon-rfdetr-n.mlpackage"
       },
       "metrics": {
         "dataset": "COCO 2017 val",

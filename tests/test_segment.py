@@ -1,11 +1,11 @@
 import torch
 
-from coreyolo.data.dataset import DetectionDataset, collate_fn
-from coreyolo.data.dummy import write_dummy_dataset
-from coreyolo.data.yaml import DatasetConfig
-from coreyolo.nn.model import build_model
-from coreyolo.train.loss import SegmentationLoss
-from coreyolo.train.trainer import TrainConfig, train
+from yolosilicon.data.dataset import DetectionDataset, collate_fn
+from yolosilicon.data.dummy import write_dummy_dataset
+from yolosilicon.data.yaml import DatasetConfig
+from yolosilicon.nn.model import build_model
+from yolosilicon.train.loss import SegmentationLoss
+from yolosilicon.train.trainer import TrainConfig, train
 
 
 def test_segment_forward_shapes() -> None:
@@ -36,7 +36,7 @@ def test_segment_e2e_eval_topk() -> None:
 
 
 def test_instance_masks_one_upsample() -> None:
-    from coreyolo.infer.masks import instance_masks, process_mask, scale_masks
+    from yolosilicon.infer.masks import instance_masks, process_mask, scale_masks
 
     proto = torch.rand(32, 20, 20)
     coeff = torch.rand(2, 32)
